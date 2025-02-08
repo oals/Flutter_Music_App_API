@@ -1,0 +1,105 @@
+buildscript {
+	ext {
+		queryDslVersion = "5.0.0"
+	}
+}
+
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.13'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+
+	// 2. querydsl 추가
+	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+}
+
+
+group = 'com.skrrskrr'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	google()         // Google Maven Repository 추가
+	mavenCentral()
+}
+ext {
+	JJWT_VERSION = "0.12.3"
+}
+
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	implementation group: 'com.googlecode.soundlibs', name: 'mp3spi', version: '1.9.5-1'
+	implementation 'javazoom:jlayer:1.0.1'
+
+	implementation 'org.apache.tika:tika-core:1.28.5'
+	implementation 'org.apache.tika:tika-parsers:1.28.5'
+	implementation "io.jsonwebtoken:jjwt-api:${JJWT_VERSION}"
+	runtimeOnly "io.jsonwebtoken:jjwt-gson:${JJWT_VERSION}"
+	runtimeOnly "io.jsonwebtoken:jjwt-impl:${JJWT_VERSION}"
+	implementation "io.jsonwebtoken:jjwt:0.12.3"
+
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+//	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
+	implementation 'com.google.firebase:firebase-admin:9.1.1'
+
+	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+	implementation "com.querydsl:querydsl-core:${queryDslVersion}"
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// Jedis 의존성 (Redis 클라이언트)
+	implementation 'redis.clients:jedis:4.3.1'
+
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.14.0'  // 최신 버전
+	implementation 'com.google.http-client:google-http-client:1.41.0'  // 최신 버전
+	implementation 'com.google.api-client:google-api-client:1.32.1'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// 4. querydsl
+def querydslDir = "$buildDir/generated/querydsl"
+querydsl {
+	jpa = true
+	querydslSourcesDir = querydslDir
+}
+sourceSets {
+	main.java.srcDir querydslDir
+}
+compileQuerydsl{
+	options.annotationProcessorPath = configurations.querydsl
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	querydsl.extendsFrom compileClasspath
+}
