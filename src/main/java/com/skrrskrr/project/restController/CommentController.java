@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 
 @RestController
 @Log4j2
@@ -17,7 +17,7 @@ public class CommentController {
 
 
     @PostMapping(value = "/api/setComment")
-    public HashMap<String, Object> setComment(@RequestBody HashMap<String, Object> hashMap) {
+    public Map<String, Object> setComment(@RequestBody Map<String, Object> hashMap) {
 
         log.info("setComment");
 
@@ -37,14 +37,14 @@ public class CommentController {
     }
 
     @PostMapping(value = "/api/setCommentLike")
-    public HashMap<String, Object> setCommentLike(@RequestBody HashMap<String, Object> hashMap) {
+    public Map<String, Object> setCommentLike(@RequestBody Map<String, Object> hashMap) {
         Long commentId = Long.valueOf(hashMap.get("commentId").toString());
         Long memberId = Long.valueOf(hashMap.get("memberId").toString());
         return commentService.setCommentLike(commentId, memberId);
     }
 
     @GetMapping(value = "/api/getComment")
-    public HashMap<String, Object> getComment(@RequestParam Long trackId, @RequestParam Long memberId) {
+    public Map<String, Object> getComment(@RequestParam Long trackId, @RequestParam Long memberId) {
 
         log.info("getComment");
         return commentService.getComment(trackId, memberId);
@@ -52,7 +52,7 @@ public class CommentController {
 
 
     @GetMapping(value = "/api/getChildComment")
-    public HashMap<String, Object> getChildComment(@RequestParam Long commentId, @RequestParam Long memberId) {
+    public Map<String, Object> getChildComment(@RequestParam Long commentId, @RequestParam Long memberId) {
 
         log.info("getChildComment");
         return commentService.getChildComment(commentId, memberId);

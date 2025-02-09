@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -16,12 +16,12 @@ public class RedisServiceImpl implements RedisService{
     private final RedisTemplate<String,String> redisTemplate;
 
 
-    public HashMap<String,Object> setRecentTrack(){
+    public Map<String,Object> setRecentTrack(){
 //        redisTemplate.opsForValue();
         return null;
     }
 
-    public HashMap<String,Object> getRecentTrack(){
+    public Map<String,Object> getRecentTrack(){
 //        redisTemplate.op
         return null;
     }

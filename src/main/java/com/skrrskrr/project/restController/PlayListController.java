@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map; import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -18,13 +18,13 @@ public class PlayListController {
 
 
     @PostMapping("/api/setPlayListLike")
-    public HashMap<String,Object> setPlayListLike(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListLike(@RequestBody PlayListDTO playListDTO){
         log.info("setPlayListLike");
         return playListService.setPlayListLike(playListDTO);
     }
 
     @PostMapping("/api/newPlayList")
-    public HashMap<String, Object> newPlayList(@RequestBody PlayListDTO playListDTO){
+    public Map<String, Object> newPlayList(@RequestBody PlayListDTO playListDTO){
 
         log.info("newPlayList");
         return playListService.newPlayList(playListDTO);
@@ -33,7 +33,7 @@ public class PlayListController {
 
 
     @PostMapping("/api/setPlayListTrack")
-    public HashMap<String,Object> setPlayListTrack(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListTrack(@RequestBody PlayListDTO playListDTO){
         log.info("setPlayListTrack");
         return playListService.setPlayListTrack(playListDTO);
     }
@@ -42,14 +42,14 @@ public class PlayListController {
 
 
     @PostMapping("/api/setPlayListInfo")
-    public HashMap<String,Object> setPlayListInfo(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListInfo(@RequestBody PlayListDTO playListDTO){
         log.info("setPlayListInfo");
         return playListService.setPlayListInfo(playListDTO);
     }
 
 
     @GetMapping("/api/getPlayList")
-    public HashMap<String,Object> getPlayList(
+    public Map<String,Object> getPlayList(
             @RequestParam("memberId") Long memberId,
             @RequestParam("trackId") Long trackId,
             @RequestParam("listIndex") Long listIndex,
@@ -61,7 +61,7 @@ public class PlayListController {
     }
 
     @GetMapping("/api/getPlayListInfo")
-    public HashMap<String,Object> getPlayListInfo(@RequestParam("memberId") Long memberId, @RequestParam("playListId") Long playListId) {
+    public Map<String,Object> getPlayListInfo(@RequestParam("memberId") Long memberId, @RequestParam("playListId") Long playListId) {
         log.info("getPlayListInfo");
         return playListService.getPlayListInfo(memberId,playListId);
     }

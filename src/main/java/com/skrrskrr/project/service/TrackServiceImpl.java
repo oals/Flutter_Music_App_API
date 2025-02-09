@@ -19,7 +19,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -36,10 +38,10 @@ public class TrackServiceImpl implements TrackService {
     private final FireBaseService fireBaseService;
 
     @Override
-    public HashMap<String,Object> trackUpload(UploadDTO uploadDTO) {
+    public Map<String,Object> trackUpload(UploadDTO uploadDTO) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String,Object> returnMap = new HashMap<>();
+        Map<String,Object> returnMap = new HashMap<>();
 
         QMember qMember = QMember.member;
         QCategory qCategory = QCategory.category;
@@ -99,8 +101,8 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public HashMap<String,Object> setTrackImage(UploadDTO uploadDTO) {
-        HashMap<String,Object> hashMap = new HashMap<>();
+    public Map<String,Object> setTrackImage(UploadDTO uploadDTO) {
+        Map<String,Object> hashMap = new HashMap<>();
         try {
             JPAQueryFactory queryFactory = new JPAQueryFactory(em);
             QTrack qTrack = QTrack.track;
@@ -120,8 +122,8 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public HashMap<String, Object> setTrackinfo(TrackDTO trackDTO) {
-        HashMap<String,Object> resultMap = new HashMap<>();
+    public Map<String, Object> setTrackinfo(TrackDTO trackDTO) {
+        Map<String,Object> resultMap = new HashMap<>();
 
         try {
 
@@ -143,8 +145,8 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public HashMap<String, String> setTrackLike(Long memberId, Long trackId) {
-        HashMap<String, String> hashMap = new HashMap<>();
+    public Map<String, String> setTrackLike(Long memberId, Long trackId) {
+        Map<String, String> hashMap = new HashMap<>();
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QTrackLike qTrackLike = QTrackLike.trackLike;
@@ -231,12 +233,12 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public HashMap<String, Object> getLikeTrack(Long memberId, Long listIndex) {
+    public Map<String, Object> getLikeTrack(Long memberId, Long listIndex) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
-        HashMap<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
 
         try {
             List<TrackLike> trackLike = jpaQueryFactory.selectFrom(qTrackLike)
@@ -286,7 +288,7 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public HashMap<String, Object> getTrackInfo(Long trackId,Long memberId) {
+    public Map<String, Object> getTrackInfo(Long trackId,Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
@@ -294,7 +296,7 @@ public class TrackServiceImpl implements TrackService {
         QComment qComment = QComment.comment;
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             Tuple trackInfo = jpaQueryFactory.select(
@@ -376,7 +378,7 @@ public class TrackServiceImpl implements TrackService {
                     .commentsCnt(commentCount)
                     .build();
 
-            HashMap<String,Object> isFollowMap = followService.isFollowCheck(trackInfoDTO.getMemberId(),memberId);
+            Map<String,Object> isFollowMap = followService.isFollowCheck(trackInfoDTO.getMemberId(),memberId);
 
             trackInfoDTO.setFollowMember((Boolean) isFollowMap.get("followStatus"));
 
@@ -392,9 +394,9 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public HashMap<String,Object> getUploadTrack(Long memberId, Long listIndex) {
+    public Map<String,Object> getUploadTrack(Long memberId, Long listIndex) {
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 

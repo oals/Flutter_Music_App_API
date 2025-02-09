@@ -14,7 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,9 +29,9 @@ public class ImageController {
 
 
     @PostMapping("/api/setTrackImage")
-    public HashMap<String,Object> setTrackImage(@ModelAttribute UploadDTO uploadDTO){
+    public Map<String,Object> setTrackImage(@ModelAttribute UploadDTO uploadDTO){
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         hashMap.put("imagePath",null);
         String uuid =  String.valueOf(UUID.randomUUID());
 
@@ -52,9 +53,9 @@ public class ImageController {
 
 
     @PostMapping("/api/setMemberImage")
-    public HashMap<String,Object> setMemberImage(@ModelAttribute UploadDTO uploadDTO){
+    public Map<String,Object> setMemberImage(@ModelAttribute UploadDTO uploadDTO){
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         String uuid =  String.valueOf(UUID.randomUUID());
         hashMap.put("imagePath",null);
 

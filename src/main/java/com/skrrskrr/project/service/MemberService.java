@@ -5,7 +5,7 @@ import com.skrrskrr.project.dto.UploadDTO;
 import com.skrrskrr.project.entity.Member;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.Map;
 
 public interface MemberService {
@@ -30,15 +30,15 @@ public interface MemberService {
 
     MemberDTO getMemberInfo(String memberEmail);
 
-    HashMap<String,Object> setMemberDeviceToken(MemberDTO memberDTO);
+    Map<String,Object> setMemberDeviceToken(MemberDTO memberDTO);
 
-    HashMap<String,Object> setMemberInfoUpdate(MemberDTO memberDTO);
+    Map<String,Object> setMemberInfoUpdate(MemberDTO memberDTO);
 
-    HashMap<String,Object> setMemberInfo(String memberEmail,String deviceToken);
+    Map<String,Object> setMemberInfo(String memberEmail,String deviceToken);
 
-    HashMap<String,Object> getMemberPageInfo(Long memberId, Long loginMemberId);
+    Map<String,Object> getMemberPageInfo(Long memberId, Long loginMemberId);
 
-    HashMap<String,Object> setMemberImage(UploadDTO uploadDTO);
+    Map<String,Object> setMemberImage(UploadDTO uploadDTO);
 
 
 

@@ -53,11 +53,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public HashMap<String,Object> setMemberDeviceToken(MemberDTO memberDTO) {
+    public Map<String,Object> setMemberDeviceToken(MemberDTO memberDTO) {
 
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
         QMember qMember = QMember.member;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         try {
             queryFactory.update(qMember)
                     .set(qMember.memberDeviceToken, memberDTO.getDeviceToken())
@@ -74,8 +74,8 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public HashMap<String,Object> setMemberImage(UploadDTO uploadDTO) {
-        HashMap<String,Object> hashMap = new HashMap<>();
+    public Map<String,Object> setMemberImage(UploadDTO uploadDTO) {
+        Map<String,Object> hashMap = new HashMap<>();
         try {
 
             JPAQueryFactory queryFactory = new JPAQueryFactory(em);
@@ -96,11 +96,11 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public HashMap<String,Object> setMemberInfoUpdate(MemberDTO memberDTO) {
+    public Map<String,Object> setMemberInfoUpdate(MemberDTO memberDTO) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMember qMember = QMember.member;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             // 동적으로 memberNickName과 memberInfo를 설정하는 방식
@@ -124,12 +124,12 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public HashMap<String,Object> setMemberInfo(String memberEmail, String deviceToken) {
+    public Map<String,Object> setMemberInfo(String memberEmail, String deviceToken) {
 
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
         StringBuilder sb = new StringBuilder(6);
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             for (int i = 0; i < 6; i++) {
@@ -157,8 +157,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public HashMap<String, Object> getMemberPageInfo(Long memberId, Long loginMemberId) {
-        HashMap<String, Object> hashMap = new HashMap<>();
+    public Map<String, Object> getMemberPageInfo(Long memberId, Long loginMemberId) {
+        Map<String, Object> hashMap = new HashMap<>();
         List<PlayListDTO> playListDtoList = new ArrayList<>();
         List<TrackDTO> popularTrackDtoList = new ArrayList<>();
         List<TrackDTO> allTrackDtoList = new ArrayList<>();

@@ -20,7 +20,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 
 @Service
@@ -36,10 +36,10 @@ public class SearchServiceImpl implements SearchService{
 
 
     @Override
-    public HashMap<String,Object> searchTrack(TrackSearchDTO trackSearchDTO, Long listIndex) {
+    public Map<String,Object> searchTrack(TrackSearchDTO trackSearchDTO, Long listIndex) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
         QTrackCategory qTrackCategory = QTrackCategory.trackCategory;
         QMember qMember = QMember.member;
@@ -301,11 +301,11 @@ public class SearchServiceImpl implements SearchService{
     }
 
     @Override
-    public HashMap<String, Object> getSearchInit(Long memberId) {
+    public Map<String, Object> getSearchInit(Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QHistory qHistory = QHistory.history;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         QTrack qTrack = QTrack.track;
 
@@ -370,10 +370,10 @@ public class SearchServiceImpl implements SearchService{
 
 
     @Override
-    public HashMap<String, Object> getSearchMore(Long memberId, Long moreId, String searchText,Long listIndex) {
+    public Map<String, Object> getSearchMore(Long memberId, Long moreId, String searchText,Long listIndex) {
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
         QTrackCategory qTrackCategory = QTrackCategory.trackCategory;

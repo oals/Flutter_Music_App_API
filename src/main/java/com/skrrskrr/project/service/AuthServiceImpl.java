@@ -17,7 +17,7 @@ import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +47,8 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public HashMap<String,Object> validateJwtToken(String jwtToken) {
-        HashMap<String,Object> hashMap = new HashMap<>();
+    public Map<String,Object> validateJwtToken(String jwtToken) {
+        Map<String,Object> hashMap = new HashMap<>();
         try {
             // JWT 토큰을 파싱하고 서명을 검증
             Jws<Claims> jwts = Jwts.parser()

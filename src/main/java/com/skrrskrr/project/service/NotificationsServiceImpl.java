@@ -14,7 +14,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 
 @Service
@@ -29,11 +29,11 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public HashMap<String, Object> getNotifications(Long memberId, Long listIndex) {
+    public Map<String, Object> getNotifications(Long memberId, Long listIndex) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QNotifications qNotifications = QNotifications.notifications;
-        HashMap<String, Object> hashMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
 
         try {
             List<Notifications> queryResult = jpaQueryFactory.selectFrom(qNotifications)
@@ -108,11 +108,11 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public HashMap<String,Object> setNotificationIsView(Long notificationId,Long memberId) {
+    public Map<String,Object> setNotificationIsView(Long notificationId,Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QNotifications qNotifications = QNotifications.notifications;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             Notifications notifications = jpaQueryFactory.selectFrom(qNotifications)
@@ -145,11 +145,11 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public HashMap<String,Object> setAllNotificationisView(Long memberId) {
+    public Map<String,Object> setAllNotificationisView(Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QNotifications qNotifications = QNotifications.notifications;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             List<Notifications> queryResult = jpaQueryFactory.selectFrom(qNotifications)
@@ -171,10 +171,10 @@ public class NotificationsServiceImpl implements NotificationsService{
     }
 
     @Override
-    public HashMap<String,Object> setDelNotificationIsView(Long memberId) {
+    public Map<String,Object> setDelNotificationIsView(Long memberId) {
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QNotifications qNotifications = QNotifications.notifications;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             jpaQueryFactory.delete(qNotifications)

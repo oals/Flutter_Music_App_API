@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,9 +25,9 @@ public class MemberController {
 
 
     @GetMapping("/api/getMemberInfo")
-    public HashMap<String,Object> getMemberInfo(@RequestParam("memberEmail") String memberEmail,@RequestParam("deviceToken") String deviceToken){
+    public Map<String,Object> getMemberInfo(@RequestParam("memberEmail") String memberEmail,@RequestParam("deviceToken") String deviceToken){
         log.info("getMemberInfo");
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         MemberDTO memberDTO = memberService.getMemberInfo(memberEmail);
 
         if (memberDTO != null){
@@ -52,7 +52,7 @@ public class MemberController {
 
 
     @PostMapping("/api/setMemberInfoUpdate")
-    public HashMap<String,Object> setMemberInfoUpdate(@RequestBody MemberDTO memberDTO){
+    public Map<String,Object> setMemberInfoUpdate(@RequestBody MemberDTO memberDTO){
 
         log.info("setMemberInfoUpdate");
         return memberService.setMemberInfoUpdate(memberDTO);
@@ -62,7 +62,7 @@ public class MemberController {
 
 
     @GetMapping("/api/getMemberPageInfo")
-    public HashMap<String,Object> getMemberPageInfo(@RequestParam("memberId") Long memberId,
+    public Map<String,Object> getMemberPageInfo(@RequestParam("memberId") Long memberId,
                                                 @RequestParam("loginMemberId") Long loginMemberId)
     {
         log.info("getMemberPageInfo");

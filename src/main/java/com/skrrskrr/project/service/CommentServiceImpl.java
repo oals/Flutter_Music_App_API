@@ -14,7 +14,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,8 +35,8 @@ public class CommentServiceImpl implements CommentService{
 
 
     @Override
-    public HashMap<String, Object> setComment(Long trackId, Long memberId, String commentText, Long commentId) {
-        HashMap<String, Object> resultMap = new HashMap<>();
+    public Map<String, Object> setComment(Long trackId, Long memberId, String commentText, Long commentId) {
+        Map<String, Object> resultMap = new HashMap<>();
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QTrack qTrack = QTrack.track;
 
@@ -119,12 +119,12 @@ public class CommentServiceImpl implements CommentService{
 
 
     @Override
-    public HashMap<String, Object> setCommentLike(Long commentId, Long memberId) {
+    public Map<String, Object> setCommentLike(Long commentId, Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QCommentLike qCommentLike = QCommentLike.commentLike;
         QComment qComment = QComment.comment;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try{
 
@@ -189,10 +189,10 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public HashMap<String, Object> getComment(Long trackId, Long memberId) {
+    public Map<String, Object> getComment(Long trackId, Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         QComment qComment = QComment.comment;
         QCommentLike qCommentLike = QCommentLike.commentLike;
 
@@ -252,12 +252,12 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public HashMap<String, Object> getChildComment(Long commentId, Long memberId) {
+    public Map<String, Object> getChildComment(Long commentId, Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QComment qComment = QComment.comment;
 
-        HashMap<String, Object> hashMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
 
         try {
             Comment comment = jpaQueryFactory.selectFrom(qComment)

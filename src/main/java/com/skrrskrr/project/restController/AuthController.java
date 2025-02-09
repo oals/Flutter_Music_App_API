@@ -13,7 +13,7 @@ import org.codelibs.jhighlight.fastutil.Hash;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map; import java.util.Map;
 
 @RestController
 @Log4j2
@@ -30,8 +30,8 @@ public class AuthController {
      * @return
      */
     @PostMapping("/auth/getJwtToken")
-    public HashMap<String,Object> getJwtToken(@RequestBody HashMap<String,Object> hashMap) {
-        HashMap<String,Object> returnMap = new HashMap<>();
+    public Map<String,Object> getJwtToken(@RequestBody Map<String,Object> hashMap) {
+        Map<String,Object> returnMap = new HashMap<>();
         System.err.println("전달된 uid  :" + hashMap.get("uid"));
         System.err.println("전달된 email :" + hashMap.get("email"));
 
@@ -64,13 +64,13 @@ public class AuthController {
      * @return
      */
     @PostMapping("/auth/jwtAuthing")
-    public HashMap<String,Object> jwtAuthing(@RequestHeader("Authorization") String clientJwtToken) {
-        HashMap<String,Object> hashMap = new HashMap<>();
+    public Map<String,Object> jwtAuthing(@RequestHeader("Authorization") String clientJwtToken) {
+        Map<String,Object> hashMap = new HashMap<>();
         try{
 
             String jwtToken = clientJwtToken.replace("Bearer ", "");
             System.err.println("1. jwt 토큰 검증 시도 ");
-            HashMap<String,Object> authResultMap = authService.validateJwtToken(jwtToken); // JWT 토큰 검증
+            Map<String,Object> authResultMap = authService.validateJwtToken(jwtToken); // JWT 토큰 검증
 
             if(authResultMap != null){
                 System.err.println("2. jwt 토큰 검증 끝 ");
@@ -113,10 +113,10 @@ public class AuthController {
      * @return
      */
     @PostMapping("/auth/fireBaseAuthing")
-    public HashMap<String,Object> fireBaseAuthing(@RequestHeader("Authorization") String token) {
+    public Map<String,Object> fireBaseAuthing(@RequestHeader("Authorization") String token) {
 
         System.err.println("fireBaseAuthing");
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         String idToken = token.replace("Bearer ", "");
 
         try {

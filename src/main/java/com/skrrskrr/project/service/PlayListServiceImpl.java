@@ -15,7 +15,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,12 +32,12 @@ public class PlayListServiceImpl implements PlayListService {
     final private PlayListRepository playListRepository;
 
     @Override
-    public HashMap<String,Object> getPlayList(Long memberId, Long trackId , Long listIndex,boolean isAlbum) {
+    public Map<String,Object> getPlayList(Long memberId, Long trackId , Long listIndex,boolean isAlbum) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QPlayList qPlayList = QPlayList.playList;
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
 
         try {
@@ -107,13 +107,13 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public HashMap<String,Object> getPlayListInfo(Long memberId, Long playListId) {
+    public Map<String,Object> getPlayListInfo(Long memberId, Long playListId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QPlayList qPlayList = QPlayList.playList;
         QPlayListLike qPlayListLike = QPlayListLike.playListLike;
         QTrackLike qTrackLike = QTrackLike.trackLike;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         ///멤버 아이디도 전달해서 현재 플리의 주인 멤버아이디 == 전달받은 멤버아이디 비교 후 비공개 트랙 조회 x
         /// 수정 >  플리 주인이 아니라 트래
@@ -207,9 +207,9 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public HashMap<String,Object> setPlayListTrack(PlayListDTO playListDTO) {
+    public Map<String,Object> setPlayListTrack(PlayListDTO playListDTO) {
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         QPlayList qPlayList = QPlayList.playList;
         QTrack qTrack = QTrack.track;
 
@@ -239,11 +239,11 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public HashMap<String,Object> setPlayListInfo(PlayListDTO playListDTO) {
+    public Map<String,Object> setPlayListInfo(PlayListDTO playListDTO) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QPlayList qPlayList = QPlayList.playList;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
             jpaQueryFactory.update(qPlayList)
@@ -259,12 +259,12 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public HashMap<String,Object> setPlayListLike(PlayListDTO playListDTO) {
+    public Map<String,Object> setPlayListLike(PlayListDTO playListDTO) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QPlayListLike qPlayListLike = QPlayListLike.playListLike;
         QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         QMember qMember = QMember.member;
 
         try {
@@ -333,10 +333,10 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public HashMap<String,Object> newPlayList(PlayListDTO playListDTO) {
+    public Map<String,Object> newPlayList(PlayListDTO playListDTO) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         QMember qMember = QMember.member;
         MemberPlayList memberPlayList = new MemberPlayList();
 

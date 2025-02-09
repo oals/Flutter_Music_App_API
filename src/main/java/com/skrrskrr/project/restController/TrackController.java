@@ -50,16 +50,16 @@ public class TrackController {
 
 
     @PostMapping("/api/setTrackInfo")
-    public HashMap<String,Object> setTrackInfo(@RequestBody TrackDTO trackDTO){
+    public Map<String,Object> setTrackInfo(@RequestBody TrackDTO trackDTO){
         log.info("setTrackInfo");
         return trackService.setTrackinfo(trackDTO);
     }
 
 
     @PostMapping("/api/trackUpload")
-    public HashMap<String, Object> trackUpload(@ModelAttribute UploadDTO uploadDTO) throws Exception {
+    public Map<String, Object> trackUpload(@ModelAttribute UploadDTO uploadDTO) throws Exception {
         log.info("trackUpload");
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         String imageUuid =  String.valueOf(UUID.randomUUID());
         try {
             List<Long> uploadTrackIdList = new ArrayList<>();
@@ -83,7 +83,7 @@ public class TrackController {
                     uploadDTO.setTrackNm(fileNameWithoutExtension);
                 }
 
-                HashMap<String,Object> returnMap = trackService.trackUpload(uploadDTO);
+                Map<String,Object> returnMap = trackService.trackUpload(uploadDTO);
                 if(returnMap.get("status").equals("200")) {
                     uploadTrackIdList.add((Long)returnMap.get("trackId"));
                     uploadFile(uploadDTO.getUploadFileList().get(i),"/track",uuid + i);
@@ -101,7 +101,7 @@ public class TrackController {
                         .isAlbum(true)
                         .build();
 
-                HashMap<String,Object> returnMap = playListService.newPlayList(playListDTO);
+                Map<String,Object> returnMap = playListService.newPlayList(playListDTO);
                 if (returnMap.get("status").equals("200")) {
                     playListDTO.setPlayListId((Long)returnMap.get("playListId"));
 
@@ -123,26 +123,26 @@ public class TrackController {
 
 
     @GetMapping("/api/getLikeTrack")
-    public HashMap<String,Object> getLikeTrack(@RequestParam Long memberId,@RequestParam Long listIndex){
+    public Map<String,Object> getLikeTrack(@RequestParam Long memberId,@RequestParam Long listIndex){
         log.info("getLikeTrack");
         return trackService.getLikeTrack(memberId,listIndex);
     }
 
     @GetMapping("/api/setTrackLike")
-    public HashMap<String,String> setTrackLike(@RequestParam Long memberId, @RequestParam Long trackId){
+    public Map<String,String> setTrackLike(@RequestParam Long memberId, @RequestParam Long trackId){
         log.info("setTrackLike");
         return trackService.setTrackLike(memberId,trackId);
     }
 
 
     @GetMapping("/api/getTrackInfo")
-    public HashMap<String,Object> getTrackInfo(@RequestParam Long trackId, @RequestParam Long memberId){
+    public Map<String,Object> getTrackInfo(@RequestParam Long trackId, @RequestParam Long memberId){
         log.info("getTrackInfo");
         return trackService.getTrackInfo(trackId,memberId);
     }
 
     @GetMapping("/api/getUploadTrack")
-    public HashMap<String,Object>  getUploadTrack(@RequestParam Long memberId, @RequestParam Long listIndex){
+    public Map<String,Object>  getUploadTrack(@RequestParam Long memberId, @RequestParam Long listIndex){
         log.info("getUploadTrack");
         return trackService.getUploadTrack(memberId,listIndex);
     }

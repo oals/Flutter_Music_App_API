@@ -1,14 +1,14 @@
 package com.skrrskrr.project.service;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 
 public interface FollowService {
 
 
-    HashMap<String,Object> setFollow(Long followerId, Long followingId);
+    Map<String,Object> setFollow(Long followerId, Long followingId);
 
-    HashMap<String,Object> getFollow(Long memberId);
+    Map<String,Object> getFollow(Long memberId);
 
-    HashMap<String,Object> isFollowCheck(Long followerId, Long followingId);
+    Map<String,Object> isFollowCheck(Long followerId, Long followingId);
 
 }

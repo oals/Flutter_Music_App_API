@@ -15,7 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 
 @Service
@@ -30,9 +30,9 @@ public class FollowServiceImpl implements FollowService{
     EntityManager em;
 
     @Override
-    public HashMap<String, Object> setFollow(Long followerId, Long followingId) {
+    public Map<String, Object> setFollow(Long followerId, Long followingId) {
 
-        HashMap<String,Object> hashMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QFollow qFollow = QFollow.follow;
         QMember qMember = QMember.member;
@@ -122,8 +122,8 @@ public class FollowServiceImpl implements FollowService{
 
 
     @Override
-    public HashMap<String, Object> getFollow(Long memberId) {
-        HashMap<String,Object> hashMap = new HashMap<>();
+    public Map<String, Object> getFollow(Long memberId) {
+        Map<String,Object> hashMap = new HashMap<>();
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QFollow qFollow = QFollow.follow;
@@ -198,9 +198,9 @@ public class FollowServiceImpl implements FollowService{
     }
 
     @Override
-    public HashMap<String, Object> isFollowCheck(Long followerId, Long followingId) {
+    public Map<String, Object> isFollowCheck(Long followerId, Long followingId) {
 
-        HashMap<String,Object> resultMap = new HashMap<>();
+        Map<String,Object> resultMap = new HashMap<>();
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QFollow qFollow = QFollow.follow;

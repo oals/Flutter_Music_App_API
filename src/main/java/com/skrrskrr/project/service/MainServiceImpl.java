@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,10 +41,10 @@ public class MainServiceImpl implements MainService {
     private final MemberRepository memberRepository;
 
     @Override
-    public HashMap<String, Object> firstLoad(Long memberId) {
+    public Map<String, Object> firstLoad(Long memberId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        HashMap<String, Object> hashMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
 
         QMember qMember = QMember.member;
         QTrack qTrack = QTrack.track;

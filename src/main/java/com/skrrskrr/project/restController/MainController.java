@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+import java.util.HashMap; import java.util.Map;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,7 +22,7 @@ public class MainController {
 
 
     @GetMapping("/api/firstLoad")
-    public HashMap<String, Object> firstLoad(@RequestParam("memberId") Long memberId ){
+    public Map<String, Object> firstLoad(@RequestParam("memberId") Long memberId ){
         log.info("firstLoad");
         return mainService.firstLoad(memberId);
     }
