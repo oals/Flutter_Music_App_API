@@ -16,9 +16,13 @@ public interface TrackService {
 
     Map<String,Object> setTrackinfo(TrackDTO trackDTO);
 
+    Map<String,Object> getTrackLastId();
+
     Map<String,String> setTrackLike(Long memberId, Long trackId);
 
     Map<String,Object> getLikeTrack(Long memberId,Long listIndex);
+
+    Map<String,Object> setLockTrack(TrackDTO trackDTO);
 
     Map<String,Object> getTrackInfo(Long trackId, Long memberId);
 

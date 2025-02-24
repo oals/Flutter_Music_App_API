@@ -123,7 +123,7 @@ public class TrackServiceImpl implements TrackService {
 
     @Override
     public Map<String, Object> setTrackinfo(TrackDTO trackDTO) {
-        Map<String,Object> resultMap = new HashMap<>();
+        Map<String,Object> hashMap = new HashMap<>();
 
         try {
 
@@ -135,12 +135,37 @@ public class TrackServiceImpl implements TrackService {
                     .where(qTrack.trackId.eq(trackDTO.getTrackId()))
                     .execute();
 
-            resultMap.put("status","200");
-            return resultMap;
+            hashMap.put("status","200");
+            return hashMap;
         } catch (Exception e) {
             e.printStackTrace();
-            resultMap.put("status","500");
-            return resultMap;
+            hashMap.put("status","500");
+            return hashMap;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getTrackLastId() {
+
+        Map<String,Object> hashMap = new HashMap<>();
+        try {
+            JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+            QTrack qTrack = QTrack.track;
+
+            Long lastTrackId = queryFactory.select(
+                            qTrack.trackId
+                    ).from(qTrack)
+                    .orderBy(qTrack.trackId.desc())
+                    .fetchFirst();
+
+
+            hashMap.put("status","200");
+            hashMap.put("lastTrackId",lastTrackId + 1);
+            return hashMap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+            return hashMap;
         }
     }
 
@@ -238,7 +263,7 @@ public class TrackServiceImpl implements TrackService {
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
 
         try {
             List<TrackLike> trackLike = jpaQueryFactory.selectFrom(qTrackLike)
@@ -276,14 +301,37 @@ public class TrackServiceImpl implements TrackService {
 
                 likeTrackList.add(trackDTO);
             }
-            result.put("likeTrackList", likeTrackList);
-            result.put("totalCount",trackLikeCnt);
-            result.put("status","200");
+            hashMap.put("likeTrackList", likeTrackList);
+            hashMap.put("totalCount",trackLikeCnt);
+            hashMap.put("status","200");
         } catch(Exception e) {
-            result.put("status","500");
+            hashMap.put("status","500");
         }
 
-        return result;
+        return hashMap;
+    }
+
+    @Override
+    public Map<String, Object> setLockTrack(TrackDTO trackDTO) {
+        Map<String, Object> hashMap = new HashMap<>();
+
+        try {
+
+            JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+            QTrack qTrack = QTrack.track;
+
+            queryFactory.update(qTrack)
+                    .set(qTrack.isTrackPrivacy, trackDTO.isTrackPrivacy())
+                    .where(qTrack.trackId.eq(trackDTO.getTrackId()))
+                    .execute();
+
+            hashMap.put("status","200");
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+        }
+
+        return hashMap;
     }
 
 

@@ -5,6 +5,8 @@ import com.skrrskrr.project.dto.TrackDTO;
 import com.skrrskrr.project.dto.TrackSearchDTO;
 import com.skrrskrr.project.dto.UploadDTO;
 import com.skrrskrr.project.entity.Track;
+import com.skrrskrr.project.ffmpeg.FFmpegExecutor;
+import com.skrrskrr.project.service.FileService;
 import com.skrrskrr.project.service.PlayListService;
 import com.skrrskrr.project.service.TrackService;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
@@ -16,6 +18,7 @@ import org.apache.tika.exception.TikaException;
 import org.apache.tika.parser.audio.AudioParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.codelibs.jhighlight.fastutil.Hash;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -47,7 +50,10 @@ public class TrackController {
 
     private final TrackService trackService;
     private final PlayListService playListService;
+    private final FileService fileService;
 
+    @Value("${upload,path}")
+    private String uploadPath;
 
     @PostMapping("/api/setTrackInfo")
     public Map<String,Object> setTrackInfo(@RequestBody TrackDTO trackDTO){
@@ -60,65 +66,86 @@ public class TrackController {
     public Map<String, Object> trackUpload(@ModelAttribute UploadDTO uploadDTO) throws Exception {
         log.info("trackUpload");
         Map<String,Object> hashMap = new HashMap<>();
-        String imageUuid =  String.valueOf(UUID.randomUUID());
-        try {
-            List<Long> uploadTrackIdList = new ArrayList<>();
-            //서버에 음원 저장
-            for (int i = 0 ; i < uploadDTO.getUploadFileList().size(); i ++) {
-                String uuid =  String.valueOf(UUID.randomUUID());
 
-                if (uploadDTO.getUploadImage() != null){
-                    uploadDTO.setUploadImagePath("C:/uploads/trackImage/" + imageUuid);
-                }
-                uploadDTO.setUploadFilePath("C:/uploads/track/" + uuid);
-                if (uploadDTO.isAlbum()) {
-                    String originalFilename = uploadDTO.getUploadFileList().get(i).getOriginalFilename();
-                    assert originalFilename != null;
-                    int dotIndex = originalFilename.lastIndexOf('.');
 
-                    String fileNameWithoutExtension = dotIndex != -1
-                            ? originalFilename.substring(0, dotIndex)
-                            : originalFilename;
+        Map<String, Object> lastTrackIdMap = trackService.getTrackLastId();
 
-                    uploadDTO.setTrackNm(fileNameWithoutExtension);
-                }
 
-                Map<String,Object> returnMap = trackService.trackUpload(uploadDTO);
-                if(returnMap.get("status").equals("200")) {
-                    uploadTrackIdList.add((Long)returnMap.get("trackId"));
-                    uploadFile(uploadDTO.getUploadFileList().get(i),"/track",uuid + i);
-                }
+        if (lastTrackIdMap.get("status") == "200") {
+            Long lastTrackId = (Long) lastTrackIdMap.get("lastTrackId");
+            String imageUuid = String.valueOf(UUID.randomUUID());
 
+            if (uploadDTO.getUploadImage() != null) {
+                uploadDTO.setUploadImagePath(uploadPath + "/trackImage/" + lastTrackId + "/" + imageUuid);
             }
-            uploadFile(uploadDTO.getUploadImage(),"/trackImage",imageUuid);
 
-            if(uploadDTO.isAlbum()) {
+            try {
+                List<Long> uploadTrackIdList = new ArrayList<>();
+                //서버에 음원 저장
+                for (int i = 0 ; i < uploadDTO.getUploadFileList().size(); i ++) {
+                    String uuid =  String.valueOf(UUID.randomUUID());
+                    uploadDTO.setUploadFilePath(uploadPath + "/track/" + lastTrackId + "/playList");
 
-                PlayListDTO playListDTO = PlayListDTO.builder()
-                        .playListNm(uploadDTO.getAlbumNm())
-                        .isPlayListPrivacy(uploadDTO.isTrackPrivacy())
-                        .memberId(uploadDTO.getMemberId())
-                        .isAlbum(true)
-                        .build();
+                    if (uploadDTO.isAlbum()) {
+                        String originalFilename = uploadDTO.getUploadFileList().get(i).getOriginalFilename();
+                        assert originalFilename != null;
+                        int dotIndex = originalFilename.lastIndexOf('.');
 
-                Map<String,Object> returnMap = playListService.newPlayList(playListDTO);
-                if (returnMap.get("status").equals("200")) {
-                    playListDTO.setPlayListId((Long)returnMap.get("playListId"));
+                        String fileNameWithoutExtension = dotIndex != -1
+                                ? originalFilename.substring(0, dotIndex)
+                                : originalFilename;
 
-                    for (Long trackId : uploadTrackIdList) {
-                        playListDTO.setTrackId(trackId);
-                        playListService.setPlayListTrack(playListDTO); //id랑 trackId
+                        uploadDTO.setTrackNm(fileNameWithoutExtension);
+                    }
+
+                    Map<String,Object> returnMap = trackService.trackUpload(uploadDTO);
+
+                    if(returnMap.get("status").equals("200")) {
+                        uploadTrackIdList.add((Long)returnMap.get("trackId"));
+                        fileService.uploadTrackFile(uploadDTO.getUploadFileList().get(i),"/track/" + lastTrackId,uuid + i);
+                    }
+
+                }
+
+                if (uploadDTO.getUploadImage() != null) {
+                    fileService.uploadTrackImageFile(uploadDTO.getUploadImage(), "/trackImage/" + lastTrackId, imageUuid);
+                }
+
+                if(uploadDTO.isAlbum()) {
+
+                    PlayListDTO playListDTO = PlayListDTO.builder()
+                            .playListNm(uploadDTO.getAlbumNm())
+                            .isPlayListPrivacy(uploadDTO.isTrackPrivacy())
+                            .memberId(uploadDTO.getMemberId())
+                            .isAlbum(true)
+                            .build();
+
+                    Map<String,Object> returnMap = playListService.newPlayList(playListDTO);
+                    if (returnMap.get("status").equals("200")) {
+                        playListDTO.setPlayListId((Long)returnMap.get("playListId"));
+
+                        for (Long trackId : uploadTrackIdList) {
+                            playListDTO.setTrackId(trackId);
+                            playListService.setPlayListTrack(playListDTO); //id랑 trackId
+                        }
                     }
                 }
-            }
 
-            hashMap.put("status","200");
-            return hashMap;
-        } catch(Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-            return hashMap;
+                hashMap.put("status","200");
+                return hashMap;
+            } catch(Exception e) {
+                e.printStackTrace();
+                hashMap.put("status","500");
+                return hashMap;
+            }
         }
+        return hashMap;
+    }
+
+    @PostMapping("/api/setLockTrack")
+    public Map<String,Object> setLockTrack(@RequestBody TrackDTO trackDTO){
+        log.info("setLockTrack");
+        return trackService.setLockTrack(trackDTO);
     }
 
 
@@ -147,51 +174,6 @@ public class TrackController {
         return trackService.getUploadTrack(memberId,listIndex);
     }
 
-
-
-
-    //음원, 이미지 업로드
-    private boolean uploadFile(MultipartFile file,String dir,String trackNm) {
-        if (file.isEmpty()) {
-            throw new RuntimeException("파일이 비어 있습니다.");
-        }
-
-        // 저장할 경로 설정
-        String uploadDir = "C:/uploads" + dir; // 원하는 경로로 변경
-        File uploadDirectory = new File(uploadDir);
-
-        // 디렉토리가 없으면 생성
-        if (!uploadDirectory.exists()) {
-            uploadDirectory.mkdirs();
-        }
-
-        // 파일 이름 생성 (예: 원래 파일 이름)
-        String fileType = "";
-
-        if (Objects.equals(file.getContentType(), "audio/mpeg")) {
-            fileType = ".mp3";
-        } else if (Objects.equals(file.getContentType(), "video/mp4")) {
-            fileType = ".mp4";
-        } else if (Objects.equals(file.getContentType(), "image/jpeg")) {
-            fileType = ".jpg";
-        } else if (Objects.equals(file.getContentType(), "image/png")) {
-            fileType = ".png";
-        } else {
-            fileType = ".mp3"; // 기본값
-        }
-
-
-        File destFile = new File(uploadDir, trackNm + fileType);
-
-        try {
-            // 파일 저장
-            file.transferTo(destFile);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
 
 

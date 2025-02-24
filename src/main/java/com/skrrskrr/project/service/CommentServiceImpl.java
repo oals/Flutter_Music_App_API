@@ -36,7 +36,7 @@ public class CommentServiceImpl implements CommentService{
 
     @Override
     public Map<String, Object> setComment(Long trackId, Long memberId, String commentText, Long commentId) {
-        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QTrack qTrack = QTrack.track;
 
@@ -107,14 +107,14 @@ public class CommentServiceImpl implements CommentService{
             }
 
             // 성공 시
-            resultMap.put("status", "OK");
+            hashMap.put("status", "OK");
         } catch (Exception e) {
             // 실패 시
             e.printStackTrace();
-            resultMap.put("status", "FAIL");
+            hashMap.put("status", "FAIL");
         }
 
-        return resultMap; // 최종 결과 반환
+        return hashMap; // 최종 결과 반환
     }
 
 
