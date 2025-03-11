@@ -198,9 +198,7 @@ public class FollowServiceImpl implements FollowService{
     }
 
     @Override
-    public Map<String, Object> isFollowCheck(Long followerId, Long followingId) {
-
-        Map<String,Object> hashMap = new HashMap<>();
+    public boolean isFollowCheck(Long followerId, Long followingId) {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QFollow qFollow = QFollow.follow;
@@ -211,13 +209,15 @@ public class FollowServiceImpl implements FollowService{
                 .fetchFirst();
 
 
-        if (follow != null) {
-            hashMap.put("followStatus",true);
-        } else {
-            hashMap.put("followStatus",false);
-        }
+        return follow != null;
 
 
-        return hashMap;
     }
+
+
+
+
+
+
+
 }

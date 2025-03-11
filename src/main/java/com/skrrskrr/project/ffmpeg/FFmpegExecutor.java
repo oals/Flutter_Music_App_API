@@ -6,17 +6,21 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 @Service
 public class FFmpegExecutor {
 
 
-
     public void convertAudioToM3U8(String inputFilePath, String outputDir) {
         try {
-            String command = String.format("ffmpeg -i %s -vn -acodec aac -b:a 128k -f" +
-                            " hls -hls_time 10 -hls_list_size 0 -hls_segment_filename " +
-                            "\"%s/output%%03d.ts\" %s/playlist.m3u8",
+            // outputDir 경로를 http://localhost:8104/music/ 로 바꿔서 HTTP URL을 사용
+            String command = String.format(
+                    "ffmpeg -i %s -vn -acodec aac -b:a 128k -f hls -hls_time 10 -hls_list_size 0 " +
+                            "-hls_segment_filename \"%s/output%%03d.ts\" %s/playlist.m3u8",
                     inputFilePath, outputDir, outputDir);
 
             Process process = new ProcessBuilder(command.split(" ")).start();
@@ -53,6 +57,41 @@ public class FFmpegExecutor {
             e.printStackTrace();
         }
     }
+
+
+
+
+
+    public void modifyM3U8(String m3u8FilePath, String baseUrl) {
+
+//        String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8;";   // 100/playlist.m3u8; // m3u8 파일 경로
+//        String baseUrl = "http://localhost:8104/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
+
+
+        try {
+            // m3u8 파일을 읽기
+            Path path = Paths.get(m3u8FilePath);
+            List<String> lines = Files.readAllLines(path);
+
+            // 각 줄을 수정하여 HTTP URL로 경로를 변경
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                // .ts 파일 경로가 나오면 HTTP URL로 교체
+                if (line.endsWith(".ts")) {
+                    String fileName = line.trim();
+                    String newUrl = baseUrl + fileName;
+                    lines.set(i, newUrl);
+                }
+            }
+
+            // 수정된 내용을 다시 m3u8 파일에 작성
+            Files.write(path, lines);
+            System.out.println("m3u8 file updated successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 

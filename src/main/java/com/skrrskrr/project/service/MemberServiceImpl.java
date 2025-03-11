@@ -2,10 +2,7 @@ package com.skrrskrr.project.service;
 
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.MemberDTO;
-import com.skrrskrr.project.dto.PlayListDTO;
-import com.skrrskrr.project.dto.TrackDTO;
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +49,10 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
+
+
+
+
     @Override
     public Map<String,Object> setMemberDeviceToken(MemberDTO memberDTO) {
 
@@ -93,6 +94,8 @@ public class MemberServiceImpl implements MemberService {
             return hashMap;
         }
     }
+
+
 
 
     @Override

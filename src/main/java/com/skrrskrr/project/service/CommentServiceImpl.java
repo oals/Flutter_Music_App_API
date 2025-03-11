@@ -300,6 +300,21 @@ public class CommentServiceImpl implements CommentService{
         return hashMap;
     }
 
+    @Override
+    public Long getTrackCommentCnt(Long memberId, Long trackId) {
+
+        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        QComment qComment = QComment.comment;
+        QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
+
+
+        return jpaQueryFactory
+                .select(qComment.count()) // 댓글의 개수를 계산
+                .from(qMemberTrack)
+                .leftJoin(qMemberTrack.track.commentList, qComment) // Track과 commentList를 조인
+                .where(qMemberTrack.track.trackId.eq(trackId))
+                .fetchOne(); // 결과를 하나의 값으로 가져옵니다.
+    }
 
 
     public List<CommentDTO>  addAllChildComments(List<CommentDTO> childCommentList,

@@ -21,6 +21,7 @@ public class UploadDTO {
     private String albumNm;
 
     private String trackInfo;
+
     private String albumInfo;
 
     private String trackTime;

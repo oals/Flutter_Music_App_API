@@ -1,8 +1,11 @@
 package com.skrrskrr.project.service;
 
+import com.skrrskrr.project.dto.PlayListDTO;
 import com.skrrskrr.project.dto.TrackSearchDTO;
 
-import java.util.HashMap; import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public interface SearchService {
 

@@ -9,6 +9,7 @@ import com.skrrskrr.project.ffmpeg.FFmpegExecutor;
 import com.skrrskrr.project.service.FileService;
 import com.skrrskrr.project.service.PlayListService;
 import com.skrrskrr.project.service.TrackService;
+import com.skrrskrr.project.service.UploadService;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import lombok.extern.java.Log;
 import lombok.extern.log4j.Log4j2;
@@ -49,11 +50,7 @@ import java.util.*;
 public class TrackController {
 
     private final TrackService trackService;
-    private final PlayListService playListService;
-    private final FileService fileService;
 
-    @Value("${upload,path}")
-    private String uploadPath;
 
     @PostMapping("/api/setTrackInfo")
     public Map<String,Object> setTrackInfo(@RequestBody TrackDTO trackDTO){
@@ -61,86 +58,6 @@ public class TrackController {
         return trackService.setTrackinfo(trackDTO);
     }
 
-
-    @PostMapping("/api/trackUpload")
-    public Map<String, Object> trackUpload(@ModelAttribute UploadDTO uploadDTO) throws Exception {
-        log.info("trackUpload");
-        Map<String,Object> hashMap = new HashMap<>();
-
-
-        Map<String, Object> lastTrackIdMap = trackService.getTrackLastId();
-
-
-        if (lastTrackIdMap.get("status") == "200") {
-            Long lastTrackId = (Long) lastTrackIdMap.get("lastTrackId");
-            String imageUuid = String.valueOf(UUID.randomUUID());
-
-            if (uploadDTO.getUploadImage() != null) {
-                uploadDTO.setUploadImagePath(uploadPath + "/trackImage/" + lastTrackId + "/" + imageUuid);
-            }
-
-            try {
-                List<Long> uploadTrackIdList = new ArrayList<>();
-                //서버에 음원 저장
-                for (int i = 0 ; i < uploadDTO.getUploadFileList().size(); i ++) {
-                    String uuid =  String.valueOf(UUID.randomUUID());
-                    uploadDTO.setUploadFilePath(uploadPath + "/track/" + lastTrackId + "/playList");
-
-                    if (uploadDTO.isAlbum()) {
-                        String originalFilename = uploadDTO.getUploadFileList().get(i).getOriginalFilename();
-                        assert originalFilename != null;
-                        int dotIndex = originalFilename.lastIndexOf('.');
-
-                        String fileNameWithoutExtension = dotIndex != -1
-                                ? originalFilename.substring(0, dotIndex)
-                                : originalFilename;
-
-                        uploadDTO.setTrackNm(fileNameWithoutExtension);
-                    }
-
-                    Map<String,Object> returnMap = trackService.trackUpload(uploadDTO);
-
-                    if(returnMap.get("status").equals("200")) {
-                        uploadTrackIdList.add((Long)returnMap.get("trackId"));
-                        fileService.uploadTrackFile(uploadDTO.getUploadFileList().get(i),"/track/" + lastTrackId,uuid + i);
-                    }
-
-                }
-
-                if (uploadDTO.getUploadImage() != null) {
-                    fileService.uploadTrackImageFile(uploadDTO.getUploadImage(), "/trackImage/" + lastTrackId, imageUuid);
-                }
-
-                if(uploadDTO.isAlbum()) {
-
-                    PlayListDTO playListDTO = PlayListDTO.builder()
-                            .playListNm(uploadDTO.getAlbumNm())
-                            .isPlayListPrivacy(uploadDTO.isTrackPrivacy())
-                            .memberId(uploadDTO.getMemberId())
-                            .isAlbum(true)
-                            .build();
-
-                    Map<String,Object> returnMap = playListService.newPlayList(playListDTO);
-                    if (returnMap.get("status").equals("200")) {
-                        playListDTO.setPlayListId((Long)returnMap.get("playListId"));
-
-                        for (Long trackId : uploadTrackIdList) {
-                            playListDTO.setTrackId(trackId);
-                            playListService.setPlayListTrack(playListDTO); //id랑 trackId
-                        }
-                    }
-                }
-
-                hashMap.put("status","200");
-                return hashMap;
-            } catch(Exception e) {
-                e.printStackTrace();
-                hashMap.put("status","500");
-                return hashMap;
-            }
-        }
-        return hashMap;
-    }
 
     @PostMapping("/api/setLockTrack")
     public Map<String,Object> setLockTrack(@RequestBody TrackDTO trackDTO){
@@ -156,11 +73,10 @@ public class TrackController {
     }
 
     @GetMapping("/api/setTrackLike")
-    public Map<String,String> setTrackLike(@RequestParam Long memberId, @RequestParam Long trackId){
-        log.info("setTrackLike");
+    public Map<String,String> setInsertTrackLike(@RequestParam Long memberId, @RequestParam Long trackId){
+        log.info("setInsertTrackLike");
         return trackService.setTrackLike(memberId,trackId);
     }
-
 
     @GetMapping("/api/getTrackInfo")
     public Map<String,Object> getTrackInfo(@RequestParam Long trackId, @RequestParam Long memberId){

@@ -23,13 +23,13 @@ public class FileServiceImpl implements FileService{
 
 
     @Override
-    public boolean uploadTrackFile(MultipartFile file, String dir, String trackNm) {
+    public boolean uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
         if (file.isEmpty()) {
             throw new RuntimeException("파일이 비어 있습니다.");
         }
 
         // 저장할 경로 설정
-        String uploadDir = uploadPath + dir; // 원하는 경로로 변경
+        String uploadDir = uploadPath + dir + lastTrackId; // 원하는 경로로 변경
         File uploadDirectory = new File(uploadDir);
 
         // 디렉토리가 없으면 생성
@@ -44,10 +44,6 @@ public class FileServiceImpl implements FileService{
             fileType = ".mp3";
         } else if (Objects.equals(file.getContentType(), "video/mp4")) {
             fileType = ".mp4";
-        } else if (Objects.equals(file.getContentType(), "image/jpeg")) {
-            fileType = ".jpg";
-        } else if (Objects.equals(file.getContentType(), "image/png")) {
-            fileType = ".png";
         } else {
             fileType = ".mp3"; // 기본값
         }
@@ -56,9 +52,13 @@ public class FileServiceImpl implements FileService{
         File destFile = new File(uploadDir, trackNm + fileType);
 
         try {
+            String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8";   // 100/playlist.m3u8; // m3u8 파일 경로
+            String baseUrl = "http://localhost:8104/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
+
             // 파일 저장
             file.transferTo(destFile);
             fFmpegExecutor.convertAudioToM3U8(uploadDir + "/" + trackNm + fileType, uploadDir);
+            fFmpegExecutor.modifyM3U8(m3u8FilePath,baseUrl);
 
             return true;
         } catch (IOException e) {

@@ -2,11 +2,15 @@ package com.skrrskrr.project.service;
 
 import com.skrrskrr.project.dto.PlayListDTO;
 
-import java.util.HashMap; import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public interface PlayListService {
 
     Map<String,Object> getPlayList(Long memberId, Long trackId,Long listIndex,boolean isAlbum);
+
+
 
     Map<String,Object> getPlayListInfo(Long memberId,Long playListId);
 
