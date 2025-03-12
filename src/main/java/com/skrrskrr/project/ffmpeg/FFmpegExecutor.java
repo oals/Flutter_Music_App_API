@@ -64,10 +64,6 @@ public class FFmpegExecutor {
 
     public void modifyM3U8(String m3u8FilePath, String baseUrl) {
 
-//        String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8;";   // 100/playlist.m3u8; // m3u8 파일 경로
-//        String baseUrl = "http://localhost:8104/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
-
-
         try {
             // m3u8 파일을 읽기
             Path path = Paths.get(m3u8FilePath);

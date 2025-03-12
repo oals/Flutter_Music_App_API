@@ -24,7 +24,7 @@ import java.util.HashMap; import java.util.Map;
 @Log4j2
 public class AuthServiceImpl implements AuthService {
 
-    @Value("${secret.key}")
+    @Value("${SECRET_KEY}")
     private String SECRET_KEY;
 
     // jwt 토큰 및 refresh 토큰 생성

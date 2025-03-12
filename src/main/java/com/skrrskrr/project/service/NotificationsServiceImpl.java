@@ -6,6 +6,7 @@ import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.entity.QNotifications;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -24,93 +25,87 @@ import java.util.List;
 public class NotificationsServiceImpl implements NotificationsService{
 
     @PersistenceContext
-    EntityManager em;
+    EntityManager entityManager;
 
+    private final JPAQueryFactory jpaQueryFactory;
+    private final ModelMapper modelMapper;
 
 
     @Override
     public Map<String, Object> getNotifications(Long memberId, Long listIndex) {
-
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        QNotifications qNotifications = QNotifications.notifications;
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            List<Notifications> queryResult = jpaQueryFactory.selectFrom(qNotifications)
-                    .where(qNotifications.member.memberId.eq(memberId)
-//                        .and(qNotifications.notificationIsView.isFalse())
-                    )
-                    .orderBy(qNotifications.notificationId.desc())
-                    .offset(listIndex)
-                    .limit(20)
-                    .fetch();
+            List<Notifications> queryResult = fetchNotifications(memberId, listIndex);
 
-
-            List<NotificationsDTO> todayNotificationList = new ArrayList<>();
-            List<NotificationsDTO> monthNotificationList = new ArrayList<>();
-            List<NotificationsDTO> yearNotificationList = new ArrayList<>();
-
-            // 현재 날짜
-            LocalDate today = LocalDate.now();
-
-            // 한 달 전과 1년 전 날짜 계산
-            LocalDate oneMonthAgo = today.minusMonths(1);
-            LocalDate oneYearAgo = today.minusYears(1);
-
-            // 날짜 포맷터 (날짜 형식이 맞다면 이 부분을 사용하여 날짜를 파싱)
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-            // 알림 목록을 날짜별로 분류
-            for (int i = 0; i < queryResult.size(); i++) {
-                NotificationsDTO notificationsDTO = NotificationsDTO.builder()
-                        .notificationId(queryResult.get(i).getNotificationId())
-                        .notificationType(queryResult.get(i).getNotificationType())
-                        .notificationMsg(queryResult.get(i).getNotificationMsg())
-                        .notificationDate(queryResult.get(i).getNotificationDate())
-                        .notificationIsView(queryResult.get(i).isNotificationIsView())
-                        .notificationTrackId(queryResult.get(i).getNotificationTrackId())
-                        .notificationCommentId(queryResult.get(i).getNotificationCommentId())
-                        .notificationMemberId(queryResult.get(i).getNotificationMemberId())
-                        .build();
-
-                // notificationDate를 LocalDate로 변환 (형식이 "yyyy-MM-dd"라고 가정)
-                LocalDate notificationDate = LocalDate.parse(notificationsDTO.getNotificationDate(), formatter);
-
-                // 오늘 날짜와 비교
-                if (notificationDate.isEqual(today)) {
-                    todayNotificationList.add(notificationsDTO);
-                }
-                // 한 달 전과 오늘 사이에 포함되는 날짜
-                else if (!notificationDate.isBefore(oneMonthAgo) && !notificationDate.isAfter(today)) {
-                    monthNotificationList.add(notificationsDTO);
-                }
-                // 1년 전과 오늘 사이에 포함되는 날짜
-                else if (!notificationDate.isBefore(oneYearAgo) && !notificationDate.isAfter(today)) {
-                    yearNotificationList.add(notificationsDTO);
-                }
-            }
+            // 알림 목록 날짜별 분류
+            Map<String, List<NotificationsDTO>> classifiedNotifications = classifyNotificationsByDate(queryResult);
 
             // 결과 맵에 알림 목록 추가
-            hashMap.put("todayNotificationsList", todayNotificationList);
-            hashMap.put("monthNotificationsList", monthNotificationList);
-            hashMap.put("yearNotificationsList", yearNotificationList);
-            hashMap.put("status","200");
+            hashMap.putAll(classifiedNotifications);
+            hashMap.put("status", "200");
+
         } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            hashMap.put("status", "500");
         }
 
         return hashMap;
     }
 
+    private List<Notifications> fetchNotifications(Long memberId, Long listIndex) {
+        
+        QNotifications qNotifications = QNotifications.notifications;
 
+        return jpaQueryFactory.selectFrom(qNotifications)
+                .where(qNotifications.member.memberId.eq(memberId))
+                .orderBy(qNotifications.notificationId.desc())
+                .offset(listIndex)
+                .limit(20)
+                .fetch();
+    }
+
+    private Map<String, List<NotificationsDTO>> classifyNotificationsByDate(List<Notifications> queryResult) {
+        List<NotificationsDTO> todayNotificationList = new ArrayList<>();
+        List<NotificationsDTO> monthNotificationList = new ArrayList<>();
+        List<NotificationsDTO> yearNotificationList = new ArrayList<>();
+
+        // 현재 날짜
+        LocalDate today = LocalDate.now();
+        // 한 달 전과 1년 전 날짜 계산
+        LocalDate oneMonthAgo = today.minusMonths(1);
+        LocalDate oneYearAgo = today.minusYears(1);
+
+        // 날짜 포맷터
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (Notifications notification : queryResult) {
+            NotificationsDTO notificationsDTO = modelMapper.map(notification, NotificationsDTO.class);
+            LocalDate notificationDate = LocalDate.parse(notificationsDTO.getNotificationDate(), formatter);
+
+            // 날짜에 따라 알림을 분류
+            if (notificationDate.isEqual(today)) {
+                todayNotificationList.add(notificationsDTO);
+            } else if (!notificationDate.isBefore(oneMonthAgo) && !notificationDate.isAfter(today)) {
+                monthNotificationList.add(notificationsDTO);
+            } else if (!notificationDate.isBefore(oneYearAgo) && !notificationDate.isAfter(today)) {
+                yearNotificationList.add(notificationsDTO);
+            }
+        }
+
+        Map<String, List<NotificationsDTO>> result = new HashMap<>();
+        result.put("todayNotificationsList", todayNotificationList);
+        result.put("monthNotificationsList", monthNotificationList);
+        result.put("yearNotificationsList", yearNotificationList);
+
+        return result;
+    }
 
 
 
     @Override
     public Map<String,Object> setNotificationIsView(Long notificationId,Long memberId) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
 
@@ -120,10 +115,8 @@ public class NotificationsServiceImpl implements NotificationsService{
                     .fetchOne();
 
             assert notifications != null;
-            notifications.setNotificationIsView(true);
 
-            em.merge(notifications);
-
+            updateIsNotificationViewStatus(notifications);
 
             boolean notificationIsView = Boolean.FALSE.equals(
                     jpaQueryFactory.select(
@@ -147,7 +140,7 @@ public class NotificationsServiceImpl implements NotificationsService{
     @Override
     public Map<String,Object> setAllNotificationisView(Long memberId) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
 
@@ -158,9 +151,9 @@ public class NotificationsServiceImpl implements NotificationsService{
                     .fetch();
 
             for (Notifications notifications : queryResult) {
-                notifications.setNotificationIsView(true);
-                em.merge(notifications);
+                updateIsNotificationViewStatus(notifications);
             }
+
             hashMap.put("status","200");
         } catch (Exception e) {
             e.printStackTrace();
@@ -170,16 +163,27 @@ public class NotificationsServiceImpl implements NotificationsService{
         return hashMap;
     }
 
+
+
+    private void updateIsNotificationViewStatus(Notifications notifications){
+        notifications.setNotificationIsView(true);
+        entityManager.merge(notifications);
+    }
+
+
+
     @Override
     public Map<String,Object> setDelNotificationIsView(Long memberId) {
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
+
             jpaQueryFactory.delete(qNotifications)
                     .where(qNotifications.member.memberId.eq(memberId))
                     .execute();
+
             hashMap.put("status","200");
         } catch(Exception e) {
             e.printStackTrace();

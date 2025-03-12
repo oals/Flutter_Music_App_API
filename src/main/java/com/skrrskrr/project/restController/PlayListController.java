@@ -63,7 +63,12 @@ public class PlayListController {
     @GetMapping("/api/getPlayListInfo")
     public Map<String,Object> getPlayListInfo(@RequestParam("memberId") Long memberId, @RequestParam("playListId") Long playListId) {
         log.info("getPlayListInfo");
-        return playListService.getPlayListInfo(memberId,playListId);
+
+        PlayListDTO playListDTO = new PlayListDTO();
+        playListDTO.setMemberId(memberId);
+        playListDTO.setPlayListId(playListId);
+
+        return playListService.getPlayListInfo(playListDTO);
     }
 
 }

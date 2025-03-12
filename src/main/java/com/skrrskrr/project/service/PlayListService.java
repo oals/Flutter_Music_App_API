@@ -12,7 +12,7 @@ public interface PlayListService {
 
 
 
-    Map<String,Object> getPlayListInfo(Long memberId,Long playListId);
+    Map<String,Object> getPlayListInfo(PlayListDTO playListDTO);
 
     Map<String,Object> setPlayListTrack(PlayListDTO playListDTO);
 

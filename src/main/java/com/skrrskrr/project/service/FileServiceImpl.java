@@ -18,7 +18,7 @@ public class FileServiceImpl implements FileService{
 
     private final FFmpegExecutor fFmpegExecutor;
 
-    @Value("${upload.path}")
+    @Value("${UPLOAD_PATH}")
     private String uploadPath;
 
 

@@ -2,13 +2,14 @@ package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.FollowDTO;
+import com.skrrskrr.project.dto.FcmSendDTO;
 import com.skrrskrr.project.entity.Follow;
 import com.skrrskrr.project.entity.Member;
 import com.skrrskrr.project.entity.QFollow;
 import com.skrrskrr.project.entity.QMember;
-import com.skrrskrr.project.repository.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -24,64 +25,44 @@ import java.util.List;
 @Log4j2
 public class FollowServiceImpl implements FollowService{
 
-    private final FollowRepository followRepository;
-    private final FireBaseService fireBaseService;
     @PersistenceContext
-    EntityManager em;
+    EntityManager entityManager;
+    
+    private final JPAQueryFactory jpaQueryFactory;
+    private final FireBaseService fireBaseService;
+    private final ModelMapper modelMapper;
 
     @Override
     public Map<String, Object> setFollow(Long followerId, Long followingId) {
 
         Map<String,Object> hashMap = new HashMap<>();
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        QFollow qFollow = QFollow.follow;
-        QMember qMember = QMember.member;
 
         try {
 
-            Member follower = jpaQueryFactory.selectFrom(qMember)
-                    .where(qMember.memberId.eq(followerId))
-                    .fetchFirst();
+            Member follower = getFollowMember(followerId);
+            Member following = getFollowMember(followingId);
 
-            Member following = jpaQueryFactory.selectFrom(qMember)
-                    .where(qMember.memberId.eq(followingId))
-                    .fetchFirst();
-
-            Follow followResult = jpaQueryFactory.selectFrom(qFollow)
-                    .where(qFollow.follower.memberId.eq(followerId)
-                            .and(qFollow.following.memberId.eq(followingId)))
-                    .fetchFirst();
+            Follow followResult = isFollowStatus(followerId,followingId);
 
             if (followResult != null) {
                 // 팔로우, 팔로워 삭제
-                jpaQueryFactory.delete(qFollow)
-                        .where(qFollow.follower.memberId.eq(followerId)
-                                .and(qFollow.following.memberId.eq(followingId)))
-                        .execute();
-
+                deleteFollow(followerId,followingId);
                 updateFollowCounts(follower, following, -1L);
-
             } else {
                 // 팔로우, 팔로워 등록
-                Follow follow = new Follow();
-                follow.setFollower(follower);
-                follow.setFollowing(following);
-
-                em.persist(follow);
-
+                insertFollow(follower,following);
                 updateFollowCounts(follower, following, 1L);
 
-
                 try{
-                    fireBaseService.sendPushNotification(
-                            followerId,
-                            "알림",
-                            "회원님을 팔로우 했습니다.",
-                            3L,
-                            null,
-                            null,
-                            followingId
-                    );
+                    FcmSendDTO fcmSendDTO = FcmSendDTO.builder()
+                            .title("알림")
+                            .body("회원님을 팔로우 했습니다.")
+                            .notificationType(3L)
+                            .notificationMemberId(followingId)
+                            .memberId(followerId)
+                            .build();
+
+                    fireBaseService.sendPushNotification(fcmSendDTO);
                 } catch(Exception e) {
                     hashMap.put("status","500");
                     e.printStackTrace();
@@ -99,108 +80,140 @@ public class FollowServiceImpl implements FollowService{
     }
 
 
-    private void updateFollowCounts(Member follower, Member following, Long delta) {
+    private void insertFollow(Member follower , Member following) {
+        Follow follow = new Follow();
+        follow.setFollower(follower);
+        follow.setFollowing(following);
+
+        entityManager.persist(follow);
+    }
+
+    private void deleteFollow(Long followerId, Long followingId){
+
+        QFollow qFollow = QFollow.follow;
+
+        jpaQueryFactory.delete(qFollow)
+                .where(qFollow.follower.memberId.eq(followerId)
+                        .and(qFollow.following.memberId.eq(followingId)))
+                .execute();
+
+    }
 
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+    private Follow isFollowStatus(Long followerId, Long followingId){
+
+        QFollow qFollow = QFollow.follow;
+
+        return jpaQueryFactory.selectFrom(qFollow)
+                .where(qFollow.follower.memberId.eq(followerId)
+                        .and(qFollow.following.memberId.eq(followingId)))
+                .fetchFirst();
+    }
+
+
+    private Member getFollowMember(Long followId){
+
         QMember qMember = QMember.member;
 
-        // Member 엔티티의 필드를 직접 수정
+        return jpaQueryFactory.selectFrom(qMember)
+                .where(qMember.memberId.eq(followId))
+                .fetchFirst();
+    }
 
-        log.info("테테스트123");
-        log.info(follower.getMemberFollowerCnt());
-        log.info(following.getMemberFollowerCnt());
-        log.info(delta);
+    private void updateFollowCounts(Member follower, Member following, Long delta) {
 
         follower.setMemberFollowerCnt(follower.getMemberFollowerCnt() + delta);
         following.setMemberFollowCnt(following.getMemberFollowCnt() + delta);
 
         // 변경 사항을 DB에 즉시 반영
-        em.flush();
+        entityManager.flush();
     }
 
 
-
+    // 4. 메인 getFollow 메서드
     @Override
     public Map<String, Object> getFollow(Long memberId) {
-        Map<String,Object> hashMap = new HashMap<>();
-
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
-        QFollow qFollow = QFollow.follow;
+        Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            List<Follow> followingList = jpaQueryFactory.selectFrom(qFollow)
-                    .where(qFollow.follower.memberId.eq(memberId))
-                    .fetch();
-
-
-            List<Follow> followerList = jpaQueryFactory.selectFrom(qFollow)
-                    .where(qFollow.following.memberId.eq(memberId))
-                    .fetch();
+            List<Follow> followingList = getFollowingList(memberId);
+            List<Follow> followerList = getFollowerList(memberId);
 
             List<FollowDTO> followingDtoList = new ArrayList<>();
             List<FollowDTO> followerDtoList = new ArrayList<>();
 
-
+            // followingList에 대한 DTO 생성
             for (Follow following : followingList) {
-                FollowDTO followingDTO = FollowDTO.builder()
-                        .followMemberId(following.getFollowing().getMemberId())
-                        .followNickName(following.getFollowing().getMemberNickName())
-                        .followImagePath(following.getFollowing().getMemberImagePath())
-                        .isFollowedCd(2L)
-                        .build();
+                FollowDTO followingDTO = modelMapper.map(following.getFollowing(), FollowDTO.class);
+                followingDTO.setIsFollowedCd(2L);
 
-                // 맞팔 여부 확인 (followerList에서 같은 회원을 팔로우하는지 체크)
-                boolean isMutualFollow = false;
-                for (Follow follower : followerList) {
-                    if (follower.getFollower().getMemberId().equals(following.getFollowing().getMemberId())) {
-                        isMutualFollow = true;
-                        followingDTO.setIsFollowedCd(3L);
-                        break;
-                    }
+
+                boolean isMutualFollow = isMutualFollow(following, followerList);
+                followingDTO.setMutualFollow(isMutualFollow);
+                if (isMutualFollow) {
+                    followingDTO.setIsFollowedCd(3L);
                 }
 
-                followingDTO.setMutualFollow(isMutualFollow);
                 followingDtoList.add(followingDTO);
             }
 
+            // followerList에 대한 DTO 생성
             for (Follow follower : followerList) {
-                FollowDTO followerDTO = FollowDTO.builder()
-                        .followMemberId(follower.getFollower().getMemberId())
-                        .followNickName(follower.getFollower().getMemberNickName())
-                        .followImagePath(follower.getFollower().getMemberImagePath())
-                        .isFollowedCd(1L)
-                        .build();
+                FollowDTO followerDTO = modelMapper.map(follower.getFollower(), FollowDTO.class);
+                followerDTO.setIsFollowedCd(1L);
 
-                // 맞팔 여부 확인 (followingList에서 같은 회원을 팔로우하는지 체크)
-                boolean isMutualFollow = false;
-                for (Follow following : followingList) {
-                    if (following.getFollowing().getMemberId().equals(follower.getFollower().getMemberId())) {
-                        isMutualFollow = true;
-                        followerDTO.setIsFollowedCd(3L);
-                        break;
-                    }
+                boolean isMutualFollow = isMutualFollow(follower, followingList);
+                followerDTO.setMutualFollow(isMutualFollow);
+                if (isMutualFollow) {
+                    followerDTO.setIsFollowedCd(3L);
                 }
 
-                // DTO에 맞팔 여부 추가
-                followerDTO.setMutualFollow(isMutualFollow);
                 followerDtoList.add(followerDTO);
             }
 
-            hashMap.put("followingList",followerDtoList);
-            hashMap.put("followerList",followingDtoList);
-            hashMap.put("status","200");
+            hashMap.put("followingList", followingDtoList);
+            hashMap.put("followerList", followerDtoList);
+            hashMap.put("status", "200");
         } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            hashMap.put("status", "500");
         }
+
         return hashMap;
+    }
+
+
+    // 1. FollowList 가져오는 메서드들
+    private List<Follow> getFollowingList(Long memberId) {
+        
+        QFollow qFollow = QFollow.follow;
+        return jpaQueryFactory.selectFrom(qFollow)
+                .where(qFollow.follower.memberId.eq(memberId))
+                .fetch();
+    }
+
+    private List<Follow> getFollowerList(Long memberId) {
+        
+        QFollow qFollow = QFollow.follow;
+        return jpaQueryFactory.selectFrom(qFollow)
+                .where(qFollow.following.memberId.eq(memberId))
+                .fetch();
+    }
+
+
+    // 3. 맞팔 여부를 체크하는 메서드
+    private boolean isMutualFollow(Follow follow, List<Follow> otherList) {
+        for (Follow otherFollow : otherList) {
+            if (otherFollow.getFollower().getMemberId().equals(follow.getFollowing().getMemberId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean isFollowCheck(Long followerId, Long followingId) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QFollow qFollow = QFollow.follow;
 
         Follow follow = jpaQueryFactory.selectFrom(qFollow)
@@ -211,13 +224,5 @@ public class FollowServiceImpl implements FollowService{
 
         return follow != null;
 
-
     }
-
-
-
-
-
-
-
 }

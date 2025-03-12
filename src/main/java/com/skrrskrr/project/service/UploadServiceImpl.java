@@ -1,21 +1,14 @@
 package com.skrrskrr.project.service;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import com.skrrskrr.project.dto.PlayListDTO;
 import com.skrrskrr.project.dto.UploadDTO;
-import com.skrrskrr.project.entity.*;
-import com.skrrskrr.project.repository.MemberTrackRepository;
-import com.skrrskrr.project.repository.TrackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -28,15 +21,11 @@ public class UploadServiceImpl implements UploadService {
     private final FileService fileService;
     private final MemberService memberService;
 
-
-    @Value("${upload.path}")
+    @Value("${UPLOAD_PATH}")
     private String uploadPath;
 
-    @Value("${stream.server.url}")
+    @Value("${STREAM_SERVER_URL}")
     private String streamServerUrl;
-
-    @PersistenceContext
-    EntityManager em;
 
     private String generateUUID() {
         return String.valueOf(UUID.randomUUID());
@@ -70,7 +59,7 @@ public class UploadServiceImpl implements UploadService {
 
     }
 
-
+    @Override
     public Map<String, Object> albumUpload(UploadDTO uploadDTO) {
 
         Map<String, Object> hashMap = new HashMap<>();

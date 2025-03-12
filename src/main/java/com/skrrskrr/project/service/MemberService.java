@@ -10,14 +10,15 @@ import java.util.Map;
 
 public interface MemberService {
 
+
     default MemberDTO EntityToDto(Member member){
 
         MemberDTO memberDTO = new MemberDTO();
         memberDTO.setMemberId(member.getMemberId());
-        memberDTO.setMemberNickName(member.getMemberNickName()); // 수정 필요
+        memberDTO.setMemberNickName(member.getMemberNickName());
         memberDTO.setMemberEmail(member.getMemberEmail());
-        memberDTO.setMemberBirth(member.getMemberBirth()); // 수정 필요
-        memberDTO.setMemberAddr(member.getMemberAddr()); // 수정 필요
+        memberDTO.setMemberBirth(member.getMemberBirth());
+        memberDTO.setMemberAddr(member.getMemberAddr());
         memberDTO.setMemberImagePath(member.getMemberImagePath());
         memberDTO.setMemberFollowCnt(0L);
         memberDTO.setMemberFollowerCnt(0L);

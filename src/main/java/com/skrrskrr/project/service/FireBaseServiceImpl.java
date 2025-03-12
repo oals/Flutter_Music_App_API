@@ -1,18 +1,15 @@
 package com.skrrskrr.project.service;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.auth.Credentials;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.skrrskrr.project.dto.FcmSendDTO;
 import com.skrrskrr.project.entity.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
@@ -25,7 +22,6 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +33,12 @@ public class FireBaseServiceImpl implements FireBaseService {
     EntityManager em;
 
     // Firebase 클라우드 메시징에 사용할 서비스 계정 키 파일 경로
-    private static final String SERVICE_ACCOUNT_JSON_PATH = "skrrskrr-c3509-firebase-adminsdk-jvd09-e4842d6938.json";
+    @Value("${SERVICE_ACCOUNT_JSON_PATH}")
+    private String SERVICE_ACCOUNT_JSON_PATH;
 
     // Firebase 클라우드 메시징 API URL
-    private static final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/skrrskrr-c3509/messages:send";
+    @Value("${FCM_API_URL}")
+    private String FCM_API_URL;
 
 
     /**
@@ -51,53 +49,31 @@ public class FireBaseServiceImpl implements FireBaseService {
     }
 
 
-
     /**
      * 댓글 작성 시 push 알림
      */
-    public void sendPushNotification(Long memberId,
-                                     String title,
-                                     String body,
-                                     Long notificationType,
-                                     Long notificationTrackId,
-                                     Long notificationCommentId,
-                                     Long notificationMemberId
-                                     ) throws Exception {
+    public void sendPushNotification(FcmSendDTO fcmSendDTO) throws Exception {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMember qMember = QMember.member;
 
-        log.info("디바이스대상");
-        log.info(memberId);
-
         // 디바이스 토큰 가져오기
         Member member = jpaQueryFactory
                 .selectFrom(qMember)
-                .where(qMember.memberId.eq(memberId))
+                .where(qMember.memberId.eq(fcmSendDTO.getMemberId()))
                 .fetchOne();
 
         assert member != null;
+
+        saveNotifications(fcmSendDTO, member);
+
+        sendNotificationSetFcm(fcmSendDTO, member);
+
+    }
+
+    private void sendNotificationSetFcm(FcmSendDTO fcmSendDTO, Member member) throws Exception {
+
         String deviceToken = member.getMemberDeviceToken();
-
-        Notifications notifications = Notifications.builder()
-                .member(member)
-                .notificationMsg(body)
-                .notificationType(notificationType)
-                .notificationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .build();
-
-        if(notificationType == 1L) {
-
-            notifications.setNotificationTrackId(notificationTrackId);
-        } else if (notificationType == 2L){
-            notifications.setNotificationTrackId(notificationTrackId);
-        } else if (notificationType == 3L) {
-            notifications.setNotificationMemberId(notificationMemberId);
-        }
-
-
-        em.persist(notifications);
-
 
         // 1. OAuth2 인증 토큰 얻기
         String accessToken = getAccessToken();
@@ -107,8 +83,8 @@ public class FireBaseServiceImpl implements FireBaseService {
         JSONObject notification = new JSONObject();
 
         // 알림 제목과 본문 설정
-        notification.put("title", title);  // 알림 제목
-        notification.put("body", body);    // 알림 본문
+        notification.put("title", fcmSendDTO.getTitle());  // 알림 제목
+        notification.put("body", fcmSendDTO.getBody());    // 알림 본문
 
         // 메시지에 notification 객체와 token 필드 추가
         JSONObject messageBody = new JSONObject();
@@ -122,6 +98,20 @@ public class FireBaseServiceImpl implements FireBaseService {
         sendNotificationToFCM(message.toString(), accessToken);
     }
 
+
+    private void saveNotifications(FcmSendDTO fcmSendDTO, Member member){
+        Notifications notifications = Notifications.builder()
+                .member(member)
+                .notificationMsg(fcmSendDTO.getBody())
+                .notificationType(fcmSendDTO.getNotificationType())
+                .notificationTrackId(fcmSendDTO.getNotificationTrackId())
+                .notificationCommentId(fcmSendDTO.getNotificationCommentId())
+                .notificationMemberId(fcmSendDTO.getNotificationMemberId())
+                .notificationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .build();
+
+        em.persist(notifications);
+    }
 
     /**
      * Firebase Cloud Messaging 액세스 토큰을 얻는 메소드

@@ -3,6 +3,7 @@ package com.skrrskrr.project.dto;
 import com.skrrskrr.project.entity.Track;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -31,9 +32,9 @@ public class PlayListDTO {
 
     private String totalPlayTime;
 
-    private Long trackCnt;
+    private Long trackCnt = 0L;
 
-    private List<TrackDTO> playListTrackList;
+    private List<TrackDTO> playListTrackList = new ArrayList<>();
 
     private Long memberId;
 

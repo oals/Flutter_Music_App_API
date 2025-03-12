@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.jdbc.Expectation;
 import org.joda.time.DateTime;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -29,10 +31,9 @@ import java.util.List;
 @Log4j2
 public class SearchServiceImpl implements SearchService{
 
-    @PersistenceContext
-    EntityManager em;
-
+    private final JPAQueryFactory jpaQueryFactory;
     private final HistoryRepository historyRepository;
+    private final ModelMapper modelMapper;
 
 
     @Override
@@ -107,7 +108,7 @@ public class SearchServiceImpl implements SearchService{
 
 
     private void saveNewSearchHistory(Long memberId, String searchText){
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QMember qMember = QMember.member;
 
         Member member = jpaQueryFactory.selectFrom(qMember)
@@ -125,7 +126,7 @@ public class SearchServiceImpl implements SearchService{
 
     private void deleteLastSearchHistory(Long memberId) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QHistory qHistory = QHistory.history;
 
         /// 해당 멤버의 검색 히스토리 갯수 조회 후 특정 갯수 이상일때 마지막 히스토리 엔티티 삭제
@@ -165,7 +166,6 @@ public class SearchServiceImpl implements SearchService{
             ///인기 검색어 조회 (7일 기준)
             List<String> popularTrackList = getPopularSearchHistory();
 
-
             hashMap.put("searchHistory",searchHistoryDtoList);
             hashMap.put("popularTrackHistory",popularTrackList);
             hashMap.put("status","200");
@@ -179,7 +179,7 @@ public class SearchServiceImpl implements SearchService{
 
 
     private List<HistoryDTO> getSearchHistory(Long memberId){
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QHistory qHistory = QHistory.history;
 
         /// 검색어 30개 조회
@@ -191,12 +191,7 @@ public class SearchServiceImpl implements SearchService{
 
         List<HistoryDTO> searchHistoryDtoList = new ArrayList<>();
         for (History history : searchHistory) {
-            HistoryDTO historyDTO = HistoryDTO.builder()
-                    .historyId(history.getHistoryId())
-                    .historyText(history.getHistoryText())
-                    .historyDate(history.getHistoryDate().toString())
-                    .build();
-
+            HistoryDTO historyDTO = modelMapper.map(history, HistoryDTO.class);
             searchHistoryDtoList.add(historyDTO);
         }
 
@@ -204,7 +199,7 @@ public class SearchServiceImpl implements SearchService{
     }
 
     private List<String> getPopularSearchHistory(){
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QTrack qTrack = QTrack.track;
 
         LocalDate today = LocalDate.now();
@@ -253,7 +248,6 @@ public class SearchServiceImpl implements SearchService{
 
     private List<TrackSearchDTO> getSearchTrackList(Long memberId, String searchText, Long listIndex,Long limit) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
         QTrackCategory qTrackCategory = QTrackCategory.trackCategory;
         QTrackLike qTrackLike = QTrackLike.trackLike;
@@ -302,7 +296,6 @@ public class SearchServiceImpl implements SearchService{
                 .fetch();
 
 
-
         List<TrackSearchDTO> trackSearchDtoList = new ArrayList<>();
 
         for (Tuple tuple : queryTrackResult) {
@@ -334,9 +327,7 @@ public class SearchServiceImpl implements SearchService{
 
 
     private Long getSearchTrackListCnt(Long memberId, String searchText) {
-
-
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
         return jpaQueryFactory
@@ -350,10 +341,8 @@ public class SearchServiceImpl implements SearchService{
     }
 
     private Long getTrackLikeCnt(Long trackId) {
-
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QTrackLike qTrackLike = QTrackLike.trackLike;
-
 
         return jpaQueryFactory
                 .select(qTrackLike.count())
@@ -366,8 +355,7 @@ public class SearchServiceImpl implements SearchService{
 
 
     private List<PlayListDTO> getSearchPlayList(Long memberId, String searchText, Long listIndex, Long limit) {
-
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QPlayList qPlayList = QPlayList.playList;
 
         List<PlayList> queryPlayListResult = jpaQueryFactory.selectFrom(qPlayList)
@@ -381,19 +369,17 @@ public class SearchServiceImpl implements SearchService{
 
         List<PlayListDTO>  playListDTOList = new ArrayList<>();
 
-        for (int i = 0; i < queryPlayListResult.size(); i++) {
+        for (PlayList playList : queryPlayListResult) {
             PlayListDTO playListDTO = PlayListDTO.builder()
-                    .playListId(queryPlayListResult.get(i).getPlayListId())
-                    .playListNm(queryPlayListResult.get(i).getPlayListNm())
-                    .playListImagePath(queryPlayListResult.get(i).getPlayListTrackList().get(0).getTrackImagePath())
-                    .memberNickName(queryPlayListResult.get(i).getMember().getMemberNickName())
-                    .memberId(queryPlayListResult.get(i).getMember().getMemberId())
+                    .playListId(playList.getPlayListId())
+                    .playListNm(playList.getPlayListNm())
+                    .playListImagePath(playList.getPlayListTrackList().get(0).getTrackImagePath())
+                    .memberNickName(playList.getMember().getMemberNickName())
+                    .memberId(playList.getMember().getMemberId())
                     .build();
 
             playListDTOList.add(playListDTO);
         }
-
-
 
         return playListDTOList;
     }
@@ -401,7 +387,7 @@ public class SearchServiceImpl implements SearchService{
 
     private Long getSearchPlayListCnt(Long memberId, String searchText) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QPlayList qPlayList = QPlayList.playList;
 
         return jpaQueryFactory.select(qPlayList.playListId.count()).from(qPlayList)
@@ -409,12 +395,11 @@ public class SearchServiceImpl implements SearchService{
                         .and(qPlayList.isPlayListPrivacy.isFalse())
                         .and(qPlayList.playListTrackList.isNotEmpty()))
                 .fetchOne();
-
     }
 
 
     private Long getSearchMemberListCnt(Long memberId, String searchMemberNickName) {
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QMember qMember = QMember.member;
 
         return jpaQueryFactory.select(qMember.memberId.count())
@@ -427,10 +412,8 @@ public class SearchServiceImpl implements SearchService{
 
     private List<FollowDTO> getSearchMemberList(Long memberId, String searchMemberNickName, Long listIndex, Long limit) {
 
-        Map<String,Object> hashMap = new HashMap<>();
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QMember qMember = QMember.member;
-
 
         List<Member> queryMemberResult = jpaQueryFactory.selectFrom(qMember)
                 .where(qMember.memberNickName.lower().contains(searchMemberNickName.toLowerCase())
@@ -442,31 +425,27 @@ public class SearchServiceImpl implements SearchService{
 
         List<FollowDTO> searchMemberDtos = new ArrayList<>();
 
-        for (int i = 0; i < queryMemberResult.size(); i++) {
+        for (Member member : queryMemberResult) {
 
-            FollowDTO followDTO = FollowDTO.builder()
-                    .followNickName(queryMemberResult.get(i).getMemberNickName())
-                    .followMemberId(queryMemberResult.get(i).getMemberId())
-                    .followImagePath(queryMemberResult.get(i).getMemberImagePath())
-                    .isFollowedCd(0L)
-                    .isMutualFollow(false)
-                    .build();
+            FollowDTO followDTO = modelMapper.map(member,FollowDTO.class);
+            followDTO.setIsFollowedCd(0L);
+            followDTO.setMutualFollow(false);
 
-            if (!queryMemberResult.get(i).getFollowers().isEmpty()
-                    || !queryMemberResult.get(i).getFollowing().isEmpty()) {
+            if (!member.getFollowers().isEmpty()
+                    || !member.getFollowing().isEmpty()) {
 
-                if(!queryMemberResult.get(i).getFollowers().isEmpty()){
-                    for(Follow item : queryMemberResult.get(i).getFollowers()){
-                        if(item.getFollowing().getMemberId().equals(memberId)){
+                if (!member.getFollowers().isEmpty()) {
+                    for (Follow item : member.getFollowers()) {
+                        if (item.getFollowing().getMemberId().equals(memberId)) {
                             followDTO.setIsFollowedCd(1L);   // 내가 팔로우
                         }
                     }
                 }
 
-                if(!queryMemberResult.get(i).getFollowing().isEmpty()) {
-                    for(Follow item : queryMemberResult.get(i).getFollowing()){
-                        if(item.getFollower().getMemberId().equals(memberId)){
-                            if(followDTO.getIsFollowedCd() == 1L) {
+                if (!member.getFollowing().isEmpty()) {
+                    for (Follow item : member.getFollowing()) {
+                        if (item.getFollower().getMemberId().equals(memberId)) {
+                            if (followDTO.getIsFollowedCd() == 1L) {
                                 followDTO.setIsFollowedCd(3L); // 맞팔
                                 followDTO.setMutualFollow(true);
                             } else {
@@ -479,9 +458,6 @@ public class SearchServiceImpl implements SearchService{
             }
             searchMemberDtos.add(followDTO);
         }
-
-
-
 
         return searchMemberDtos;
 

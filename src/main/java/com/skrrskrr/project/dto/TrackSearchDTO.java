@@ -40,8 +40,4 @@ public class TrackSearchDTO {
 
     private boolean trackLikeStatus;
 
-
-
-
-
 }

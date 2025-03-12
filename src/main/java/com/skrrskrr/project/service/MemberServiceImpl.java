@@ -8,6 +8,7 @@ import com.skrrskrr.project.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.codelibs.jhighlight.fastutil.Hash;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,20 +24,18 @@ import java.util.stream.Collectors;
 @Log4j2
 public class MemberServiceImpl implements MemberService {
 
-    @PersistenceContext
-    EntityManager em;
-
     private final MemberRepository memberRepository;
-
+    private final JPAQueryFactory jpaQueryFactory;
+    private final ModelMapper modelMapper;
 
     @Override
     public MemberDTO getMemberInfo(String memberEmail) {
 
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+        
         QMember qmember = QMember.member; // QMember 타입 사용
 
         // QueryDSL을 사용하여 authToken으로 Member 조회
-        Member foundMember = queryFactory
+        Member foundMember = jpaQueryFactory
                 .selectFrom(qmember)
                 .where(qmember.memberEmail.eq(memberEmail))
                 .fetchOne(); // 단일 결과를 가져옴
@@ -50,17 +49,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
 
-
-
-
     @Override
     public Map<String,Object> setMemberDeviceToken(MemberDTO memberDTO) {
 
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+        
         QMember qMember = QMember.member;
         Map<String,Object> hashMap = new HashMap<>();
         try {
-            queryFactory.update(qMember)
+            jpaQueryFactory.update(qMember)
                     .set(qMember.memberDeviceToken, memberDTO.getDeviceToken())
                     .where(qMember.memberId.eq(memberDTO.getMemberId()))
                     .execute();
@@ -79,10 +75,9 @@ public class MemberServiceImpl implements MemberService {
         Map<String,Object> hashMap = new HashMap<>();
         try {
 
-            JPAQueryFactory queryFactory = new JPAQueryFactory(em);
             QMember qMember = QMember.member;
 
-            queryFactory.update(qMember)
+            jpaQueryFactory.update(qMember)
                     .set(qMember.memberImagePath, uploadDTO.getUploadImagePath())
                     .where(qMember.memberId.eq(uploadDTO.getMemberId()))
                     .execute();
@@ -101,7 +96,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Map<String,Object> setMemberInfoUpdate(MemberDTO memberDTO) {
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
+        
         QMember qMember = QMember.member;
         Map<String,Object> hashMap = new HashMap<>();
 
@@ -162,14 +157,13 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Map<String, Object> getMemberPageInfo(Long memberId, Long loginMemberId) {
         Map<String, Object> hashMap = new HashMap<>();
-        List<PlayListDTO> playListDtoList = new ArrayList<>();
+
         List<TrackDTO> popularTrackDtoList = new ArrayList<>();
         List<TrackDTO> allTrackDtoList = new ArrayList<>();
+        MemberDTO memberDTO;
 
-        JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMember qMember = QMember.member;
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
-        QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
 
         try {
 
@@ -178,58 +172,19 @@ public class MemberServiceImpl implements MemberService {
                     .fetchFirst();
 
             // 회원 정보 조회
-            MemberDTO memberDTO;
             if (queryResultMemberTrack == null) {
-                Member queryResultMember = jpaQueryFactory.selectFrom(qMember)
+                Member member = jpaQueryFactory.selectFrom(qMember)
                         .where(qMember.memberId.eq(memberId))
                         .fetchFirst();
-
-                memberDTO = MemberDTO.builder()
-                        .memberId(queryResultMember.getMemberId())
-                        .memberNickName(queryResultMember.getMemberNickName())
-                        .memberInfo(queryResultMember.getMemberInfo())
-                        .memberEmail(queryResultMember.getMemberEmail())
-                        .memberFollowCnt(queryResultMember.getMemberFollowCnt())
-                        .memberFollowerCnt(queryResultMember.getMemberFollowerCnt())
-                        .memberImagePath(queryResultMember.getMemberImagePath())
-                        .build();
+                memberDTO = EntityToDto(member);
             } else {
-                memberDTO = MemberDTO.builder()
-                        .memberId(queryResultMemberTrack.getMember().getMemberId())
-                        .memberNickName(queryResultMemberTrack.getMember().getMemberNickName())
-                        .memberInfo(queryResultMemberTrack.getMember().getMemberInfo())
-                        .memberEmail(queryResultMemberTrack.getMember().getMemberEmail())
-                        .memberFollowCnt(queryResultMemberTrack.getMember().getMemberFollowCnt())
-                        .memberFollowerCnt(queryResultMemberTrack.getMember().getMemberFollowerCnt())
-                        .memberImagePath(queryResultMemberTrack.getMember().getMemberImagePath())
-                        .build();
-
+                Member member = queryResultMemberTrack.getMember();
+                memberDTO = EntityToDto(member);
             }
 
             // 플레이리스트 조회
-            List<MemberPlayList> memberPlayList = jpaQueryFactory
-                    .selectFrom(qMemberPlayList)
-                    .where(qMemberPlayList.member.memberId.eq(memberId)
-                            .and(qMemberPlayList.playList.isPlayListPrivacy.isFalse()
-                                    .or(qMemberPlayList.member.memberId.eq(loginMemberId))))
-                    .limit(5)
-                    .fetch();
+            List<PlayListDTO> playListDtoList = getMemberPlayList(memberId,loginMemberId);
 
-            for (MemberPlayList playList : memberPlayList) {
-                String playListFirstTrackImagePath = !playList.getPlayList().getPlayListTrackList().isEmpty()
-                        ? playList.getPlayList().getPlayListTrackList().get(0).getTrackImagePath()
-                        : "";
-
-                PlayListDTO playListDTO = PlayListDTO.builder()
-                        .playListId(playList.getPlayList().getPlayListId())
-                        .playListNm(playList.getPlayList().getPlayListNm())
-                        .playListImagePath(playListFirstTrackImagePath)
-                        .memberNickName(playList.getMember().getMemberNickName())
-                        .memberId(playList.getPlayList().getMember().getMemberId())
-                        .build();
-
-                playListDtoList.add(playListDTO);
-            }
 
             // 인기 트랙 및 모든 트랙 조회
             for (boolean isPopular : new boolean[]{true, false}) {
@@ -243,13 +198,7 @@ public class MemberServiceImpl implements MemberService {
 
                 List<TrackDTO> trackDtoList = new ArrayList<>();
                 for (MemberTrack memberTrack : trackList) {
-                    TrackDTO trackDTO = TrackDTO.builder()
-                            .trackId(memberTrack.getTrack().getTrackId())
-                            .trackNm(memberTrack.getTrack().getTrackNm())
-                            .trackImagePath(memberTrack.getTrack().getTrackImagePath())
-                            .trackCategoryId(memberTrack.getTrack().getTrackCategoryId())
-                            .trackTime(memberTrack.getTrack().getTrackTime())
-                            .build();
+                    TrackDTO trackDTO = modelMapper.map(memberTrack.getTrack(), TrackDTO.class);
                     trackDtoList.add(trackDTO);
                 }
 
@@ -259,6 +208,7 @@ public class MemberServiceImpl implements MemberService {
                     allTrackDtoList = trackDtoList;
                 }
             }
+
 
             hashMap.put("memberDTO", memberDTO);
             hashMap.put("playListDTO", playListDtoList);
@@ -272,5 +222,39 @@ public class MemberServiceImpl implements MemberService {
 
         return hashMap;
     }
+
+    private List<PlayListDTO> getMemberPlayList(Long memberId, Long loginMemberId) {
+
+        QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
+        List<PlayListDTO> playListDtoList = new ArrayList<>();
+
+        List<MemberPlayList> memberPlayList = jpaQueryFactory
+                .selectFrom(qMemberPlayList)
+                .where(qMemberPlayList.member.memberId.eq(memberId)
+                        .and(qMemberPlayList.playList.isPlayListPrivacy.isFalse()
+                                .or(qMemberPlayList.member.memberId.eq(loginMemberId))))
+                .limit(5)
+                .fetch();
+
+
+        for (MemberPlayList playList : memberPlayList) {
+            String playListFirstTrackImagePath = !playList.getPlayList().getPlayListTrackList().isEmpty()
+                    ? playList.getPlayList().getPlayListTrackList().get(0).getTrackImagePath()
+                    : "";
+
+            PlayListDTO playListDTO = PlayListDTO.builder()
+                    .playListId(playList.getPlayList().getPlayListId())
+                    .playListNm(playList.getPlayList().getPlayListNm())
+                    .playListImagePath(playListFirstTrackImagePath)
+                    .memberNickName(playList.getMember().getMemberNickName())
+                    .memberId(playList.getPlayList().getMember().getMemberId())
+                    .build();
+
+            playListDtoList.add(playListDTO);
+        }
+
+        return playListDtoList;
+    }
+
 
 }
