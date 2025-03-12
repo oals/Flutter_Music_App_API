@@ -1,6 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.skrrskrr.project.config.ModelMapperConfig;
 import com.skrrskrr.project.dto.FollowDTO;
 import com.skrrskrr.project.dto.FcmSendDTO;
 import com.skrrskrr.project.entity.Follow;

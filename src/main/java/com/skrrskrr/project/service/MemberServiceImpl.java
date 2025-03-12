@@ -196,11 +196,13 @@ public class MemberServiceImpl implements MemberService {
                         .limit(isPopular ? 4 : 7)
                         .fetch();
 
+
                 List<TrackDTO> trackDtoList = new ArrayList<>();
                 for (MemberTrack memberTrack : trackList) {
                     TrackDTO trackDTO = modelMapper.map(memberTrack.getTrack(), TrackDTO.class);
                     trackDtoList.add(trackDTO);
                 }
+
 
                 if (isPopular) {
                     popularTrackDtoList = trackDtoList;

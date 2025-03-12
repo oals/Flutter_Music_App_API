@@ -170,26 +170,17 @@ public class PlayListServiceImpl implements PlayListService {
 
     private List<TrackDTO> createTrackDTOList(PlayList queryResult, PlayListDTO playListDTO) {
         List<TrackDTO> trackDTOList = new ArrayList<>();
-        List<Track> queryResultTemp = queryResult.getPlayListTrackList();
+        List<Track> trackList = queryResult.getPlayListTrackList();
 
-        if (!queryResultTemp.isEmpty()) {
-            for (int i = queryResultTemp.size() - 1; i >= 0; i--) {
-                if (queryResultTemp.get(i).isTrackPrivacy()) {
+        if (!trackList.isEmpty()) {
+            for (int i = trackList.size() - 1; i >= 0; i--) {
+                if (trackList.get(i).isTrackPrivacy()) {
                     if (!Objects.equals(queryResult.getMember().getMemberId(), playListDTO.getMemberId())) {
                         continue;
                     }
                 }
 
-
-                TrackDTO trackDTO = TrackDTO.builder()
-                        .trackId(queryResultTemp.get(i).getTrackId())
-                        .trackNm(queryResultTemp.get(i).getTrackNm())
-                        .trackPlayCnt(queryResultTemp.get(i).getTrackPlayCnt())
-                        .trackImagePath(queryResultTemp.get(i).getTrackImagePath())
-                        .trackCategoryId(queryResultTemp.get(i).getTrackCategoryId())
-                        .trackTime(queryResultTemp.get(i).getTrackTime())
-                        .build();
-
+                TrackDTO trackDTO = modelMapper.map(trackList.get(i), TrackDTO.class);
                 trackDTOList.add(trackDTO);
             }
         }

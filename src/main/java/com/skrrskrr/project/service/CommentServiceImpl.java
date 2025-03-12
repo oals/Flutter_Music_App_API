@@ -29,11 +29,8 @@ public class CommentServiceImpl implements CommentService{
     @PersistenceContext
     EntityManager entityManager;
 
-
     private final FireBaseService fireBaseService;
     private final JPAQueryFactory jpaQueryFactory;
-    private final ModelMapper modelMapper;
-
 
     @Override
     public Map<String, Object> setComment(Long trackId, Long memberId, String commentText, Long commentId) {

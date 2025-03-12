@@ -1,6 +1,8 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ConstantImpl;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.FcmSendDTO;
 import com.skrrskrr.project.dto.TrackDTO;
@@ -40,7 +42,7 @@ public class TrackServiceImpl implements TrackService {
     private final FollowService followService;
     private final FireBaseService fireBaseService;
     private final CommentService commentService;
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
 
     @Override
@@ -352,7 +354,23 @@ public class TrackServiceImpl implements TrackService {
 
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
-        List<TrackLike> trackLike = jpaQueryFactory.selectFrom(qTrackLike)
+        return jpaQueryFactory.select(
+                        Projections.bean(
+                                TrackDTO.class,
+                                qTrackLike.memberTrack.track.trackId.as("trackId"),
+                                qTrackLike.memberTrack.track.trackNm.as("trackNm"),
+                                qTrackLike.memberTrack.track.trackPlayCnt.as("trackPlayCnt"),
+                                qTrackLike.memberTrack.track.trackImagePath.as("trackImagePath"),
+                                qTrackLike.memberTrack.track.trackCategoryId.as("trackCategoryId"),
+                                qTrackLike.memberTrack.member.memberNickName.as("memberNickName"),
+                                qTrackLike.memberTrack.member.memberId.as("memberId"),
+                                qTrackLike.memberTrack.track.trackPath.as("trackPath"),
+                                qTrackLike.memberTrack.track.trackLikeCnt.as("trackLikeCnt"),
+                                qTrackLike.memberTrack.track.trackInfo.as("trackInfo"),
+                                qTrackLike.trackLikeStatus.as("trackLikeStatus")
+                        )
+                )
+                .from(qTrackLike)
                 .where(qTrackLike.member.memberId.eq(memberId)
                         .and(qTrackLike.memberTrack.track.isTrackPrivacy.isFalse())
                         .and(qTrackLike.trackLikeStatus.isTrue()))
@@ -361,19 +379,7 @@ public class TrackServiceImpl implements TrackService {
                 .orderBy(qTrackLike.memberTrack.memberTrackId.desc())
                 .fetch();
 
-        List<TrackDTO> likeTrackList = new ArrayList<>();
 
-        for (TrackLike tracklike : trackLike) {
-
-            TrackDTO trackDto = modelMapper.map(tracklike.getMemberTrack().getTrack(), TrackDTO.class);
-            trackDto.setMemberNickName(tracklike.getMemberTrack().getMember().getMemberNickName());
-            trackDto.setMemberId(tracklike.getMemberTrack().getMember().getMemberId());
-            trackDto.setTrackLikeStatus(true);
-
-            likeTrackList.add(trackDto);
-        }
-
-        return likeTrackList;
     }
 
     @Override
@@ -420,44 +426,45 @@ public class TrackServiceImpl implements TrackService {
 
         try {
 
-            Tuple trackInfo = jpaQueryFactory.select(
-                            qMemberTrack.track.trackId,
-                            qMemberTrack.track.trackNm,
-                            qMemberTrack.track.isTrackPrivacy,
-                            qMemberTrack.track.trackImagePath,
-                            qMemberTrack.track.trackPlayCnt,
-                            qMemberTrack.track.trackInfo,
-                            qMemberTrack.track.trackPath,
-                            qMemberTrack.track.trackTime,
-                            qMemberTrack.track.trackLikeCnt,
-                            qMemberTrack.track.trackCategoryId,
-                            qMemberTrack.track.trackUploadDate,
-                            qMemberTrack.member.memberId,
-                            qMemberTrack.member.memberNickName
+            TrackDTO trackInfoDTO = jpaQueryFactory.select(
+                            Projections.bean(
+                                    TrackDTO.class,
+                                    qMemberTrack.track.trackId.as("trackId"),
+                                    qMemberTrack.track.trackNm.as("trackNm"),
+                                    qMemberTrack.track.isTrackPrivacy.as("isTrackPrivacy"),
+                                    qMemberTrack.track.trackImagePath.as("trackImagePath"),
+                                    qMemberTrack.track.trackPlayCnt.as("trackPlayCnt"),
+                                    qMemberTrack.track.trackInfo.as("trackInfo"),
+                                    qMemberTrack.track.trackPath.as("trackPath"),
+                                    qMemberTrack.track.trackTime.as("trackTime"),
+                                    qMemberTrack.track.trackLikeCnt.as("trackLikeCnt"),
+                                    qMemberTrack.track.trackCategoryId.as("trackCategoryId"),
+                                    qMemberTrack.track.trackUploadDate.as("trackUploadDate"),
+                                    qMemberTrack.member.memberId.as("memberId"),
+                                    qMemberTrack.member.memberNickName.as("memberNickName")
+                            )
                     )
                     .from(qMemberTrack)
                     .where(qMemberTrack.track.trackId.eq(trackId))
                     .fetchFirst();
 
+
             /* 해당 트랙에 좋아요 여부 */
             TrackLike trackLike = getTrackLikeStatus(memberId,trackId);
 
             /* 추천트랙 조회 */
-            List<TrackDTO> recommendTrackDtoList = getRecommendTrackList(memberId,trackInfo.get(qMemberTrack.track.trackId), trackInfo.get(qMemberTrack.track.trackCategoryId));
+            List<TrackDTO> recommendTrackDtoList = getRecommendTrackList(memberId,trackInfoDTO.getTrackId(), trackInfoDTO.getTrackCategoryId());
 
             /* 트랙의 댓글 수 조회 */
             Long commentCount = commentService.getTrackCommentCnt(memberId,trackId);
 
             /* 해당 트랙의 뮤지션을 내가 팔로워 했는지 */
-            boolean isFollow = followService.isFollowCheck(trackInfo.get(qMemberTrack.member.memberId),memberId);
+            boolean isFollow = followService.isFollowCheck(trackInfoDTO.getMemberId(), memberId);
 
-            TrackDTO trackInfoDTO = modelMapper.map(trackInfo.get(qMemberTrack.track), TrackDTO.class);
-            trackInfoDTO.setMemberId(trackInfo.get(qMemberTrack.member.memberId));  // MemberId 설정
-            trackInfoDTO.setMemberNickName(trackInfo.get(qMemberTrack.member.memberNickName));  // MemberNickName 설정
             trackInfoDTO.setTrackLikeStatus(trackLike != null && trackLike.isTrackLikeStatus());
             trackInfoDTO.setCommentsCnt(commentCount);  // commentCount 값을 설정
             trackInfoDTO.setFollowMember(isFollow);  // isFollow 값을 설정
-            trackInfoDTO.setTrackPrivacy(Boolean.TRUE.equals(trackInfo.get(qMemberTrack.track.isTrackPrivacy)));
+            trackInfoDTO.setTrackPrivacy(Boolean.TRUE.equals(trackInfoDTO.isTrackPrivacy()));
 
 
             hashMap.put("trackInfo",trackInfoDTO);
@@ -550,13 +557,14 @@ public class TrackServiceImpl implements TrackService {
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
 
-        List<Tuple> recommendTrack = jpaQueryFactory.select(
-                        qMemberTrack.track.trackId,
-                        qMemberTrack.track.trackImagePath,
-                        qMemberTrack.track.trackNm,
-                        qMemberTrack.member.memberNickName
-                )
-                .from(qMemberTrack)
+       return jpaQueryFactory.select(
+                            Projections.bean(TrackDTO.class,
+                                    qMemberTrack.track.trackId.as("trackId"),
+                                    qMemberTrack.track.trackImagePath.as("trackImagePath"),
+                                    qMemberTrack.track.trackNm.as("trackNm"),
+                                    qMemberTrack.member.memberNickName.as("memberNickName")
+                            )
+                        ).from(qMemberTrack)
                 .where(qMemberTrack.track.trackCategoryId.eq( trackCategoryId)
                         .and(qMemberTrack.track.trackId.ne(trackId))
                         .and(qMemberTrack.track.isTrackPrivacy.isFalse())
@@ -564,17 +572,6 @@ public class TrackServiceImpl implements TrackService {
                 .limit(5)
                 .fetch();
 
-        List<TrackDTO> recommendTrackDTOList = new ArrayList<>();
-
-        for (Tuple track : recommendTrack) {
-
-            TrackDTO recommendTrackDTO = modelMapper.map(track.get(qMemberTrack.track), TrackDTO.class);
-            recommendTrackDTO.setMemberNickName(track.get(qMemberTrack.member.memberNickName));
-
-            recommendTrackDTOList.add(recommendTrackDTO);
-        }
-
-        return recommendTrackDTOList;
     }
 
 }

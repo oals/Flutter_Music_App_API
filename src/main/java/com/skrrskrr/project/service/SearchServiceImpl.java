@@ -1,6 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
@@ -183,19 +184,20 @@ public class SearchServiceImpl implements SearchService{
         QHistory qHistory = QHistory.history;
 
         /// 검색어 30개 조회
-        List<History> searchHistory = jpaQueryFactory.selectFrom(qHistory)
+        return jpaQueryFactory.select(
+                        Projections.bean(
+                                HistoryDTO.class,
+                                qHistory.historyId.as("historyId"),
+                                qHistory.historyText.as("historyText"),
+                                qHistory.historyDate.as("historyDate")
+                        )
+                )
+                .from(qHistory)
                 .where(qHistory.member.memberId.eq(memberId))
                 .orderBy(qHistory.historyId.desc())
                 .limit(30)
                 .fetch();
 
-        List<HistoryDTO> searchHistoryDtoList = new ArrayList<>();
-        for (History history : searchHistory) {
-            HistoryDTO historyDTO = modelMapper.map(history, HistoryDTO.class);
-            searchHistoryDtoList.add(historyDTO);
-        }
-
-        return searchHistoryDtoList;
     }
 
     private List<String> getPopularSearchHistory(){
@@ -256,18 +258,20 @@ public class SearchServiceImpl implements SearchService{
                 .memberId(memberId)
                 .build();
 
-
-        List<Tuple> queryTrackResult = jpaQueryFactory.select(
-                        qMemberTrack.memberTrackId,
-                        qMemberTrack.member.memberId,
-                        qMemberTrack.member.memberNickName,
-                        qMemberTrack.track.trackId,
-                        qMemberTrack.track.trackNm,
-                        qMemberTrack.track.trackTime,
-                        qMemberTrack.track.trackPlayCnt,
-                        qMemberTrack.track.trackImagePath,
-                        qTrackCategory.category.trackCategoryId,
-                        qTrackLike.trackLikeStatus
+        List<TrackSearchDTO> trackSearchDtoList = jpaQueryFactory.select(
+                        Projections.bean(
+                                TrackSearchDTO.class,
+                                qMemberTrack.memberTrackId.as("memberTrackId"),  // 별칭 추가
+                                qMemberTrack.member.memberId.as("memberId"),
+                                qMemberTrack.member.memberNickName.as("memberNickName"),
+                                qMemberTrack.track.trackId.as("trackId"),
+                                qMemberTrack.track.trackNm.as("trackNm"),
+                                qMemberTrack.track.trackTime.as("trackTime"),
+                                qMemberTrack.track.trackPlayCnt.as("trackPlayCnt"),
+                                qMemberTrack.track.trackImagePath.as("trackImagePath"),
+                                qTrackCategory.category.trackCategoryId.as("trackCategoryId"),
+                                qTrackLike.trackLikeStatus.as("trackLikeStatus")
+                        )
                 )
                 .from(qMemberTrack)
                 .join(qTrackCategory)
@@ -295,29 +299,10 @@ public class SearchServiceImpl implements SearchService{
                 .orderBy(qMemberTrack.memberTrackId.desc())
                 .fetch();
 
-
-        List<TrackSearchDTO> trackSearchDtoList = new ArrayList<>();
-
-        for (Tuple tuple : queryTrackResult) {
-
-            /* 해당 곡의 좋아요 수 */
-            Long trackLikeCnt = getTrackLikeCnt(tuple.get(qMemberTrack.track.trackId));
-
-            trackSearchDtoList.add(
-                    TrackSearchDTO.builder()
-                            .memberId(tuple.get(qMemberTrack.member.memberId))
-                            .memberTrackId(tuple.get(qMemberTrack.memberTrackId))
-                            .memberNickName(tuple.get(qMemberTrack.member.memberNickName))
-                            .trackId(tuple.get(qMemberTrack.track.trackId))
-                            .trackNm(tuple.get(qMemberTrack.track.trackNm))
-                            .trackTime(tuple.get(qMemberTrack.track.trackTime))
-                            .trackPlayCnt(tuple.get(qMemberTrack.track.trackPlayCnt))
-                            .trackImagePath(tuple.get(qMemberTrack.track.trackImagePath))
-                            .trackLikeCnt(trackLikeCnt)
-                            .trackCategoryId(tuple.get(qTrackCategory.category.trackCategoryId))
-                            .trackLikeStatus(Boolean.TRUE.equals(tuple.get(qTrackLike.trackLikeStatus)))
-                            .build()
-            );
+        for (TrackSearchDTO trackSearchDto : trackSearchDtoList) {
+            /* 해당 곡의 좋아요 수 추가 */
+            Long trackLikeCnt = getTrackLikeCnt(trackSearchDto.getTrackId());
+            trackSearchDto.setTrackLikeCnt(trackLikeCnt);
         }
 
 
@@ -358,36 +343,28 @@ public class SearchServiceImpl implements SearchService{
         
         QPlayList qPlayList = QPlayList.playList;
 
-        List<PlayList> queryPlayListResult = jpaQueryFactory.selectFrom(qPlayList)
+        return jpaQueryFactory.select(
+                    Projections.bean(
+                            PlayListDTO.class,
+                            qPlayList.playListId.as("playListId"),
+                            qPlayList.playListNm.as("playListNm"),
+                            qPlayList.playListTrackList.get(0).track.trackImagePath.as("playListImagePath"),
+                            qPlayList.member.memberNickName.as("memberNickName"),
+                            qPlayList.member.memberId.as("memberId")
+
+                    )
+                ).from(qPlayList)
                 .where(qPlayList.playListNm.contains(searchText)
                         .and(qPlayList.isPlayListPrivacy.isFalse())
                         .and(qPlayList.playListTrackList.isNotEmpty()))
                 .offset(listIndex)
                 .limit(limit)
                 .fetch();
-
-
-        List<PlayListDTO>  playListDTOList = new ArrayList<>();
-
-        for (PlayList playList : queryPlayListResult) {
-            PlayListDTO playListDTO = PlayListDTO.builder()
-                    .playListId(playList.getPlayListId())
-                    .playListNm(playList.getPlayListNm())
-                    .playListImagePath(playList.getPlayListTrackList().get(0).getTrackImagePath())
-                    .memberNickName(playList.getMember().getMemberNickName())
-                    .memberId(playList.getMember().getMemberId())
-                    .build();
-
-            playListDTOList.add(playListDTO);
-        }
-
-        return playListDTOList;
     }
 
 
     private Long getSearchPlayListCnt(Long memberId, String searchText) {
 
-        
         QPlayList qPlayList = QPlayList.playList;
 
         return jpaQueryFactory.select(qPlayList.playListId.count()).from(qPlayList)
@@ -430,6 +407,7 @@ public class SearchServiceImpl implements SearchService{
             FollowDTO followDTO = modelMapper.map(member,FollowDTO.class);
             followDTO.setIsFollowedCd(0L);
             followDTO.setMutualFollow(false);
+
 
             if (!member.getFollowers().isEmpty()
                     || !member.getFollowing().isEmpty()) {

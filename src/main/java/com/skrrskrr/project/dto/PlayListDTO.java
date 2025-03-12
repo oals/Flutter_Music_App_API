@@ -32,9 +32,9 @@ public class PlayListDTO {
 
     private String totalPlayTime;
 
-    private Long trackCnt = 0L;
+    private Long trackCnt;
 
-    private List<TrackDTO> playListTrackList = new ArrayList<>();
+    private List<TrackDTO> playListTrackList;
 
     private Long memberId;
 
