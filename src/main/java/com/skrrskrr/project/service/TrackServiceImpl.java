@@ -1,12 +1,11 @@
 package com.skrrskrr.project.service;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.FcmSendDTO;
-import com.skrrskrr.project.dto.TrackDTO;
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.FcmSendDto;
+import com.skrrskrr.project.dto.TrackDto;
+import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.dto.UploadDto;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.repository.MemberTrackRepository;
 import com.skrrskrr.project.repository.TrackRepository;
@@ -46,15 +45,15 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> saveTrack(UploadDTO uploadDTO) {
+    public Map<String, Object> saveTrack(UploadDto uploadDto) {
         Map<String, Object> returnMap = new HashMap<>();
 
         try {
             // 트랙 엔티티 저장
-            Track track = createTrack(uploadDTO);
+            Track track = createTrack(uploadDto);
 
             // 트랙 연관 관계 설정
-            setTrackRelationships(track, uploadDTO);
+            setTrackRelationships(track, uploadDto);
 
             // 트랙 저장 후 반환 데이터 준비
             returnMap = prepareReturnMap(track);
@@ -67,17 +66,17 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    private Track createTrack(UploadDTO uploadDTO) {
+    private Track createTrack(UploadDto uploadDto) {
 
         QMember qMember = QMember.member;
         QCategory qCategory = QCategory.category;
 
         Member member = jpaQueryFactory.selectFrom(qMember)
-                .where(qMember.memberId.eq(uploadDTO.getMemberId()))
+                .where(qMember.memberId.eq(uploadDto.getLoginMemberId()))
                 .fetchOne();
 
         Category category = jpaQueryFactory.selectFrom(qCategory)
-                .where(qCategory.trackCategoryId.eq(uploadDTO.getTrackCategoryId()))
+                .where(qCategory.trackCategoryId.eq(uploadDto.getTrackCategoryId()))
                 .fetchOne();
 
         assert member != null;
@@ -85,13 +84,13 @@ public class TrackServiceImpl implements TrackService {
 
         // Track 엔티티 생성
         Track track = Track.builder()
-                .trackNm(uploadDTO.getTrackNm())
-                .trackInfo(uploadDTO.getTrackInfo())
-                .trackCategoryId(uploadDTO.getTrackCategoryId())
-                .isTrackPrivacy(uploadDTO.isTrackPrivacy())
-                .trackTime(uploadDTO.getTrackTime())
-                .trackPath(uploadDTO.getUploadFilePath())
-                .trackImagePath(uploadDTO.getUploadImagePath())
+                .trackNm(uploadDto.getTrackNm())
+                .trackInfo(uploadDto.getTrackInfo())
+                .trackCategoryId(uploadDto.getTrackCategoryId())
+                .isTrackPrivacy(uploadDto.isTrackPrivacy())
+                .trackTime(uploadDto.getTrackTime())
+                .trackPath(uploadDto.getUploadFilePath())
+                .trackImagePath(uploadDto.getUploadImagePath())
                 .trackLikeCnt(0L)
                 .trackPlayCnt(0L)
                 .trackUploadDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
@@ -104,17 +103,17 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    private void setTrackRelationships(Track track, UploadDTO uploadDTO) {
+    private void setTrackRelationships(Track track, UploadDto uploadDto) {
 
         QMember qMember = QMember.member;
         QCategory qCategory = QCategory.category;
 
         Member member = jpaQueryFactory.selectFrom(qMember)
-                .where(qMember.memberId.eq(uploadDTO.getMemberId()))
+                .where(qMember.memberId.eq(uploadDto.getLoginMemberId()))
                 .fetchOne();
 
         Category category = jpaQueryFactory.selectFrom(qCategory)
-                .where(qCategory.trackCategoryId.eq(uploadDTO.getTrackCategoryId()))
+                .where(qCategory.trackCategoryId.eq(uploadDto.getTrackCategoryId()))
                 .fetchOne();
 
         assert member != null;
@@ -148,14 +147,14 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String,Object> updateTrackImage(UploadDTO uploadDTO) {
+    public Map<String,Object> updateTrackImage(UploadDto uploadDto) {
         Map<String,Object> hashMap = new HashMap<>();
         try {
             QTrack qTrack = QTrack.track;
 
             jpaQueryFactory.update(qTrack)
-                    .set(qTrack.trackImagePath, uploadDTO.getUploadImagePath())
-                    .where(qTrack.trackId.eq(uploadDTO.getTrackId()))
+                    .set(qTrack.trackImagePath, uploadDto.getUploadImagePath())
+                    .where(qTrack.trackId.eq(uploadDto.getTrackId()))
                     .execute();
 
             hashMap.put("status","200");
@@ -168,15 +167,15 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> setTrackinfo(TrackDTO trackDTO) {
+    public Map<String, Object> setTrackinfo(TrackRequestDto trackRequestDto) {
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
             QTrack qTrack = QTrack.track;
 
             jpaQueryFactory.update(qTrack)
-                    .set(qTrack.trackInfo, trackDTO.getTrackInfo())
-                    .where(qTrack.trackId.eq(trackDTO.getTrackId()))
+                    .set(qTrack.trackInfo, trackRequestDto.getTrackInfo())
+                    .where(qTrack.trackId.eq(trackRequestDto.getTrackId()))
                     .execute();
 
             hashMap.put("status","200");
@@ -207,29 +206,29 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, String> setTrackLike(Long memberId, Long trackId) {
+    public Map<String, String> setTrackLike(TrackRequestDto trackRequestDto) {
         Map<String, String> hashMap = new HashMap<>();
 
         try {
             /* 해당 곡에 좋아요 여부 */
-            TrackLike trackLike = getTrackLikeStatus(memberId,trackId);
+            TrackLike trackLike = getTrackLikeStatus(trackRequestDto);
 
             if(trackLike == null) {
 
-                Long fcmRecvMemberId = insertTrackLike(memberId,trackId);
+                Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
 
-                FcmSendDTO fcmSendDTO = FcmSendDTO.builder()
+                FcmSendDto fcmSendDto = FcmSendDto.builder()
                         .title("알림")
                         .body("다른 사용자가 회원님의 곡에 좋아요를 눌렀습니다.")
                         .notificationType(1L)
-                        .notificationTrackId(trackId)
+                        .notificationTrackId(trackRequestDto.getTrackId())
                         .memberId(fcmRecvMemberId)
                         .build();
 
-                fireBaseService.sendPushNotification(fcmSendDTO);
+                fireBaseService.sendPushNotification(fcmSendDto);
 
               } else {
-                  updateTrackLike(memberId,trackId);
+                  updateTrackLike(trackRequestDto);
               }
 
             hashMap.put("status", "200");
@@ -245,11 +244,11 @@ public class TrackServiceImpl implements TrackService {
 
 
 
-    private Long insertTrackLike(Long memberId, Long trackId) {
+    private Long insertTrackLike(TrackRequestDto trackRequestDto) {
 
-        Member member = Member.builder().memberId(memberId).build();
+        Member member = Member.builder().memberId(trackRequestDto.getLoginMemberId()).build();
 
-        MemberTrack memberTrack = getMemberTrackEntity(trackId);
+        MemberTrack memberTrack = getMemberTrackEntity(trackRequestDto.getTrackId());
 
         insertTrackLikeStatus(memberTrack,member);
 
@@ -260,13 +259,13 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    private void updateTrackLike(Long memberId, Long trackId) {
+    private void updateTrackLike(TrackRequestDto trackRequestDto) {
 
-        TrackLike trackLike = getTrackLikeStatus(memberId, trackId);
+        TrackLike trackLike = getTrackLikeStatus(trackRequestDto);
 
-        MemberTrack memberTrack = getMemberTrackEntity(trackId);
+        MemberTrack memberTrack = getMemberTrackEntity(trackRequestDto.getTrackId());
 
-        updateTrackLikeStatus(trackLike, memberTrack, memberId);
+        updateTrackLikeStatus(trackLike, memberTrack, trackRequestDto.getLoginMemberId());
 
         updateTrackLikeCount(trackLike);
 
@@ -326,16 +325,16 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> getLikeTrack(Long memberId, Long listIndex) {
+    public Map<String, Object> getLikeTrack(TrackRequestDto trackRequestDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            Long totalCount = getLikeTrackListCnt(memberId);
+            Long totalCount = getLikeTrackListCnt(trackRequestDto);
 
-            List<TrackDTO> likeTrackList = new ArrayList<>();
+            List<TrackDto> likeTrackList = new ArrayList<>();
             if (totalCount != 0L) {
-                likeTrackList = getLikeTrackList(memberId,listIndex);
+                likeTrackList = getLikeTrackList(trackRequestDto);
             }
 
             hashMap.put("likeTrackList", likeTrackList);
@@ -350,13 +349,13 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public List<TrackDTO> getLikeTrackList(Long memberId, Long listIndex) {
+    public List<TrackDto> getLikeTrackList(TrackRequestDto trackRequestDto) {
 
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
         return jpaQueryFactory.select(
                         Projections.bean(
-                                TrackDTO.class,
+                                TrackDto.class,
                                 qTrackLike.memberTrack.track.trackId.as("trackId"),
                                 qTrackLike.memberTrack.track.trackNm.as("trackNm"),
                                 qTrackLike.memberTrack.track.trackPlayCnt.as("trackPlayCnt"),
@@ -371,11 +370,11 @@ public class TrackServiceImpl implements TrackService {
                         )
                 )
                 .from(qTrackLike)
-                .where(qTrackLike.member.memberId.eq(memberId)
+                .where(qTrackLike.member.memberId.eq(trackRequestDto.getLoginMemberId())
                         .and(qTrackLike.memberTrack.track.isTrackPrivacy.isFalse())
                         .and(qTrackLike.trackLikeStatus.isTrue()))
                 .limit(20)
-                .offset(listIndex)
+                .offset(trackRequestDto.getListIndex())
                 .orderBy(qTrackLike.memberTrack.memberTrackId.desc())
                 .fetch();
 
@@ -383,12 +382,12 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public Long getLikeTrackListCnt(Long memberId) {
+    public Long getLikeTrackListCnt(TrackRequestDto trackRequestDto) {
 
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
         return jpaQueryFactory.select(qTrackLike.trackLikeId.count()).from(qTrackLike)
-                .where(qTrackLike.member.memberId.eq(memberId)
+                .where(qTrackLike.member.memberId.eq(trackRequestDto.getLoginMemberId())
                         .and(qTrackLike.memberTrack.track.isTrackPrivacy.isFalse())
                         .and(qTrackLike.trackLikeStatus.isTrue()))
                 .fetchOne();
@@ -396,15 +395,15 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> setLockTrack(TrackDTO trackDTO) {
+    public Map<String, Object> setLockTrack(TrackRequestDto trackRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
             QTrack qTrack = QTrack.track;
 
             jpaQueryFactory.update(qTrack)
-                    .set(qTrack.isTrackPrivacy, trackDTO.isTrackPrivacy())
-                    .where(qTrack.trackId.eq(trackDTO.getTrackId()))
+                    .set(qTrack.isTrackPrivacy, trackRequestDto.isTrackPrivacy())
+                    .where(qTrack.trackId.eq(trackRequestDto.getTrackId()))
                     .execute();
 
             hashMap.put("status","200");
@@ -418,7 +417,7 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> getTrackInfo(Long trackId,Long memberId) {
+    public Map<String, Object> getTrackInfo(TrackRequestDto trackRequestDto) {
 
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
@@ -426,9 +425,9 @@ public class TrackServiceImpl implements TrackService {
 
         try {
 
-            TrackDTO trackInfoDTO = jpaQueryFactory.select(
+            TrackDto trackInfoDTO = jpaQueryFactory.select(
                             Projections.bean(
-                                    TrackDTO.class,
+                                    TrackDto.class,
                                     qMemberTrack.track.trackId.as("trackId"),
                                     qMemberTrack.track.trackNm.as("trackNm"),
                                     qMemberTrack.track.isTrackPrivacy.as("isTrackPrivacy"),
@@ -445,21 +444,21 @@ public class TrackServiceImpl implements TrackService {
                             )
                     )
                     .from(qMemberTrack)
-                    .where(qMemberTrack.track.trackId.eq(trackId))
+                    .where(qMemberTrack.track.trackId.eq(trackRequestDto.getTrackId()))
                     .fetchFirst();
 
 
             /* 해당 트랙에 좋아요 여부 */
-            TrackLike trackLike = getTrackLikeStatus(memberId,trackId);
+            TrackLike trackLike = getTrackLikeStatus(trackRequestDto);
 
             /* 추천트랙 조회 */
-            List<TrackDTO> recommendTrackDtoList = getRecommendTrackList(memberId,trackInfoDTO.getTrackId(), trackInfoDTO.getTrackCategoryId());
+            List<TrackDto> recommendTrackDtoList = getRecommendTrackList(trackInfoDTO);
 
             /* 트랙의 댓글 수 조회 */
-            Long commentCount = commentService.getTrackCommentCnt(memberId,trackId);
+            Long commentCount = commentService.getTrackCommentCnt(trackRequestDto);
 
             /* 해당 트랙의 뮤지션을 내가 팔로워 했는지 */
-            boolean isFollow = followService.isFollowCheck(trackInfoDTO.getMemberId(), memberId);
+            boolean isFollow = followService.isFollowCheck(trackInfoDTO.getMemberId(), trackRequestDto.getLoginMemberId());
 
             trackInfoDTO.setTrackLikeStatus(trackLike != null && trackLike.isTrackLikeStatus());
             trackInfoDTO.setCommentsCnt(commentCount);  // commentCount 값을 설정
@@ -480,16 +479,16 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String,Object> getUploadTrack(Long memberId, Long listIndex) {
+    public Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto) {
 
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
-            Long uploadTrackListCnt = getUploadTrackListCnt(memberId);
+            Long uploadTrackListCnt = getUploadTrackListCnt(trackRequestDto);
 
-            List<TrackDTO> uploadTrackDtoList = new ArrayList<>();
+            List<TrackDto> uploadTrackDtoList = new ArrayList<>();
             if (uploadTrackListCnt != 0L) {
-                uploadTrackDtoList = getUploadTrackList(memberId,listIndex);
+                uploadTrackDtoList = getUploadTrackList(trackRequestDto);
             }
 
             hashMap.put("uploadTrackList",uploadTrackDtoList);
@@ -505,68 +504,68 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public List<TrackDTO> getUploadTrackList(Long memberId, Long listIndex) {
+    public List<TrackDto> getUploadTrackList(TrackRequestDto trackRequestDto) {
 
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
 
         List<MemberTrack> uploadTrackList = jpaQueryFactory.selectFrom(qMemberTrack)
-                .where(qMemberTrack.member.memberId.eq(memberId))
+                .where(qMemberTrack.member.memberId.eq(trackRequestDto.getLoginMemberId()))
                 .limit(20)
-                .offset(listIndex) /// 조회된 10개의 항목을 무시하고 다음 데이터 조회
+                .offset(trackRequestDto.getListIndex()) /// 조회된 10개의 항목을 무시하고 다음 데이터 조회
                 .orderBy(qMemberTrack.memberTrackId.desc())
                 .fetch();
 
-        List<TrackDTO> uploadTrackDtoList = new ArrayList<>();
+        List<TrackDto> uploadTrackDtoList = new ArrayList<>();
 
         for (MemberTrack track : uploadTrackList) {
-            TrackDTO trackDTO = modelMapper.map(track.getTrack(), TrackDTO.class);
-            uploadTrackDtoList.add(trackDTO);
+            TrackDto trackDto = modelMapper.map(track.getTrack(), TrackDto.class);
+            uploadTrackDtoList.add(trackDto);
         }
 
         return uploadTrackDtoList;
     }
 
     @Override
-    public Long getUploadTrackListCnt(Long memberId) {
+    public Long getUploadTrackListCnt(TrackRequestDto trackRequestDto) {
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
         return jpaQueryFactory.select(qMemberTrack.track.trackId.count()).from(qMemberTrack)
-                .where(qMemberTrack.member.memberId.eq(memberId))
+                .where(qMemberTrack.member.memberId.eq(trackRequestDto.getLoginMemberId()))
                 .fetchOne();
     }
 
     @Override
-    public TrackLike getTrackLikeStatus(Long memberId, Long trackId) {
+    public TrackLike getTrackLikeStatus(TrackRequestDto trackRequestDto) {
 
         QTrackLike qTrackLike = QTrackLike.trackLike;
 
         return jpaQueryFactory.selectFrom(qTrackLike)
-                .where(qTrackLike.memberTrack.track.trackId.eq(trackId)
-                        .and(qTrackLike.member.memberId.eq(memberId)))
+                .where(qTrackLike.memberTrack.track.trackId.eq(trackRequestDto.getTrackId())
+                        .and(qTrackLike.member.memberId.eq(trackRequestDto.getLoginMemberId())))
                 .fetchFirst();
     }
 
 
-    @Override
-    public List<TrackDTO> getRecommendTrackList(Long memberId, Long trackId, Long trackCategoryId) {
+
+    private List<TrackDto> getRecommendTrackList(TrackDto trackDto) {
 
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
 
        return jpaQueryFactory.select(
-                            Projections.bean(TrackDTO.class,
+                            Projections.bean(TrackDto.class,
                                     qMemberTrack.track.trackId.as("trackId"),
                                     qMemberTrack.track.trackImagePath.as("trackImagePath"),
                                     qMemberTrack.track.trackNm.as("trackNm"),
                                     qMemberTrack.member.memberNickName.as("memberNickName")
                             )
                         ).from(qMemberTrack)
-                .where(qMemberTrack.track.trackCategoryId.eq( trackCategoryId)
-                        .and(qMemberTrack.track.trackId.ne(trackId))
+                .where(qMemberTrack.track.trackCategoryId.eq( trackDto.getTrackCategoryId())
+                        .and(qMemberTrack.track.trackId.ne(trackDto.getTrackId()))
                         .and(qMemberTrack.track.isTrackPrivacy.isFalse())
                 )
                 .limit(5)

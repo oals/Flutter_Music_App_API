@@ -1,9 +1,9 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.config.ModelMapperConfig;
-import com.skrrskrr.project.dto.FollowDTO;
-import com.skrrskrr.project.dto.FcmSendDTO;
+import com.skrrskrr.project.dto.FollowDto;
+import com.skrrskrr.project.dto.FcmSendDto;
+import com.skrrskrr.project.dto.FollowRequestDto;
 import com.skrrskrr.project.entity.Follow;
 import com.skrrskrr.project.entity.Member;
 import com.skrrskrr.project.entity.QFollow;
@@ -34,20 +34,20 @@ public class FollowServiceImpl implements FollowService{
     private final ModelMapper modelMapper;
 
     @Override
-    public Map<String, Object> setFollow(Long followerId, Long followingId) {
+    public Map<String, Object> setFollow(FollowRequestDto followRequestDto) {
 
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
 
-            Member follower = getFollowMember(followerId);
-            Member following = getFollowMember(followingId);
+            Member follower = getFollowMember(followRequestDto.getFollowerId());
+            Member following = getFollowMember(followRequestDto.getFollowingId());
 
-            Follow followResult = isFollowStatus(followerId,followingId);
+            Follow followResult = isFollowStatus(followRequestDto);
 
             if (followResult != null) {
                 // 팔로우, 팔로워 삭제
-                deleteFollow(followerId,followingId);
+                deleteFollow(followRequestDto);
                 updateFollowCounts(follower, following, -1L);
             } else {
                 // 팔로우, 팔로워 등록
@@ -55,12 +55,12 @@ public class FollowServiceImpl implements FollowService{
                 updateFollowCounts(follower, following, 1L);
 
                 try{
-                    FcmSendDTO fcmSendDTO = FcmSendDTO.builder()
+                    FcmSendDto fcmSendDTO = FcmSendDto.builder()
                             .title("알림")
                             .body("회원님을 팔로우 했습니다.")
                             .notificationType(3L)
-                            .notificationMemberId(followingId)
-                            .memberId(followerId)
+                            .notificationMemberId(followRequestDto.getFollowingId())
+                            .memberId(followRequestDto.getFollowerId())
                             .build();
 
                     fireBaseService.sendPushNotification(fcmSendDTO);
@@ -89,25 +89,25 @@ public class FollowServiceImpl implements FollowService{
         entityManager.persist(follow);
     }
 
-    private void deleteFollow(Long followerId, Long followingId){
+    private void deleteFollow(FollowRequestDto followRequestDto ){
 
         QFollow qFollow = QFollow.follow;
 
         jpaQueryFactory.delete(qFollow)
-                .where(qFollow.follower.memberId.eq(followerId)
-                        .and(qFollow.following.memberId.eq(followingId)))
+                .where(qFollow.follower.memberId.eq(followRequestDto.getFollowerId())
+                        .and(qFollow.following.memberId.eq(followRequestDto.getFollowingId())))
                 .execute();
 
     }
 
 
-    private Follow isFollowStatus(Long followerId, Long followingId){
+    private Follow isFollowStatus(FollowRequestDto followRequestDto){
 
         QFollow qFollow = QFollow.follow;
 
         return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.follower.memberId.eq(followerId)
-                        .and(qFollow.following.memberId.eq(followingId)))
+                .where(qFollow.follower.memberId.eq(followRequestDto.getFollowerId())
+                        .and(qFollow.following.memberId.eq(followRequestDto.getFollowingId())))
                 .fetchFirst();
     }
 
@@ -133,42 +133,35 @@ public class FollowServiceImpl implements FollowService{
 
     // 4. 메인 getFollow 메서드
     @Override
-    public Map<String, Object> getFollow(Long memberId) {
+    public Map<String, Object> getFollow(FollowRequestDto followRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            List<Follow> followingList = getFollowingList(memberId);
-            List<Follow> followerList = getFollowerList(memberId);
+            List<Follow> followingList = getFollowingList(followRequestDto.getLoginMemberId());
+            List<Follow> followerList = getFollowerList(followRequestDto.getLoginMemberId());
 
-            List<FollowDTO> followingDtoList = new ArrayList<>();
-            List<FollowDTO> followerDtoList = new ArrayList<>();
+            List<FollowDto> followingDtoList = new ArrayList<>();
+            List<FollowDto> followerDtoList = new ArrayList<>();
 
             // followingList에 대한 DTO 생성
             for (Follow following : followingList) {
-                FollowDTO followingDTO = modelMapper.map(following.getFollowing(), FollowDTO.class);
-                followingDTO.setIsFollowedCd(2L);
-
-
+                FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 2L);
                 boolean isMutualFollow = isMutualFollow(following, followerList);
                 followingDTO.setMutualFollow(isMutualFollow);
                 if (isMutualFollow) {
                     followingDTO.setIsFollowedCd(3L);
                 }
-
                 followingDtoList.add(followingDTO);
             }
 
             // followerList에 대한 DTO 생성
             for (Follow follower : followerList) {
-                FollowDTO followerDTO = modelMapper.map(follower.getFollower(), FollowDTO.class);
-                followerDTO.setIsFollowedCd(1L);
-
+                FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 1L);
                 boolean isMutualFollow = isMutualFollow(follower, followingList);
                 followerDTO.setMutualFollow(isMutualFollow);
                 if (isMutualFollow) {
                     followerDTO.setIsFollowedCd(3L);
                 }
-
                 followerDtoList.add(followerDTO);
             }
 
@@ -185,19 +178,32 @@ public class FollowServiceImpl implements FollowService{
 
 
     // 1. FollowList 가져오는 메서드들
-    private List<Follow> getFollowingList(Long memberId) {
-        
+    private List<Follow> getFollowingList(Long loginMemberId) {
         QFollow qFollow = QFollow.follow;
+
         return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.follower.memberId.eq(memberId))
+                .where(qFollow.follower.memberId.eq(loginMemberId))
                 .fetch();
     }
 
-    private List<Follow> getFollowerList(Long memberId) {
-        
+    // 2. FollowDto로 매핑하는 메서드
+    private FollowDto mapToFollowDTO(Member follow, Long isFollowedCd) {
+        return FollowDto.builder()
+                .followMemberId(follow.getMemberId())
+                .followNickName(follow.getMemberNickName())
+                .followImagePath(follow.getMemberImagePath())
+                .isFollowedCd(isFollowedCd)
+                .build();
+    }
+
+
+
+
+    private List<Follow> getFollowerList(Long loginMemberId) {
         QFollow qFollow = QFollow.follow;
+
         return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.following.memberId.eq(memberId))
+                .where(qFollow.following.memberId.eq(loginMemberId))
                 .fetch();
     }
 
@@ -214,14 +220,12 @@ public class FollowServiceImpl implements FollowService{
 
     @Override
     public boolean isFollowCheck(Long followerId, Long followingId) {
-
         QFollow qFollow = QFollow.follow;
 
         Follow follow = jpaQueryFactory.selectFrom(qFollow)
                 .where(qFollow.follower.memberId.eq(followerId)
                         .and(qFollow.following.memberId.eq(followingId)))
                 .fetchFirst();
-
 
         return follow != null;
 

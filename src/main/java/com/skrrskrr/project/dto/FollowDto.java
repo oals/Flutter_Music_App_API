@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FollowDTO {
+public class FollowDto {
 
     private Long followMemberId;
 

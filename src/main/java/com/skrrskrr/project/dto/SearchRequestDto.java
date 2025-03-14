@@ -2,19 +2,18 @@ package com.skrrskrr.project.dto;
 
 import lombok.*;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrackSearchDTO {
+public class SearchRequestDto extends BaseRequestDto {
 
     private Long memberId;
 
     private Long memberTrackId;
+
+    private Long moreId;
 
     private String searchText;
 

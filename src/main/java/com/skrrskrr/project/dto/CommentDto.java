@@ -1,12 +1,7 @@
 package com.skrrskrr.project.dto;
 
-import com.skrrskrr.project.entity.Comment;
-import com.skrrskrr.project.entity.Member;
-import com.skrrskrr.project.entity.Track;
 import lombok.*;
 
-import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -15,7 +10,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentDTO {
+public class CommentDto {
 
     private Long commentId;
 
@@ -44,7 +39,7 @@ public class CommentDTO {
 ;
     private boolean isChildCommentActive;
 
-    private List<CommentDTO> childComments; // 자식 댓글 목록
+    private List<CommentDto> childComments; // 자식 댓글 목록
 
 
 

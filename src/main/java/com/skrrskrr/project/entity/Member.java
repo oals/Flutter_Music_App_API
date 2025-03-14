@@ -1,6 +1,6 @@
 package com.skrrskrr.project.entity;
 
-import com.skrrskrr.project.dto.MemberDTO;
+import com.skrrskrr.project.dto.MemberDto;
 import lombok.*;
 
 
@@ -57,16 +57,16 @@ public class Member {
 
 
 
-    public static Member createMember(MemberDTO memberDTO) {
+    public static Member createMember(MemberDto memberDto) {
         Member member = new Member();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        member.setMemberId(memberDTO.getMemberId());
-        member.setMemberNickName(memberDTO.getMemberNickName()); // 수정 필요
-        member.setMemberEmail(memberDTO.getMemberEmail());
-        member.setMemberBirth(memberDTO.getMemberBirth()); // 수정 필요
-        member.setMemberAddr(memberDTO.getMemberAddr()); // 수정 필요
+        member.setMemberId(memberDto.getMemberId());
+        member.setMemberNickName(memberDto.getMemberNickName()); // 수정 필요
+        member.setMemberEmail(memberDto.getMemberEmail());
+        member.setMemberBirth(memberDto.getMemberBirth()); // 수정 필요
+        member.setMemberAddr(memberDto.getMemberAddr()); // 수정 필요
         member.setMemberImagePath("");
         member.setMemberFollowCnt(0L); // 기본값
         member.setMemberFollowerCnt(0L); // 기본값

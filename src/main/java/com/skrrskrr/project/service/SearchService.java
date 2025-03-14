@@ -1,20 +1,17 @@
 package com.skrrskrr.project.service;
 
-import com.skrrskrr.project.dto.PlayListDTO;
-import com.skrrskrr.project.dto.TrackSearchDTO;
+import com.skrrskrr.project.dto.SearchRequestDto;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public interface SearchService {
 
-    Map<String,Object> searchTrack(TrackSearchDTO trackSearchDTO,Long listIndex);
+    Map<String,Object> search(SearchRequestDto searchRequestDto);
 
-    void setSearchHistory(Long memberId, String searchText);
+    void setSearchHistory(SearchRequestDto searchRequestDto);
 
-    Map<String,Object> getSearchInit(Long memberId);
+    Map<String,Object> getSearchTextHistory(SearchRequestDto searchRequestDto);
 
-    Map<String,Object> getSearchMore(Long memberId, Long moreId, String searchText,Long listIndex);
+    Map<String,Object> getSearchMore(SearchRequestDto searchRequestDto);
 
 }

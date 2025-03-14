@@ -1,17 +1,14 @@
 package com.skrrskrr.project.restController;
 
 
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.skrrskrr.project.dto.MemberDTO;
-import com.skrrskrr.project.service.FireBaseService;
+import com.skrrskrr.project.dto.MemberDto;
+import com.skrrskrr.project.dto.MemberRequestDto;
 import com.skrrskrr.project.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap; import java.util.Map;
-import java.util.Map;
 import java.util.Objects;
 
 
@@ -25,48 +22,44 @@ public class MemberController {
 
 
     @GetMapping("/api/getMemberInfo")
-    public Map<String,Object> getMemberInfo(@RequestParam("memberEmail") String memberEmail,@RequestParam("deviceToken") String deviceToken){
+    public Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto){
         log.info("getMemberInfo");
         Map<String,Object> hashMap = new HashMap<>();
-        MemberDTO memberDTO = memberService.getMemberInfo(memberEmail);
+        MemberDto memberDto = memberService.getMemberInfo(memberRequestDto);
 
-        if (memberDTO != null){
+        if (memberDto != null){
             // 회원인 경우
-            if (!Objects.equals(memberDTO.getMemberDeviceToken(), deviceToken)) {
+            if (!Objects.equals(memberDto.getMemberDeviceToken(), memberRequestDto.getDeviceToken())) {
                 // 디바이스 토큰 업데이트
-                hashMap = memberService.setMemberDeviceToken(memberDTO);
+                hashMap = memberService.setMemberDeviceToken(memberDto);
                 if(hashMap.get("status").equals("200")){
-                    memberDTO.setDeviceToken(deviceToken);
-                    hashMap.put("member", memberDTO);
+                    memberDto.setDeviceToken(memberRequestDto.getDeviceToken());
+                    hashMap.put("member", memberDto);
                 }
             }
         } else {
             // 비회원인 경우
-            hashMap = memberService.setMemberInfo(memberEmail,deviceToken);
+            hashMap = memberService.setMemberInfo(memberRequestDto);
         }
 
         return hashMap;
     }
 
 
-
-
     @PostMapping("/api/setMemberInfoUpdate")
-    public Map<String,Object> setMemberInfoUpdate(@RequestBody MemberDTO memberDTO){
+    public Map<String,Object> setMemberInfoUpdate(@RequestBody MemberRequestDto memberRequestDto){
 
         log.info("setMemberInfoUpdate");
-        return memberService.setMemberInfoUpdate(memberDTO);
+        return memberService.setMemberInfoUpdate(memberRequestDto);
 
     }
 
 
-
     @GetMapping("/api/getMemberPageInfo")
-    public Map<String,Object> getMemberPageInfo(@RequestParam("memberId") Long memberId,
-                                                @RequestParam("loginMemberId") Long loginMemberId)
+    public Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto)
     {
         log.info("getMemberPageInfo");
-        return memberService.getMemberPageInfo(memberId, loginMemberId);
+        return memberService.getMemberPageInfo(memberRequestDto);
 
     }
 

@@ -1,47 +1,49 @@
 package com.skrrskrr.project.service;
 
-import com.skrrskrr.project.dto.MemberDTO;
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.Member;
 
 import java.time.LocalDateTime;
-import java.util.HashMap; import java.util.Map;
+import java.util.List;
 import java.util.Map;
 
 public interface MemberService {
 
 
-    default MemberDTO EntityToDto(Member member){
+    default MemberDto EntityToDto(Member member){
 
-        MemberDTO memberDTO = new MemberDTO();
-        memberDTO.setMemberId(member.getMemberId());
-        memberDTO.setMemberNickName(member.getMemberNickName());
-        memberDTO.setMemberEmail(member.getMemberEmail());
-        memberDTO.setMemberBirth(member.getMemberBirth());
-        memberDTO.setMemberAddr(member.getMemberAddr());
-        memberDTO.setMemberImagePath(member.getMemberImagePath());
-        memberDTO.setMemberFollowCnt(0L);
-        memberDTO.setMemberFollowerCnt(0L);
-        memberDTO.setMemberDate(LocalDateTime.now().toString());
-        memberDTO.setDeviceToken(member.getMemberDeviceToken());
+        MemberDto memberDto = new MemberDto();
+        memberDto.setMemberId(member.getMemberId());
+        memberDto.setMemberNickName(member.getMemberNickName());
+        memberDto.setMemberInfo(member.getMemberInfo());
+        memberDto.setMemberEmail(member.getMemberEmail());
+        memberDto.setMemberBirth(member.getMemberBirth());
+        memberDto.setMemberAddr(member.getMemberAddr());
+        memberDto.setMemberImagePath(member.getMemberImagePath());
+        memberDto.setMemberFollowCnt(0L);
+        memberDto.setMemberFollowerCnt(0L);
+        memberDto.setMemberDate(LocalDateTime.now().toString());
+        memberDto.setDeviceToken(member.getMemberDeviceToken());
 
-        return memberDTO;
+        return memberDto;
     }
 
 
-    MemberDTO getMemberInfo(String memberEmail);
+    MemberDto getMemberInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberDeviceToken(MemberDTO memberDTO);
+    Map<String,Object> setMemberDeviceToken(MemberDto memberDTO);
 
-    Map<String,Object> setMemberInfoUpdate(MemberDTO memberDTO);
+    Map<String,Object> setMemberInfoUpdate(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberInfo(String memberEmail,String deviceToken);
+    Map<String,Object> setMemberInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> getMemberPageInfo(Long memberId, Long loginMemberId);
+    Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberImage(UploadDTO uploadDTO);
+    Map<String,Object> setMemberImage(UploadDto uploadDto);
 
+    List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long listIndex, Long limit );
 
+    List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long listIndex, Long limit);
 
 
 

@@ -7,9 +7,10 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MemberDTO {
+public class MemberDto {
 
     private Long memberId;
+    private Long loginMemberId;
 
     private String memberNickName;
 

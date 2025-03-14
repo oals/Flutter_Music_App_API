@@ -1,16 +1,13 @@
 package com.skrrskrr.project.dto;
 
-import com.skrrskrr.project.entity.Member;
 import lombok.*;
-
-import javax.persistence.*;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NotificationsDTO {
+public class NotificationsDto {
 
     private Long notificationId;
 

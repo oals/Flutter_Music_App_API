@@ -1,5 +1,6 @@
 package com.skrrskrr.project.service;
 
+import com.skrrskrr.project.dto.MemberRequestDto;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap; import java.util.Map;
@@ -8,7 +9,7 @@ import java.util.Objects;
 
 public interface MainService {
 
-    Map<String, Object> firstLoad(Long memberId);
+    Map<String, Object> firstLoad(MemberRequestDto memberRequestDto);
 
 
 

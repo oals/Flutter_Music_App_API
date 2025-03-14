@@ -11,9 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @ToString
-public class UploadDTO {
+public class UploadDto {
 
-    private Long memberId;
+    private Long loginMemberId;
 
     private Long trackId;
 

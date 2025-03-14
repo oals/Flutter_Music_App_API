@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.FcmSendDTO;
+import com.skrrskrr.project.dto.FcmSendDto;
 import com.skrrskrr.project.entity.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +52,7 @@ public class FireBaseServiceImpl implements FireBaseService {
     /**
      * 댓글 작성 시 push 알림
      */
-    public void sendPushNotification(FcmSendDTO fcmSendDTO) throws Exception {
+    public void sendPushNotification(FcmSendDto fcmSendDto) throws Exception {
 
         JPAQueryFactory jpaQueryFactory = new JPAQueryFactory(em);
         QMember qMember = QMember.member;
@@ -60,18 +60,18 @@ public class FireBaseServiceImpl implements FireBaseService {
         // 디바이스 토큰 가져오기
         Member member = jpaQueryFactory
                 .selectFrom(qMember)
-                .where(qMember.memberId.eq(fcmSendDTO.getMemberId()))
+                .where(qMember.memberId.eq(fcmSendDto.getMemberId()))
                 .fetchOne();
 
         assert member != null;
 
-        saveNotifications(fcmSendDTO, member);
+        saveNotifications(fcmSendDto, member);
 
-        sendNotificationSetFcm(fcmSendDTO, member);
+        sendNotificationSetFcm(fcmSendDto, member);
 
     }
 
-    private void sendNotificationSetFcm(FcmSendDTO fcmSendDTO, Member member) throws Exception {
+    private void sendNotificationSetFcm(FcmSendDto fcmSendDto, Member member) throws Exception {
 
         String deviceToken = member.getMemberDeviceToken();
 
@@ -83,8 +83,8 @@ public class FireBaseServiceImpl implements FireBaseService {
         JSONObject notification = new JSONObject();
 
         // 알림 제목과 본문 설정
-        notification.put("title", fcmSendDTO.getTitle());  // 알림 제목
-        notification.put("body", fcmSendDTO.getBody());    // 알림 본문
+        notification.put("title", fcmSendDto.getTitle());  // 알림 제목
+        notification.put("body", fcmSendDto.getBody());    // 알림 본문
 
         // 메시지에 notification 객체와 token 필드 추가
         JSONObject messageBody = new JSONObject();
@@ -99,14 +99,14 @@ public class FireBaseServiceImpl implements FireBaseService {
     }
 
 
-    private void saveNotifications(FcmSendDTO fcmSendDTO, Member member){
+    private void saveNotifications(FcmSendDto fcmSendDto, Member member){
         Notifications notifications = Notifications.builder()
                 .member(member)
-                .notificationMsg(fcmSendDTO.getBody())
-                .notificationType(fcmSendDTO.getNotificationType())
-                .notificationTrackId(fcmSendDTO.getNotificationTrackId())
-                .notificationCommentId(fcmSendDTO.getNotificationCommentId())
-                .notificationMemberId(fcmSendDTO.getNotificationMemberId())
+                .notificationMsg(fcmSendDto.getBody())
+                .notificationType(fcmSendDto.getNotificationType())
+                .notificationTrackId(fcmSendDto.getNotificationTrackId())
+                .notificationCommentId(fcmSendDto.getNotificationCommentId())
+                .notificationMemberId(fcmSendDto.getNotificationMemberId())
                 .notificationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .build();
 

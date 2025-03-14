@@ -1,9 +1,7 @@
 package com.skrrskrr.project.dto;
 
-import com.skrrskrr.project.entity.Track;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -12,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class PlayListDTO {
+public class PlayListDto {
 
     private Long playListId;
 
@@ -34,9 +32,10 @@ public class PlayListDTO {
 
     private Long trackCnt;
 
-    private List<TrackDTO> playListTrackList;
+    private List<TrackDto> playListTrackList;
 
     private Long memberId;
+    private Long loginMemberId;
 
     private String memberNickName;
 

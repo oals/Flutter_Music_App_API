@@ -1,13 +1,13 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.PlayListDTO;
+import com.skrrskrr.project.dto.PlayListDto;
+import com.skrrskrr.project.dto.PlayListRequestDto;
 import com.skrrskrr.project.service.PlayListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap; import java.util.Map; import java.util.Map;
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,57 +18,46 @@ public class PlayListController {
 
 
     @PostMapping("/api/setPlayListLike")
-    public Map<String,Object> setPlayListLike(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListLike(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListLike");
-        return playListService.setPlayListLike(playListDTO);
+        return playListService.setPlayListLike(playListRequestDto);
     }
 
     @PostMapping("/api/newPlayList")
-    public Map<String, Object> newPlayList(@RequestBody PlayListDTO playListDTO){
+    public Map<String, Object> newPlayList(@RequestBody PlayListRequestDto playListRequestDto){
 
         log.info("newPlayList");
-        return playListService.newPlayList(playListDTO);
+        return playListService.newPlayList(playListRequestDto);
     }
 
 
 
     @PostMapping("/api/setPlayListTrack")
-    public Map<String,Object> setPlayListTrack(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListTrack(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListTrack");
-        return playListService.setPlayListTrack(playListDTO);
+        return playListService.setPlayListTrack(playListRequestDto);
     }
 
 
-
-
     @PostMapping("/api/setPlayListInfo")
-    public Map<String,Object> setPlayListInfo(@RequestBody PlayListDTO playListDTO){
+    public Map<String,Object> setPlayListInfo(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListInfo");
-        return playListService.setPlayListInfo(playListDTO);
+        return playListService.setPlayListInfo(playListRequestDto);
     }
 
 
     @GetMapping("/api/getPlayList")
-    public Map<String,Object> getPlayList(
-            @RequestParam("memberId") Long memberId,
-            @RequestParam("trackId") Long trackId,
-            @RequestParam("listIndex") Long listIndex,
-            @RequestParam("isAlbum") boolean isAlbum
-            ) {
+    public Map<String,Object> getPlayList(PlayListRequestDto playListRequestDto) {
 
         log.info("getPlayList");
-        return playListService.getPlayList(memberId,trackId,listIndex,isAlbum);
+        return playListService.getPlayList(playListRequestDto);
     }
 
     @GetMapping("/api/getPlayListInfo")
-    public Map<String,Object> getPlayListInfo(@RequestParam("memberId") Long memberId, @RequestParam("playListId") Long playListId) {
+    public Map<String,Object> getPlayListInfo(PlayListRequestDto playListRequestDto) {
         log.info("getPlayListInfo");
 
-        PlayListDTO playListDTO = new PlayListDTO();
-        playListDTO.setMemberId(memberId);
-        playListDTO.setPlayListId(playListId);
-
-        return playListService.getPlayListInfo(playListDTO);
+        return playListService.getPlayListInfo(playListRequestDto);
     }
 
 }

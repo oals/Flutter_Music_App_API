@@ -1,7 +1,8 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.NotificationsDTO;
+import com.skrrskrr.project.dto.NotificationsDto;
+import com.skrrskrr.project.dto.NotificationsRequestDto;
 import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.entity.QNotifications;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +33,14 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public Map<String, Object> getNotifications(Long memberId, Long listIndex) {
+    public Map<String, Object> getNotifications(NotificationsRequestDto notificationsRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            List<Notifications> queryResult = fetchNotifications(memberId, listIndex);
+            List<Notifications> queryResult = fetchNotifications(notificationsRequestDto);
 
             // 알림 목록 날짜별 분류
-            Map<String, List<NotificationsDTO>> classifiedNotifications = classifyNotificationsByDate(queryResult);
+            Map<String, List<NotificationsDto>> classifiedNotifications = classifyNotificationsByDate(queryResult);
 
             // 결과 맵에 알림 목록 추가
             hashMap.putAll(classifiedNotifications);
@@ -53,22 +54,22 @@ public class NotificationsServiceImpl implements NotificationsService{
         return hashMap;
     }
 
-    private List<Notifications> fetchNotifications(Long memberId, Long listIndex) {
+    private List<Notifications> fetchNotifications(NotificationsRequestDto notificationsRequestDto) {
         
         QNotifications qNotifications = QNotifications.notifications;
 
         return jpaQueryFactory.selectFrom(qNotifications)
-                .where(qNotifications.member.memberId.eq(memberId))
+                .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
                 .orderBy(qNotifications.notificationId.desc())
-                .offset(listIndex)
+                .offset(notificationsRequestDto.getListIndex())
                 .limit(20)
                 .fetch();
     }
 
-    private Map<String, List<NotificationsDTO>> classifyNotificationsByDate(List<Notifications> queryResult) {
-        List<NotificationsDTO> todayNotificationList = new ArrayList<>();
-        List<NotificationsDTO> monthNotificationList = new ArrayList<>();
-        List<NotificationsDTO> yearNotificationList = new ArrayList<>();
+    private Map<String, List<NotificationsDto>> classifyNotificationsByDate(List<Notifications> queryResult) {
+        List<NotificationsDto> todayNotificationList = new ArrayList<>();
+        List<NotificationsDto> monthNotificationList = new ArrayList<>();
+        List<NotificationsDto> yearNotificationList = new ArrayList<>();
 
         // 현재 날짜
         LocalDate today = LocalDate.now();
@@ -80,20 +81,20 @@ public class NotificationsServiceImpl implements NotificationsService{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         for (Notifications notification : queryResult) {
-            NotificationsDTO notificationsDTO = modelMapper.map(notification, NotificationsDTO.class);
-            LocalDate notificationDate = LocalDate.parse(notificationsDTO.getNotificationDate(), formatter);
+            NotificationsDto notificationsDto = modelMapper.map(notification, NotificationsDto.class);
+            LocalDate notificationDate = LocalDate.parse(notificationsDto.getNotificationDate(), formatter);
 
             // 날짜에 따라 알림을 분류
             if (notificationDate.isEqual(today)) {
-                todayNotificationList.add(notificationsDTO);
+                todayNotificationList.add(notificationsDto);
             } else if (!notificationDate.isBefore(oneMonthAgo) && !notificationDate.isAfter(today)) {
-                monthNotificationList.add(notificationsDTO);
+                monthNotificationList.add(notificationsDto);
             } else if (!notificationDate.isBefore(oneYearAgo) && !notificationDate.isAfter(today)) {
-                yearNotificationList.add(notificationsDTO);
+                yearNotificationList.add(notificationsDto);
             }
         }
 
-        Map<String, List<NotificationsDTO>> result = new HashMap<>();
+        Map<String, List<NotificationsDto>> result = new HashMap<>();
         result.put("todayNotificationsList", todayNotificationList);
         result.put("monthNotificationsList", monthNotificationList);
         result.put("yearNotificationsList", yearNotificationList);
@@ -104,14 +105,14 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public Map<String,Object> setNotificationIsView(Long notificationId,Long memberId) {
+    public Map<String,Object> setNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
 
         QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
             Notifications notifications = jpaQueryFactory.selectFrom(qNotifications)
-                    .where(qNotifications.notificationId.eq(notificationId))
+                    .where(qNotifications.notificationId.eq(notificationsRequestDto.getNotificationId()))
                     .fetchOne();
 
             assert notifications != null;
@@ -122,7 +123,7 @@ public class NotificationsServiceImpl implements NotificationsService{
                     jpaQueryFactory.select(
                                     qNotifications.notificationIsView
                             ).from(qNotifications)
-                            .where(qNotifications.member.memberId.eq(memberId)
+                            .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId())
                                     .and(qNotifications.notificationIsView.isFalse()))
                             .fetchFirst()
             );
@@ -138,7 +139,7 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public Map<String,Object> setAllNotificationisView(Long memberId) {
+    public Map<String,Object> setAllNotificationisView(NotificationsRequestDto notificationsRequestDto) {
 
         
         QNotifications qNotifications = QNotifications.notifications;
@@ -146,7 +147,7 @@ public class NotificationsServiceImpl implements NotificationsService{
 
         try {
             List<Notifications> queryResult = jpaQueryFactory.selectFrom(qNotifications)
-                    .where(qNotifications.member.memberId.eq(memberId)
+                    .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId())
                             .and(qNotifications.notificationIsView.isFalse()))
                     .fetch();
 
@@ -173,7 +174,7 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public Map<String,Object> setDelNotificationIsView(Long memberId) {
+    public Map<String,Object> setDelNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
         
         QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
@@ -181,7 +182,7 @@ public class NotificationsServiceImpl implements NotificationsService{
         try {
 
             jpaQueryFactory.delete(qNotifications)
-                    .where(qNotifications.member.memberId.eq(memberId))
+                    .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
                     .execute();
 
             hashMap.put("status","200");

@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FcmSendDTO {
+public class FcmSendDto {
 
     private Long memberId;
     private String title;

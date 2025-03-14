@@ -1,18 +1,18 @@
 package com.skrrskrr.project.service;
 
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.UploadDto;
 
 import java.util.Map;
 
 public interface UploadService {
 
-    Map<String,Object> trackUpload(UploadDTO uploadDTO);
+    Map<String,Object> trackUpload(UploadDto uploadDto);
 
-    Map<String,Object> albumUpload(UploadDTO uploadDTO);
+    Map<String,Object> albumUpload(UploadDto uploadDto);
 
-    Map<String,Object> updateTrackImage(UploadDTO uploadDTO);
+    Map<String,Object> updateTrackImage(UploadDto uploadDto);
 
-    Map<String,Object> updateMemberImage(UploadDTO uploadDTO);
+    Map<String,Object> updateMemberImage(UploadDto uploadDto);
 
 
 }

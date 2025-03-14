@@ -1,20 +1,22 @@
 package com.skrrskrr.project.service;
 
+import com.skrrskrr.project.dto.CommentRequestDto;
+import com.skrrskrr.project.dto.TrackRequestDto;
+
 import java.util.HashMap; import java.util.Map;
 
 public interface CommentService {
 
 
-    Map<String,Object> setComment(Long trackId, Long memberId,
-                                      String commentText, Long commentId);
+    Map<String,Object> setComment(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> setCommentLike(Long commentId, Long memberId);
+    Map<String,Object> setCommentLike(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> getComment(Long trackId, Long memberId);
+    Map<String,Object> getComment(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> getChildComment(Long commentId, Long memberId);
+    Map<String,Object> getChildComment(CommentRequestDto commentRequestDto);
 
-    Long getTrackCommentCnt(Long memberId, Long trackId);
+    Long getTrackCommentCnt(TrackRequestDto trackRequestDto);
 
 
 }

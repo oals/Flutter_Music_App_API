@@ -1,48 +1,43 @@
 package com.skrrskrr.project.service;
 
-import com.skrrskrr.project.dto.TrackDTO;
-import com.skrrskrr.project.dto.TrackSearchDTO;
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.TrackDto;
+import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.dto.UploadDto;
 import com.skrrskrr.project.entity.TrackLike;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map;
 
 
 public interface TrackService {
 
 
-    Map<String,Object> saveTrack(UploadDTO uploadDTO);
+    Map<String,Object> saveTrack(UploadDto uploadDto);
 
-    Map<String,Object> updateTrackImage(UploadDTO uploadDTO);
+    Map<String,Object> updateTrackImage(UploadDto uploadDto);
 
-    Map<String,Object> setTrackinfo(TrackDTO trackDTO);
+    Map<String,Object> setTrackinfo(TrackRequestDto trackRequestDto);
 
     Long getTrackLastId();
 
-    Map<String,String> setTrackLike(Long memberId, Long trackId);
+    Map<String,String> setTrackLike(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> getLikeTrack(Long memberId,Long listIndex);
+    Map<String,Object> getLikeTrack(TrackRequestDto trackRequestDto);
 
-    List<TrackDTO> getLikeTrackList(Long memberId,Long listIndex);
+    List<TrackDto> getLikeTrackList(TrackRequestDto trackRequestDto);
 
-    Long getLikeTrackListCnt(Long memberId);
+    Long getLikeTrackListCnt(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> setLockTrack(TrackDTO trackDTO);
+    Map<String,Object> setLockTrack(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> getTrackInfo(Long trackId, Long memberId);
+    Map<String,Object> getTrackInfo(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> getUploadTrack(Long memberId, Long listIndex);
+    Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto);
 
-    List<TrackDTO> getUploadTrackList(Long memberId, Long listIndex);
+    List<TrackDto> getUploadTrackList(TrackRequestDto trackRequestDto);
 
-    Long getUploadTrackListCnt(Long memberId);
+    Long getUploadTrackListCnt(TrackRequestDto trackRequestDto);
 
-    TrackLike getTrackLikeStatus(Long memberId, Long trackId);
-
-    List<TrackDTO> getRecommendTrackList(Long memberId, Long trackId, Long trackCategoryId);
-
+    TrackLike getTrackLikeStatus(TrackRequestDto trackRequestDto);
 
 }

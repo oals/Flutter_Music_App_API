@@ -7,13 +7,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HistoryDTO {
+public class ImageRequestDto {
 
-    Long historyId;
 
-    String historyText;
-
-    String historyDate;
-
+    private String trackImagePath;
 
 }

@@ -1,16 +1,13 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.TrackSearchDTO;
+import com.skrrskrr.project.dto.SearchRequestDto;
 import com.skrrskrr.project.service.SearchService;
-import com.skrrskrr.project.service.TrackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.codelibs.jhighlight.fastutil.Hash;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap; import java.util.Map;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,30 +17,25 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    @GetMapping("/api/getSearchTrack")
-    public Map<String,Object> getSearchTrack(@RequestParam Long memberId, @RequestParam String searchText, @RequestParam Long listIndex) {
-        log.info("getSearchTrack");
-        TrackSearchDTO trackSearchDTO = TrackSearchDTO.builder()
-                .memberId(memberId)
-                .searchText(searchText)
-                .build();
+    @GetMapping("/api/search")
+    public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
+        log.info("search");
+        searchService.setSearchHistory(searchRequestDto);
 
-        searchService.setSearchHistory(trackSearchDTO.getMemberId(),trackSearchDTO.getSearchText());
-
-        return searchService.searchTrack(trackSearchDTO,listIndex);
+        return searchService.search(searchRequestDto);
     }
 
-    @GetMapping("/api/getSearchInit")
-    public Map<String,Object> getSearchInit(@RequestParam Long memberId){
-        log.info("getSearchInit");
-        return searchService.getSearchInit(memberId);
+    @GetMapping("/api/getSearchTextHistory")
+    public Map<String,Object> getSearchTextHistory(SearchRequestDto searchRequestDto){
+        log.info("getSearchTextHistory");
+        return searchService.getSearchTextHistory(searchRequestDto);
     }
 
 
     @GetMapping("/api/getSearchMore")
-    public Map<String,Object> getsearchMore(@RequestParam Long memberId, @RequestParam Long moreId,@RequestParam String searchText,@RequestParam Long listIndex){
+    public Map<String,Object> getsearchMore(SearchRequestDto searchRequestDto){
         log.info("getSearchMore");
-        return searchService.getSearchMore(memberId,moreId,searchText,listIndex);
+        return searchService.getSearchMore(searchRequestDto);
     }
 
 

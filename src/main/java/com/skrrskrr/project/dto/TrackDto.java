@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
-public class TrackDTO {
+public class TrackDto {
 
     private Long trackId;
 

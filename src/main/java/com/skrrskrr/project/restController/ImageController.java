@@ -1,6 +1,6 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.ImageRequestDto;
 import com.skrrskrr.project.service.FileService;
 import com.skrrskrr.project.service.MemberService;
 import com.skrrskrr.project.service.TrackService;
@@ -12,33 +12,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap; import java.util.Map;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
 @Log4j2
 public class ImageController {
 
-    final private TrackService trackService;
-    final private UploadService uploadService;
-    final private MemberService memberService;
-    final private FileService fileService;
-
-
     //이미지 로더
     @GetMapping("/viewer/imageLoader")
-    public ResponseEntity<FileSystemResource> getImage(@RequestParam String trackImagePath) {
+    public ResponseEntity<FileSystemResource> getImage(ImageRequestDto imageRequestDto) {
 
         log.info("imageLoader 호출");
 
-        File imageFile = new File(trackImagePath + ".jpg");
+        File imageFile = new File(imageRequestDto.getTrackImagePath() + ".jpg");
 
         if (!imageFile.exists()) {
             log.info("image_not_found");

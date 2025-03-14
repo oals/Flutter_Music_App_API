@@ -1,5 +1,6 @@
 package com.skrrskrr.project.restController;
 
+import com.skrrskrr.project.dto.NotificationsRequestDto;
 import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.service.NotificationsService;
 import lombok.RequiredArgsConstructor;
@@ -18,28 +19,28 @@ public class NotificationsController {
 
 
     @GetMapping("/api/getNotifications")
-    public Map<String,Object> getNotifications(@RequestParam Long memberId,@RequestParam Long listIndex){
+    public Map<String,Object> getNotifications(NotificationsRequestDto notificationsRequestDto){
         log.info("getNotifications");
-        return notificationsService.getNotifications(memberId,listIndex);
+        return notificationsService.getNotifications(notificationsRequestDto);
     }
 
 
     @PostMapping("/api/setNotificationIsView")
-    public Map<String,Object> setNotificationIsView(@RequestBody Map<String,Long> hashMap){
+    public Map<String,Object> setNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
         log.info("setNotificationIsView");
-        return notificationsService.setNotificationIsView(hashMap.get("notificationId"),hashMap.get("memberId"));
+        return notificationsService.setNotificationIsView(notificationsRequestDto);
     }
 
     @PostMapping("/api/setAllNotificationisView")
-    public Map<String,Object> setAllNotificationisView(@RequestBody Map<String,Long> hashMap){
+    public Map<String,Object> setAllNotificationisView(@RequestBody NotificationsRequestDto notificationsRequestDto){
         log.info("setAllNotificationisView");
-        return notificationsService.setAllNotificationisView(hashMap.get("memberId"));
+        return notificationsService.setAllNotificationisView(notificationsRequestDto);
 
 
     }
     @PostMapping("/api/setDelNotificationIsView")
-    public Map<String,Object> setDelNotificationIsView(@RequestBody Map<String,Long> hashMap){
+    public Map<String,Object> setDelNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
         log.info("setDelNotificationIsView");
-        return notificationsService.setDelNotificationIsView(hashMap.get("memberId"));
+        return notificationsService.setDelNotificationIsView(notificationsRequestDto);
     }
 }

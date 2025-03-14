@@ -1,33 +1,27 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.DateTimeExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.MemberDTO;
-import com.skrrskrr.project.dto.PlayListDTO;
-import com.skrrskrr.project.dto.TrackDTO;
+import com.skrrskrr.project.dto.MemberDto;
+import com.skrrskrr.project.dto.MemberRequestDto;
+import com.skrrskrr.project.dto.PlayListDto;
+import com.skrrskrr.project.dto.TrackDto;
 import com.skrrskrr.project.entity.*;
-import com.skrrskrr.project.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.codelibs.jhighlight.fastutil.Hash;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap; import java.util.Map;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +35,7 @@ public class MainServiceImpl implements MainService {
     private final ModelMapper modelMapper;
     
     @Override
-    public Map<String, Object> firstLoad(Long memberId) {
+    public Map<String, Object> firstLoad(MemberRequestDto memberRequestDto) {
 
         
         Map<String, Object> hashMap = new HashMap<>();
@@ -51,34 +45,34 @@ public class MainServiceImpl implements MainService {
         try {
             //내 멤버 엔티티
             Member myMember = jpaQueryFactory.selectFrom(qMember)
-                    .where(qMember.memberId.eq(memberId))
+                    .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
                     .fetchFirst();
 
             // fcm 메세지에 추가하는걸로 변경?
-            boolean notificationIsView = isNotificationView(memberId);
+            boolean notificationIsView = isNotificationView(memberRequestDto.getLoginMemberId());
 
 
 
             /// 인기 앨범 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
-            List<PlayListDTO> popularPlayList = getPopularPlayList();
+            List<PlayListDto> popularPlayList = getPopularPlayList();
 
 
             /// 내가 팔로우 한 유저의 곡 , 최신날짜 ,
-            List<TrackDTO> followMemberTrackList = getFollowMemberTrackList(myMember);
+            List<TrackDto> followMemberTrackList = getFollowMemberTrackList(myMember);
 
 
             /// 관심 트랙 - 관심트랙 리스트에서 랜덤 , 선택된 카테고리 ,
-            List<TrackDTO> likedTrackList = getLikeTrackList(myMember);
+            List<TrackDto> likedTrackList = getLikeTrackList(myMember);
 
 
 
             /// 인기 유저 추천 -  곡 한개 이상 업로드 ~ / 선택된 카테고리 (카테고리는 폰에 캐시로 저장 )
             /// 팔로우 여부 필요
-            List<MemberDTO> randomMemberList = getRandomMemberList(myMember);
+            List<MemberDto> randomMemberList = getRandomMemberList(myMember);
 
 
             // 트랜드 음악 조회
-            List<TrackDTO> trendingTrackList = getTrendingTrackList();
+            List<TrackDto> trendingTrackList = getTrendingTrackList();
 
 
             hashMap.put("notificationIsView",notificationIsView);
@@ -98,7 +92,7 @@ public class MainServiceImpl implements MainService {
     }
 
 
-    private List<TrackDTO> getTrendingTrackList(){
+    private List<TrackDto> getTrendingTrackList(){
 
         /// 트렌딩 음원 추천
         List<MemberTrack> queryResultTrackPlayDesc = getTrendingTrackPlayDesc();
@@ -107,10 +101,10 @@ public class MainServiceImpl implements MainService {
 
         List<MemberTrack> combinedResult = mergeDescListTrack(queryResultTrackPlayDesc,queryResultTrackLikeDesc);
 
-        List<TrackDTO> trendingTrackList = new ArrayList<>();
+        List<TrackDto> trendingTrackList = new ArrayList<>();
         for (MemberTrack memberTrack : combinedResult) {
-            TrackDTO trackDTO = modelMapper.map(memberTrack.getTrack(),TrackDTO.class);
-            trendingTrackList.add(trackDTO);
+            TrackDto trackDto = modelMapper.map(memberTrack.getTrack(), TrackDto.class);
+            trendingTrackList.add(trackDto);
         }
 
         return trendingTrackList;
@@ -160,7 +154,7 @@ public class MainServiceImpl implements MainService {
     }
 
 
-    private List<MemberDTO> getRandomMemberList(Member member){
+    private List<MemberDto> getRandomMemberList(Member member){
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
@@ -182,9 +176,9 @@ public class MainServiceImpl implements MainService {
     }
 
 
-    private List<MemberDTO> createRandomMmeberDtoList(List<MemberTrack> queryResultMember,Member member){
+    private List<MemberDto> createRandomMmeberDtoList(List<MemberTrack> queryResultMember, Member member){
 
-        List<MemberDTO> randomMemberList = new ArrayList<>();
+        List<MemberDto> randomMemberList = new ArrayList<>();
 
         for (MemberTrack randomItem : queryResultMember) {
 
@@ -207,16 +201,16 @@ public class MainServiceImpl implements MainService {
                 }
             }
 
-            MemberDTO memberDTO = modelMapper.map(randomItem.getMember(),MemberDTO.class);
-            memberDTO.setIsFollowedCd(isFollowedCd);
+            MemberDto memberDto = modelMapper.map(randomItem.getMember(), MemberDto.class);
+            memberDto.setIsFollowedCd(isFollowedCd);
 
 
-            randomMemberList.add(memberDTO);
+            randomMemberList.add(memberDto);
         }
         return randomMemberList;
     }
 
-    private List<TrackDTO> getLikeTrackList(Member member) {
+    private List<TrackDto> getLikeTrackList(Member member) {
 
         
         QTrackLike qTrackLike = QTrackLike.trackLike;
@@ -231,19 +225,19 @@ public class MainServiceImpl implements MainService {
                 ).limit(4)
                 .fetch();
 
-        List<TrackDTO> likedTrackList = new ArrayList<>();
+        List<TrackDto> likedTrackList = new ArrayList<>();
         for (TrackLike trackLike : queryResultLikedTrack) {
-            TrackDTO trackDTO = modelMapper.map(trackLike.getMemberTrack().getTrack(), TrackDTO.class);
-            trackDTO.setMemberNickName(trackLike.getMemberTrack().getMember().getMemberNickName());
-            trackDTO.setMemberId(trackLike.getMemberTrack().getMember().getMemberId());
+            TrackDto trackDto = modelMapper.map(trackLike.getMemberTrack().getTrack(), TrackDto.class);
+            trackDto.setMemberNickName(trackLike.getMemberTrack().getMember().getMemberNickName());
+            trackDto.setMemberId(trackLike.getMemberTrack().getMember().getMemberId());
 
-            likedTrackList.add(trackDTO);
+            likedTrackList.add(trackDto);
         }
         return likedTrackList;
 
     }
 
-    private List<TrackDTO> getFollowMemberTrackList(Member myMember){
+    private List<TrackDto> getFollowMemberTrackList(Member myMember){
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
         QMember qMember = QMember.member;
@@ -259,20 +253,20 @@ public class MainServiceImpl implements MainService {
                 .limit(4)
                 .fetch();
 
-        List<TrackDTO> followMemberTrackList = new ArrayList<>();
+        List<TrackDto> followMemberTrackList = new ArrayList<>();
         for (MemberTrack memberTrack : queryResultFollowMemberTrack) {
-            TrackDTO trackDTO = modelMapper.map(memberTrack.getTrack(), TrackDTO.class);
-            trackDTO.setMemberNickName(memberTrack.getMember().getMemberNickName());
-            trackDTO.setMemberId(memberTrack.getMember().getMemberId());
+            TrackDto trackDto = modelMapper.map(memberTrack.getTrack(), TrackDto.class);
+            trackDto.setMemberNickName(memberTrack.getMember().getMemberNickName());
+            trackDto.setMemberId(memberTrack.getMember().getMemberId());
 
-            followMemberTrackList.add(trackDTO);
+            followMemberTrackList.add(trackDto);
         }
         return followMemberTrackList;
 
     }
 
 
-    private List<PlayListDTO> getPopularPlayList() {
+    private List<PlayListDto> getPopularPlayList() {
 
         
         QPlayList qPlayList = QPlayList.playList;
@@ -292,16 +286,16 @@ public class MainServiceImpl implements MainService {
                 .fetch();
 
 
-        List<PlayListDTO> popularPlayList = new ArrayList<>();
+        List<PlayListDto> popularPlayList = new ArrayList<>();
         for (PlayList playList : queryResultPlayList) {
-            PlayListDTO playListDTO = PlayListDTO.builder()
+            PlayListDto playListDto = PlayListDto.builder()
                     .playListId(playList.getPlayListId())
                     .playListNm(playList.getPlayListNm())
                     .playListImagePath(playList.getPlayListTrackList().get(0).getTrackImagePath())
                     .memberNickName(playList.getMember().getMemberNickName())
                     .build();
 
-            popularPlayList.add(playListDTO);
+            popularPlayList.add(playListDto);
         }
         return popularPlayList;
     }

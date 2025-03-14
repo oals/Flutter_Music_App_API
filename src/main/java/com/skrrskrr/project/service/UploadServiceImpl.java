@@ -1,8 +1,9 @@
 package com.skrrskrr.project.service;
 
 
-import com.skrrskrr.project.dto.PlayListDTO;
-import com.skrrskrr.project.dto.UploadDTO;
+import com.skrrskrr.project.dto.PlayListDto;
+import com.skrrskrr.project.dto.PlayListRequestDto;
+import com.skrrskrr.project.dto.UploadDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +33,7 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public Map<String, Object> trackUpload(UploadDTO uploadDTO) {
+    public Map<String, Object> trackUpload(UploadDto uploadDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
         String uuid = generateUUID();
@@ -42,12 +43,12 @@ public class UploadServiceImpl implements UploadService {
             Long lastTrackId = trackService.getTrackLastId();
 
             // 트랙 이미지 업로드
-            if (uploadDTO.getUploadImage() != null) {
-                uploadTrackImage(uploadDTO, lastTrackId, uuid);
+            if (uploadDto.getUploadImage() != null) {
+                uploadTrackImage(uploadDto, lastTrackId, uuid);
             }
 
             //트랙 업로드
-            uploadTrackFile(uploadDTO, lastTrackId, uuid);
+            uploadTrackFile(uploadDto, lastTrackId, uuid);
 
             hashMap.put("status", "200");
             return hashMap;
@@ -60,7 +61,7 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public Map<String, Object> albumUpload(UploadDTO uploadDTO) {
+    public Map<String, Object> albumUpload(UploadDto uploadDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
         String imageUuid = generateUUID();
@@ -69,22 +70,22 @@ public class UploadServiceImpl implements UploadService {
         Long lastTrackId = trackService.getTrackLastId();
 
         // 앨범 이미지 업로드
-        if (uploadDTO.getUploadImage() != null) {
-            uploadTrackImage(uploadDTO, lastTrackId, imageUuid);
+        if (uploadDto.getUploadImage() != null) {
+            uploadTrackImage(uploadDto, lastTrackId, imageUuid);
         }
 
 
         try {
             List<Long> uploadTrackIdList = new ArrayList<>();
             //앨범 트랙 업로드
-            for (int i = 0; i < uploadDTO.getUploadFileList().size(); i++) {
+            for (int i = 0; i < uploadDto.getUploadFileList().size(); i++) {
                 String fileUuid = generateUUID();
-                Long uploadTrackId = uploadAlbumTrackFile(uploadDTO, lastTrackId, fileUuid, i);
+                Long uploadTrackId = uploadAlbumTrackFile(uploadDto, lastTrackId, fileUuid, i);
                 uploadTrackIdList.add(uploadTrackId);
             }
 
             // 앱럼 정보 저장
-            saveAlbum(uploadDTO,uploadTrackIdList);
+            saveAlbum(uploadDto,uploadTrackIdList);
 
             hashMap.put("status", "200");
             return hashMap;
@@ -98,20 +99,20 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public Map<String, Object> updateTrackImage(UploadDTO uploadDTO) {
+    public Map<String, Object> updateTrackImage(UploadDto uploadDto) {
         Map<String,Object> hashMap = new HashMap<>();
         String uuid = generateUUID();
         hashMap.put("imagePath",null);
 
         //서버 이미지 저장
-        if(uploadDTO.getUploadImage() != null){
-            boolean isTrackImageUpload = fileService.uploadTrackImageFile(uploadDTO.getUploadImage(),"/trackImage",uuid);
+        if(uploadDto.getUploadImage() != null){
+            boolean isTrackImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/trackImage",uuid);
 
             if (isTrackImageUpload){
-                uploadDTO.setUploadImagePath(uploadPath + "/trackImage/" + uuid);
-                hashMap.putAll(trackService.updateTrackImage(uploadDTO));
+                uploadDto.setUploadImagePath(uploadPath + "/trackImage/" + uuid);
+                hashMap.putAll(trackService.updateTrackImage(uploadDto));
                 if ("200".equals(hashMap.get("status"))) {
-                    String trackImagePath = uploadDTO.getUploadImagePath();
+                    String trackImagePath = uploadDto.getUploadImagePath();
                     hashMap.put("imagePath",trackImagePath);
                 }
             }
@@ -122,21 +123,21 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public Map<String, Object> updateMemberImage(UploadDTO uploadDTO) {
+    public Map<String, Object> updateMemberImage(UploadDto uploadDto) {
 
         Map<String,Object> hashMap = new HashMap<>();
         String uuid = generateUUID();
         hashMap.put("imagePath",null);
 
         //서버 이미지 저장
-        if(uploadDTO.getUploadImage() != null){
-            boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDTO.getUploadImage(),"/memberImage",uuid);
+        if(uploadDto.getUploadImage() != null){
+            boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/memberImage",uuid);
 
             if (isMemberImageUpload){
-                uploadDTO.setUploadImagePath(uploadPath + "/memberImage/" + uuid);
-                hashMap.putAll(memberService.setMemberImage(uploadDTO));
+                uploadDto.setUploadImagePath(uploadPath + "/memberImage/" + uuid);
+                hashMap.putAll(memberService.setMemberImage(uploadDto));
                 if("200".equals(hashMap.get("status"))){
-                    String memberImagePath = uploadDTO.getUploadImagePath();
+                    String memberImagePath = uploadDto.getUploadImagePath();
                     hashMap.put("imagePath",memberImagePath);
                 }
             }
@@ -147,52 +148,52 @@ public class UploadServiceImpl implements UploadService {
     }
 
 
-    private void uploadTrackImage(UploadDTO uploadDTO, Long lastTrackId, String uuid)  {
+    private void uploadTrackImage(UploadDto uploadDto, Long lastTrackId, String uuid)  {
         String imagePath = uploadPath + "/trackImage/" + lastTrackId + "/" + uuid;
-        uploadDTO.setUploadImagePath(imagePath);
-        fileService.uploadTrackImageFile(uploadDTO.getUploadImage(), "/trackImage/" + lastTrackId, uuid);
+        uploadDto.setUploadImagePath(imagePath);
+        fileService.uploadTrackImageFile(uploadDto.getUploadImage(), "/trackImage/" + lastTrackId, uuid);
     }
 
-    private void uploadTrackFile(UploadDTO uploadDTO, Long lastTrackId, String uuid)  {
+    private void uploadTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid)  {
         String audioFilePath = streamServerUrl + lastTrackId + "/playList.m3u8";
-        uploadDTO.setUploadFilePath(audioFilePath);
-        trackService.saveTrack(uploadDTO);
-        fileService.uploadTrackFile(uploadDTO.getUploadFile(), "/track/", lastTrackId, uuid);
+        uploadDto.setUploadFilePath(audioFilePath);
+        trackService.saveTrack(uploadDto);
+        fileService.uploadTrackFile(uploadDto.getUploadFile(), "/track/", lastTrackId, uuid);
     }
 
 
-    private Long uploadAlbumTrackFile(UploadDTO uploadDTO, Long lastTrackId, String uuid, int fileIdx)  {
+    private Long uploadAlbumTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid, int fileIdx)  {
         String audioFilePath = streamServerUrl + lastTrackId + "/playList.m3u8";
-        uploadDTO.setUploadFilePath(audioFilePath);
+        uploadDto.setUploadFilePath(audioFilePath);
 
-        String trackNm = getUploadTrackFileNm(uploadDTO.getUploadFileList().get(fileIdx));
-        uploadDTO.setTrackNm(trackNm);
+        String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(fileIdx));
+        uploadDto.setTrackNm(trackNm);
 
-        Map<String, Object> trackInfoMap = trackService.saveTrack(uploadDTO);
+        Map<String, Object> trackInfoMap = trackService.saveTrack(uploadDto);
 
         if (trackInfoMap.get("status").equals("200")) {
-            fileService.uploadTrackFile(uploadDTO.getUploadFileList().get(fileIdx), "/track/", lastTrackId, uuid);
+            fileService.uploadTrackFile(uploadDto.getUploadFileList().get(fileIdx), "/track/", lastTrackId, uuid);
         }
 
         return (Long) trackInfoMap.get("trackId");
 
     }
 
-    private void saveAlbum(UploadDTO uploadDTO, List<Long> uploadTrackIdList) {
-        PlayListDTO playListDTO = PlayListDTO.builder()
-                .playListNm(uploadDTO.getAlbumNm())
-                .isPlayListPrivacy(uploadDTO.isTrackPrivacy())
-                .memberId(uploadDTO.getMemberId())
-                .isAlbum(true)
-                .build();
+    private void saveAlbum(UploadDto uploadDto, List<Long> uploadTrackIdList) {
+        PlayListRequestDto playListRequestDto = new PlayListRequestDto();
+        playListRequestDto.setPlayListNm(uploadDto.getAlbumNm());
+        playListRequestDto.setIsPlayListPrivacy(uploadDto.isTrackPrivacy());
+        playListRequestDto.setLoginMemberId(uploadDto.getLoginMemberId());
+        playListRequestDto.setAlbum(true);
 
-        Map<String, Object> returnMap = playListService.newPlayList(playListDTO);
+
+        Map<String, Object> returnMap = playListService.newPlayList(playListRequestDto);
         if (returnMap.get("status").equals("200")) {
-            playListDTO.setPlayListId((Long) returnMap.get("playListId"));
+            playListRequestDto.setPlayListId((Long) returnMap.get("playListId"));
 
             for (Long trackId : uploadTrackIdList) {
-                playListDTO.setTrackId(trackId);
-                playListService.setPlayListTrack(playListDTO); //id랑 trackId
+                playListRequestDto.setTrackId(trackId);
+                playListService.setPlayListTrack(playListRequestDto); //id랑 trackId
             }
         }
     }
