@@ -48,10 +48,8 @@ public class MainServiceImpl implements MainService {
                     .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
                     .fetchFirst();
 
-            // fcm 메세지에 추가하는걸로 변경?
-            boolean notificationIsView = isNotificationView(memberRequestDto.getLoginMemberId());
-
-
+//            // fcm 메세지에 추가하는걸로 변경?
+//            boolean notificationIsView = isNotificationView(memberRequestDto.getLoginMemberId());
 
             /// 인기 앨범 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
             List<PlayListDto> popularPlayList = getPopularPlayList();
@@ -64,18 +62,14 @@ public class MainServiceImpl implements MainService {
             /// 관심 트랙 - 관심트랙 리스트에서 랜덤 , 선택된 카테고리 ,
             List<TrackDto> likedTrackList = getLikeTrackList(myMember);
 
-
-
             /// 인기 유저 추천 -  곡 한개 이상 업로드 ~ / 선택된 카테고리 (카테고리는 폰에 캐시로 저장 )
             /// 팔로우 여부 필요
             List<MemberDto> randomMemberList = getRandomMemberList(myMember);
 
-
             // 트랜드 음악 조회
             List<TrackDto> trendingTrackList = getTrendingTrackList();
 
-
-            hashMap.put("notificationIsView",notificationIsView);
+//            hashMap.put("notificationIsView",notificationIsView);
             hashMap.put("popularPlayList",popularPlayList);
             hashMap.put("followMemberTrackList",followMemberTrackList);
             hashMap.put("likedTrackList",likedTrackList);
@@ -227,8 +221,9 @@ public class MainServiceImpl implements MainService {
 
         List<TrackDto> likedTrackList = new ArrayList<>();
         for (TrackLike trackLike : queryResultLikedTrack) {
-            TrackDto trackDto = modelMapper.map(trackLike.getMemberTrack().getTrack(), TrackDto.class);
-            trackDto.setMemberNickName(trackLike.getMemberTrack().getMember().getMemberNickName());
+            Track track = trackLike.getMemberTrack().getTrack();
+            TrackDto trackDto = modelMapper.map(track, TrackDto.class);
+//            trackDto.setMemberNickName(trackLike.getMemberTrack().getMember().getMemberNickName());
             trackDto.setMemberId(trackLike.getMemberTrack().getMember().getMemberId());
 
             likedTrackList.add(trackDto);

@@ -45,14 +45,14 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public Map<String,Object> setMemberDeviceToken(MemberDto memberDto) {
+    public Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto) {
         
         QMember qMember = QMember.member;
         Map<String,Object> hashMap = new HashMap<>();
         try {
             jpaQueryFactory.update(qMember)
-                    .set(qMember.memberDeviceToken, memberDto.getDeviceToken())
-                    .where(qMember.memberId.eq(memberDto.getMemberId()))
+                    .set(qMember.memberDeviceToken, memberRequestDto.getDeviceToken())
+                    .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
                     .execute();
             hashMap.put("status","200");
         } catch (Exception e) {

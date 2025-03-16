@@ -155,7 +155,7 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private void uploadTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid)  {
-        String audioFilePath = streamServerUrl + lastTrackId + "/playList.m3u8";
+        String audioFilePath = streamServerUrl + "/music/getSegmentName/" + lastTrackId + "/playList.m3u8";
         uploadDto.setUploadFilePath(audioFilePath);
         trackService.saveTrack(uploadDto);
         fileService.uploadTrackFile(uploadDto.getUploadFile(), "/track/", lastTrackId, uuid);
@@ -163,7 +163,7 @@ public class UploadServiceImpl implements UploadService {
 
 
     private Long uploadAlbumTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid, int fileIdx)  {
-        String audioFilePath = streamServerUrl + lastTrackId + "/playList.m3u8";
+        String audioFilePath = streamServerUrl + "/music/getSegmentName/" + lastTrackId + "/playList.m3u8";
         uploadDto.setUploadFilePath(audioFilePath);
 
         String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(fileIdx));

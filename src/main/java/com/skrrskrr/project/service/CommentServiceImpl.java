@@ -16,7 +16,8 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap; import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +25,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Log4j2
 @Transactional
-public class CommentServiceImpl implements CommentService{
+public class CommentServiceImpl implements CommentService {
 
 
     @PersistenceContext
@@ -36,8 +37,9 @@ public class CommentServiceImpl implements CommentService{
     @Override
     public Map<String, Object> setComment(CommentRequestDto commentRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
-        
+
         QTrack qTrack = QTrack.track;
+        QMember qMember = QMember.member;
 
         LocalDate today = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -46,9 +48,10 @@ public class CommentServiceImpl implements CommentService{
         Long fcmMsgRecvMemberId = null;
 
         try {
-            Member member = Member.builder()
-                    .memberId(commentRequestDto.getLoginMemberId())
-                    .build();
+            Member member = jpaQueryFactory.selectFrom(qMember)
+                    .where(qMember.memberId.eq(commentRequestDto.getLoginMemberId()))
+                    .fetchFirst();
+
 
             Track track = jpaQueryFactory.selectFrom(qTrack)
                     .where(qTrack.trackId.eq(commentRequestDto.getTrackId()))
@@ -66,12 +69,12 @@ public class CommentServiceImpl implements CommentService{
             insertComment.setChildComments(new ArrayList<>());
 
             /// 자식 댓글 저장하는 쿼리 였을 시
-            if( commentRequestDto.getCommentId() != null) {
+            if (commentRequestDto.getCommentId() != null) {
                 QComment qComment = QComment.comment;
 
                 Comment parentComment = jpaQueryFactory.selectFrom(qComment)
-                                    .where(qComment.commentId.eq(commentRequestDto.getCommentId()))
-                                        .fetchFirst();
+                        .where(qComment.commentId.eq(commentRequestDto.getCommentId()))
+                        .fetchFirst();
 
                 /// 부모댓글 작성자
                 fcmMsgRecvMemberId = parentComment.getMember().getMemberId();
@@ -83,12 +86,12 @@ public class CommentServiceImpl implements CommentService{
 
             entityManager.persist(insertComment);
 
-            try{
-                if(!Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)){
+            try {
+                if (Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
 
                     FcmSendDto fcmSendDTO = FcmSendDto.builder()
                             .title("알림")
-                            .body(commentRequestDto.getCommentText())
+                            .body(member.getMemberNickName() + "님이 회원님의 곡에 댓글을 작성했습니다.")
                             .notificationType(2L)
                             .notificationTrackId(commentRequestDto.getTrackId())
                             .memberId(fcmMsgRecvMemberId)
@@ -97,16 +100,16 @@ public class CommentServiceImpl implements CommentService{
 
                     fireBaseService.sendPushNotification(fcmSendDTO);
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
             // 성공 시
-            hashMap.put("status", "OK");
+            hashMap.put("status", "200");
         } catch (Exception e) {
             // 실패 시
             e.printStackTrace();
-            hashMap.put("status", "FAIL");
+            hashMap.put("status", "500");
         }
 
         return hashMap; // 최종 결과 반환
@@ -118,9 +121,9 @@ public class CommentServiceImpl implements CommentService{
 
         QCommentLike qCommentLike = QCommentLike.commentLike;
         QComment qComment = QComment.comment;
-        Map<String,Object> hashMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
 
-        try{
+        try {
             CommentLike commentLike = jpaQueryFactory.selectFrom(qCommentLike)
                     .where(qCommentLike.comment.commentId.eq(commentRequestDto.getCommentId())
                             .and(qCommentLike.member.memberId.eq(commentRequestDto.getLoginMemberId())))
@@ -147,7 +150,7 @@ public class CommentServiceImpl implements CommentService{
                         .execute();
 
                 Comment comment1 = commentLike.getComment();
-                if(commentLikeStatus){
+                if (commentLikeStatus) {
                     comment.setCommentLikeCnt(comment.getCommentLikeCnt() - 1);
                 } else {
                     comment.setCommentLikeCnt(comment.getCommentLikeCnt() + 1);
@@ -171,10 +174,10 @@ public class CommentServiceImpl implements CommentService{
 
             }
 
-            hashMap.put("status","200");
-        }catch (Exception e){
+            hashMap.put("status", "200");
+        } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            hashMap.put("status", "500");
         }
 
 
@@ -184,11 +187,11 @@ public class CommentServiceImpl implements CommentService{
     @Override
     public Map<String, Object> getComment(CommentRequestDto commentRequestDto) {
 
-        
-        Map<String,Object> hashMap = new HashMap<>();
+
+        Map<String, Object> hashMap = new HashMap<>();
         QComment qComment = QComment.comment;
 
-        try{
+        try {
 
             List<Comment> resultComment = jpaQueryFactory.selectFrom(qComment)
                     .where(qComment.track.trackId.eq(commentRequestDto.getTrackId()))
@@ -197,15 +200,15 @@ public class CommentServiceImpl implements CommentService{
             List<CommentDto> commentList = new ArrayList<>();
 
             for (Comment comment : resultComment) {
-                if(comment.getParentComment() == null){
+                if (comment.getParentComment() == null) {
                     boolean isLikeComment = false;
                     if (!comment.getCommentLikeList().isEmpty()) {
-                        isLikeComment = isCommentLike(comment,commentRequestDto.getLoginMemberId());
+                        isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
                     }
 
-                    CommentDto commentDto = commentModelMapper(comment,isLikeComment);
+                    CommentDto commentDto = commentModelMapper(comment, isLikeComment);
 
-                    if (!comment.getChildComments().isEmpty()){
+                    if (!comment.getChildComments().isEmpty()) {
                         commentDto.setChildCommentActive(true);
                     } else {
                         commentDto.setChildCommentActive(false);
@@ -217,12 +220,12 @@ public class CommentServiceImpl implements CommentService{
             }
 
 
-            hashMap.put("commentList",commentList);
-            hashMap.put("status","200");
+            hashMap.put("commentList", commentList);
+            hashMap.put("status", "200");
 
-        } catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            hashMap.put("status", "500");
         }
         return hashMap;
     }
@@ -230,7 +233,7 @@ public class CommentServiceImpl implements CommentService{
     @Override
     public Map<String, Object> getChildComment(CommentRequestDto commentRequestDto) {
 
-        
+
         QComment qComment = QComment.comment;
 
         Map<String, Object> hashMap = new HashMap<>();
@@ -242,21 +245,21 @@ public class CommentServiceImpl implements CommentService{
 
             boolean isLikeComment = false;
             if (!comment.getCommentLikeList().isEmpty()) {
-                isLikeComment = isCommentLike(comment,commentRequestDto.getLoginMemberId());
+                isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
             }
 
-            CommentDto commentDto = commentModelMapper(comment,isLikeComment);
+            CommentDto commentDto = commentModelMapper(comment, isLikeComment);
 
             List<CommentDto> childCommentList = new ArrayList<>();
-            childCommentList = addAllChildComments(childCommentList,comment,commentRequestDto.getLoginMemberId());
+            childCommentList = addAllChildComments(childCommentList, comment, commentRequestDto.getLoginMemberId());
 
 
-            hashMap.put("comment",commentDto);
-            hashMap.put("childComment",childCommentList);
-            hashMap.put("status","200");
-        } catch (Exception e ){
+            hashMap.put("comment", commentDto);
+            hashMap.put("childComment", childCommentList);
+            hashMap.put("status", "200");
+        } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            hashMap.put("status", "500");
         }
 
         return hashMap;
@@ -281,7 +284,7 @@ public class CommentServiceImpl implements CommentService{
 
     @Override
     public Long getTrackCommentCnt(TrackRequestDto trackRequestDto) {
-        
+
         QComment qComment = QComment.comment;
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
@@ -305,7 +308,7 @@ public class CommentServiceImpl implements CommentService{
                                                  Comment parentComment,
                                                  Long memberId) {
         // 현재 부모 댓글에 대한 자식 댓글들을 가져옴
-        for(Comment childComment : parentComment.getChildComments()) {
+        for (Comment childComment : parentComment.getChildComments()) {
 
             // 현재 자식 댓글이 좋아요 여부를 체크
             boolean isLikeChildComment = false;
@@ -341,7 +344,6 @@ public class CommentServiceImpl implements CommentService{
 
         return childCommentList;
     }
-
 
 
 }

@@ -214,12 +214,18 @@ public class TrackServiceImpl implements TrackService {
             TrackLike trackLike = getTrackLikeStatus(trackRequestDto);
 
             if(trackLike == null) {
+                QMember qMember = QMember.member;
+                Member member = jpaQueryFactory.selectFrom(qMember)
+                        .where(qMember.memberId.eq(trackRequestDto.getLoginMemberId()))
+                        .fetchOne();
+
+                assert member != null;
 
                 Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
 
                 FcmSendDto fcmSendDto = FcmSendDto.builder()
                         .title("알림")
-                        .body("다른 사용자가 회원님의 곡에 좋아요를 눌렀습니다.")
+                        .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
                         .notificationType(1L)
                         .notificationTrackId(trackRequestDto.getTrackId())
                         .memberId(fcmRecvMemberId)

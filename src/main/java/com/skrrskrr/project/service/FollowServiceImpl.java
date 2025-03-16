@@ -57,7 +57,7 @@ public class FollowServiceImpl implements FollowService{
                 try{
                     FcmSendDto fcmSendDTO = FcmSendDto.builder()
                             .title("알림")
-                            .body("회원님을 팔로우 했습니다.")
+                            .body(follower.getMemberNickName() + "님이 회원님을 팔로우 했습니다.")
                             .notificationType(3L)
                             .notificationMemberId(followRequestDto.getFollowingId())
                             .memberId(followRequestDto.getFollowerId())

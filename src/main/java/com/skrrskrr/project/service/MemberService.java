@@ -31,7 +31,7 @@ public interface MemberService {
 
     MemberDto getMemberInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberDeviceToken(MemberDto memberDTO);
+    Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto);
 
     Map<String,Object> setMemberInfoUpdate(MemberRequestDto memberRequestDto);
 

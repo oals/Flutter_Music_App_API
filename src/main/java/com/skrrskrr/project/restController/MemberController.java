@@ -31,7 +31,8 @@ public class MemberController {
             // 회원인 경우
             if (!Objects.equals(memberDto.getMemberDeviceToken(), memberRequestDto.getDeviceToken())) {
                 // 디바이스 토큰 업데이트
-                hashMap = memberService.setMemberDeviceToken(memberDto);
+                memberRequestDto.setLoginMemberId(memberDto.getMemberId());
+                hashMap = memberService.setMemberDeviceToken(memberRequestDto);
                 if(hashMap.get("status").equals("200")){
                     memberDto.setDeviceToken(memberRequestDto.getDeviceToken());
                     hashMap.put("member", memberDto);

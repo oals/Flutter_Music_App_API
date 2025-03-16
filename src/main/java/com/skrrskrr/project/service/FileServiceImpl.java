@@ -21,6 +21,8 @@ public class FileServiceImpl implements FileService{
     @Value("${UPLOAD_PATH}")
     private String uploadPath;
 
+    @Value("${STREAM_SERVER_URL}")
+    private String streamServerUrl;
 
     @Override
     public boolean uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
@@ -53,7 +55,7 @@ public class FileServiceImpl implements FileService{
 
         try {
             String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8";   // 100/playlist.m3u8; // m3u8 파일 경로
-            String baseUrl = "http://localhost:8104/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
+            String baseUrl =  streamServerUrl + "/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
 
             // 파일 저장
             file.transferTo(destFile);
