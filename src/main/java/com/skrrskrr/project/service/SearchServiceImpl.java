@@ -381,7 +381,7 @@ public class SearchServiceImpl implements SearchService{
 
         return jpaQueryFactory.select(qMember.memberId.count())
                 .from(qMember)
-                .where(qMember.memberNickName.lower().contains(searchRequestDto.getMemberNickName().toLowerCase())
+                .where(qMember.memberNickName.lower().contains(searchRequestDto.getSearchText().toLowerCase())
                         .and(qMember.memberId.ne(searchRequestDto.getLoginMemberId())))
                 .fetchOne();
 
@@ -392,7 +392,7 @@ public class SearchServiceImpl implements SearchService{
         QMember qMember = QMember.member;
 
         List<Member> queryMemberResult = jpaQueryFactory.selectFrom(qMember)
-                .where(qMember.memberNickName.lower().contains(searchRequestDto.getMemberNickName().toLowerCase())
+                .where(qMember.memberNickName.lower().contains(searchRequestDto.getSearchText().toLowerCase())
                         .and(qMember.memberId.ne(searchRequestDto.getLoginMemberId())))
                 .offset(searchRequestDto.getListIndex())
                 .limit(limit)

@@ -36,11 +36,9 @@ public class MainServiceImpl implements MainService {
     
     @Override
     public Map<String, Object> firstLoad(MemberRequestDto memberRequestDto) {
-
         
         Map<String, Object> hashMap = new HashMap<>();
         QMember qMember = QMember.member;
-
 
         try {
             //내 멤버 엔티티
@@ -48,16 +46,11 @@ public class MainServiceImpl implements MainService {
                     .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
                     .fetchFirst();
 
-//            // fcm 메세지에 추가하는걸로 변경?
-//            boolean notificationIsView = isNotificationView(memberRequestDto.getLoginMemberId());
-
             /// 인기 앨범 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
             List<PlayListDto> popularPlayList = getPopularPlayList();
 
-
             /// 내가 팔로우 한 유저의 곡 , 최신날짜 ,
             List<TrackDto> followMemberTrackList = getFollowMemberTrackList(myMember);
-
 
             /// 관심 트랙 - 관심트랙 리스트에서 랜덤 , 선택된 카테고리 ,
             List<TrackDto> likedTrackList = getLikeTrackList(myMember);
@@ -69,7 +62,6 @@ public class MainServiceImpl implements MainService {
             // 트랜드 음악 조회
             List<TrackDto> trendingTrackList = getTrendingTrackList();
 
-//            hashMap.put("notificationIsView",notificationIsView);
             hashMap.put("popularPlayList",popularPlayList);
             hashMap.put("followMemberTrackList",followMemberTrackList);
             hashMap.put("likedTrackList",likedTrackList);
@@ -130,8 +122,6 @@ public class MainServiceImpl implements MainService {
                 ).orderBy(qMemberTrack.track.trackPlayCnt.desc())
                 .limit(5)
                 .fetch();
-
-
     }
 
 

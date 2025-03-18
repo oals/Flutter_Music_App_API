@@ -1,6 +1,7 @@
 package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.MemberRequestDto;
+import com.skrrskrr.project.redisService.RedisService;
 import com.skrrskrr.project.service.MainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -20,13 +21,15 @@ import java.util.Objects;
 public class MainController {
 
     private final MainService mainService;
-
+    private final RedisService redisService;
 
     @GetMapping("/api/firstLoad")
     public Map<String, Object> firstLoad(MemberRequestDto memberRequestDto){
         log.info("firstLoad");
         return mainService.firstLoad(memberRequestDto);
     }
+
+
 
 
 
