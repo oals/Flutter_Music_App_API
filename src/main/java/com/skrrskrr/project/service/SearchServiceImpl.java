@@ -7,7 +7,6 @@ import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -117,14 +116,11 @@ public class SearchServiceImpl implements SearchService{
 
     private void deleteLastSearchHistory(SearchRequestDto searchRequestDto) {
 
-        
         QHistory qHistory = QHistory.history;
 
-        /// 해당 멤버의 검색 히스토리 갯수 조회 후 특정 갯수 이상일때 마지막 히스토리 엔티티 삭제
         List<History> queryResult = jpaQueryFactory.selectFrom(qHistory)
                 .where(qHistory.member.memberId.eq(searchRequestDto.getLoginMemberId()))
                 .fetch();
-        /// 화면에는 30개만 보여주고 60개가 쌓였을 때 30개를 삭제함
 
         if(!queryResult.isEmpty()){
             if(queryResult.size() >= 60){
@@ -181,56 +177,45 @@ public class SearchServiceImpl implements SearchService{
                 .from(qHistory)
                 .where(qHistory.member.memberId.eq(searchRequestDto.getLoginMemberId()))
                 .orderBy(qHistory.historyId.desc())
-                .limit(30)
+                .limit(searchRequestDto.getLimit())
                 .fetch();
 
     }
-
-    private List<String> getPopularSearchHistory(){
-        
-        QTrack qTrack = QTrack.track;
-
-        LocalDate today = LocalDate.now();
-        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
-
-        return jpaQueryFactory.select(qTrack.trackNm)
-                .from(qTrack)
-                .where(qTrack.trackUploadDate.goe(startOfWeek.toString())
-                        .and(qTrack.trackUploadDate.loe(endOfWeek.toString())))
-                .orderBy(qTrack.trackPlayCnt.desc()) // 조회수 기준 내림차순
-                .limit(8)
-                .fetch();
-    }
-
 
     @Override
     public Map<String, Object> getSearchMore(SearchRequestDto searchRequestDto) {
 
         Map<String,Object> hashMap = new HashMap<>();
 
+        MemberRequestDto memberRequestDto = new MemberRequestDto();
+        memberRequestDto.setMemberId(searchRequestDto.getMemberId());
+        memberRequestDto.setLoginMemberId(searchRequestDto.getLoginMemberId());
+
         try {
-            if(searchRequestDto.getMoreId() == 1) {
-                List<FollowDto> searchMemberDtos = getSearchMemberList(searchRequestDto,20L);
-                hashMap.put("memberList",searchMemberDtos);
-            } else if (searchRequestDto.getMoreId() == 2) {
-                List<PlayListDto> searchPlayListDtos = getSearchPlayList(searchRequestDto,20L);
-                hashMap.put("playListList",searchPlayListDtos);
-            } else if(searchRequestDto.getMoreId() == 3) {
-                List<SearchDto> searchTrackListDtos = getSearchTrackList(searchRequestDto,20L);
-                hashMap.put("trackList",searchTrackListDtos);
-            } else if (searchRequestDto.getMoreId() == 4) {
-                MemberRequestDto memberRequestDto = new MemberRequestDto();
-                memberRequestDto.setMemberId(searchRequestDto.getMemberId());
-                memberRequestDto.setLoginMemberId(searchRequestDto.getLoginMemberId());
-                List<PlayListDto> userPlayListDtos = memberService.getMemberPlayList(memberRequestDto, searchRequestDto.getListIndex(),20L);
-                hashMap.put("playListList",userPlayListDtos);
-            } else if (searchRequestDto.getMoreId() == 5) {
-                MemberRequestDto memberRequestDto = new MemberRequestDto();
-                memberRequestDto.setMemberId(searchRequestDto.getMemberId());
-                memberRequestDto.setLoginMemberId(searchRequestDto.getLoginMemberId());
-                List<TrackDto> userAllTrackDtos = memberService.getMemberTrack(memberRequestDto,false, searchRequestDto.getListIndex(), 20L);
-                hashMap.put("trackList",userAllTrackDtos);
+            switch (searchRequestDto.getMoreId().toString()) {
+                case "1":
+                    List<FollowDto> searchMemberDtos = getSearchMemberList(searchRequestDto, searchRequestDto.getLimit());
+                    hashMap.put("memberList", searchMemberDtos);
+                    break;
+                case "2":
+                    List<PlayListDto> searchPlayListDtos = getSearchPlayList(searchRequestDto, searchRequestDto.getLimit());
+                    hashMap.put("playListList", searchPlayListDtos);
+                    break;
+                case "3":
+                    List<SearchDto> searchTrackListDtos = getSearchTrackList(searchRequestDto, searchRequestDto.getLimit());
+                    hashMap.put("trackList", searchTrackListDtos);
+                    break;
+                case "4":
+                    List<PlayListDto> userPlayListDtos = memberService.getMemberPlayList(memberRequestDto, searchRequestDto.getOffset(), searchRequestDto.getLimit());
+                    hashMap.put("playListList", userPlayListDtos);
+                    break;
+                case "5":
+                    List<TrackDto> userAllTrackDtos = memberService.getMemberTrack(memberRequestDto, false, searchRequestDto.getOffset(), searchRequestDto.getLimit());
+                    hashMap.put("trackList", userAllTrackDtos);
+                    break;
+                default:
+                    hashMap.put("status", "500");
+                    return hashMap;
             }
 
             hashMap.put("status","200");
@@ -289,7 +274,7 @@ public class SearchServiceImpl implements SearchService{
                         qTrackCategory.category.trackCategoryId,
                         qTrackLike.trackLikeStatus
                 )
-                .offset(searchRequestDto.getListIndex())
+                .offset(searchRequestDto.getOffset())
                 .limit(limit)
                 .orderBy(qMemberTrack.memberTrackId.desc())
                 .fetch();
@@ -339,27 +324,28 @@ public class SearchServiceImpl implements SearchService{
         
         QPlayList qPlayList = QPlayList.playList;
 
-        List<PlayListDto> playListDTOList = jpaQueryFactory.select(
-                        Projections.bean(
-                                PlayListDto.class,
-                                qPlayList.playListId.as("playListId"),
-                                qPlayList.playListNm.as("playListNm"),
-                                qPlayList.member.memberNickName.as("memberNickName"),
-                                qPlayList.member.memberId.as("memberId")
-                        )
-                ).from(qPlayList)
+        List<PlayList> playListList = jpaQueryFactory.selectFrom(qPlayList)
                 .where(qPlayList.playListNm.contains(searchRequestDto.getSearchText())
                         .and(qPlayList.isPlayListPrivacy.isFalse())
                         .and(qPlayList.playListTrackList.isNotEmpty()))
-                .offset(searchRequestDto.getListIndex())
+                .offset(searchRequestDto.getOffset())
                 .limit(limit)
                 .fetch();
 
-        for (PlayListDto playListDTO : playListDTOList) {
-            playListDTO.setPlayListImagePath(qPlayList.playListTrackList.get(0).trackImagePath.toString());
+
+        List<PlayListDto> playListDtoList = new ArrayList<>();
+        for (PlayList playList : playListList) {
+            PlayListDto playListDto = PlayListDto.builder()
+                    .playListId(playList.getPlayListId())
+                    .playListNm(playList.getPlayListNm())
+                    .playListImagePath(playList.getPlayListTrackList().get(0).getTrackImagePath())
+                    .memberNickName(playList.getMember().getMemberNickName())
+                    .build();
+
+            playListDtoList.add(playListDto);
         }
 
-        return playListDTOList;
+        return playListDtoList;
     }
 
 
@@ -394,7 +380,7 @@ public class SearchServiceImpl implements SearchService{
         List<Member> queryMemberResult = jpaQueryFactory.selectFrom(qMember)
                 .where(qMember.memberNickName.lower().contains(searchRequestDto.getSearchText().toLowerCase())
                         .and(qMember.memberId.ne(searchRequestDto.getLoginMemberId())))
-                .offset(searchRequestDto.getListIndex())
+                .offset(searchRequestDto.getOffset())
                 .limit(limit)
                 .fetch();
 

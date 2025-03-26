@@ -31,7 +31,6 @@ public class FollowServiceImpl implements FollowService{
     
     private final JPAQueryFactory jpaQueryFactory;
     private final FireBaseService fireBaseService;
-    private final ModelMapper modelMapper;
 
     @Override
     public Map<String, Object> setFollow(FollowRequestDto followRequestDto) {
@@ -70,7 +69,6 @@ public class FollowServiceImpl implements FollowService{
                 }
             }
 
-
             hashMap.put("status","200");
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +95,6 @@ public class FollowServiceImpl implements FollowService{
                 .where(qFollow.follower.memberId.eq(followRequestDto.getFollowerId())
                         .and(qFollow.following.memberId.eq(followRequestDto.getFollowingId())))
                 .execute();
-
     }
 
 
@@ -197,8 +194,6 @@ public class FollowServiceImpl implements FollowService{
     }
 
 
-
-
     private List<Follow> getFollowerList(Long loginMemberId) {
         QFollow qFollow = QFollow.follow;
 
@@ -208,7 +203,6 @@ public class FollowServiceImpl implements FollowService{
     }
 
 
-    // 3. 맞팔 여부를 체크하는 메서드
     private boolean isMutualFollow(Follow follow, List<Follow> otherList) {
         for (Follow otherFollow : otherList) {
             if (otherFollow.getFollower().getMemberId().equals(follow.getFollowing().getMemberId())) {

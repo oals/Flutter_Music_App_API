@@ -44,9 +44,7 @@ public class PlayListServiceImpl implements PlayListService {
         try {
             List<PlayList> queryResult = getPlayListList(playListRequestDto);
 
-
             List<PlayListDto> list = new ArrayList<>();
-
             for (PlayList playList : queryResult) {
 
                 PlayListDto playListDto = modelMapper.map(playList, PlayListDto.class);
@@ -54,7 +52,9 @@ public class PlayListServiceImpl implements PlayListService {
                 playListDto.setMemberNickName(playList.getMember().getMemberNickName());
 
                 /// 해당 플리에 추가하려는 트랙이 존재하는지 검사
-                playListDto = checkIsInPlayListTrack(playListRequestDto.getTrackId(),playList,playListDto);
+                if (playListRequestDto.getTrackId() != 0L) {
+                    playListDto = checkIsInPlayListTrack(playListRequestDto.getTrackId(),playList,playListDto);
+                }
 
                 list.add(playListDto);
             }
@@ -81,8 +81,8 @@ public class PlayListServiceImpl implements PlayListService {
                 .where(qPlayList.member.memberId.eq(playListRequestDto.getLoginMemberId())
                         .and(qPlayList.isAlbum.eq(playListRequestDto.isAlbum())))
                 .orderBy(qPlayList.playListId.desc())
-                .offset(playListRequestDto.getListIndex())
-                .limit(20)
+                .offset(playListRequestDto.getOffset())
+                .limit(playListRequestDto.getLimit())
                 .fetch();
     }
 
@@ -131,22 +131,28 @@ public class PlayListServiceImpl implements PlayListService {
             PlayListLike playListLike = selectPlayListLikeStatus(playListRequestDto);
             boolean isPlayListLikeStatus = isPlayListLike(playListLike);
 
-            PlayListDto playListListDTO = modelMapper.map(playList, PlayListDto.class);
-            playListListDTO.setMemberId(playList.getMember().getMemberId());
-            playListListDTO.setMemberNickName(playList.getMember().getMemberNickName());
-            playListListDTO.setPlayListLike(isPlayListLikeStatus);
+            PlayListDto playListDto = modelMapper.map(playList, PlayListDto.class);
+            playListDto.setMemberId(playList.getMember().getMemberId());
+            playListDto.setMemberNickName(playList.getMember().getMemberNickName());
+            playListDto.setPlayListLike(isPlayListLikeStatus);
 
+            int totalCount = playList.getPlayListTrackList().size();
 
-            List<TrackDto> trackDtoList = createTrackDtoList(playList, playListRequestDto);
+            if (totalCount != 0) {
+                List<TrackDto> trackDtoList = createTrackDtoList(playList, playListRequestDto);
 
-            playListListDTO.setPlayListTrackList(trackDtoList);
+                playListDto.setPlayListTrackList(trackDtoList);
+                playListDto.setPlayListImagePath(trackDtoList.get(0).getTrackImagePath());
 
-            int[] totalPlayTime = calculateTotalPlayTime(trackDtoList);
+                int[] totalPlayTime = calculateTotalPlayTime(trackDtoList);
 
-            playListListDTO.setTotalPlayTime(String.format("%d:%02d:%02d", totalPlayTime[0], totalPlayTime[1], totalPlayTime[2]));
-            playListListDTO.setTrackCnt((long) trackDtoList.size());
+                playListDto.setTotalPlayTime(String.format("%d:%02d:%02d", totalPlayTime[0], totalPlayTime[1], totalPlayTime[2]));
+                playListDto.setTrackCnt((long) trackDtoList.size());
+            }
 
-            hashMap.put("playList", playListListDTO);
+            hashMap.put("playList", playListDto);
+            hashMap.put("totalCount", totalCount);
+
             hashMap.put("status", "200");
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,6 +161,7 @@ public class PlayListServiceImpl implements PlayListService {
 
         return hashMap;
     }
+
 
     private PlayList fetchPlayListById(Long playListId) {
         
@@ -170,8 +177,14 @@ public class PlayListServiceImpl implements PlayListService {
 
 
     private List<TrackDto> createTrackDtoList(PlayList playList, PlayListRequestDto playListRequestDto) {
+
         List<TrackDto> trackDtoList = new ArrayList<>();
-        List<Track> trackList = playList.getPlayListTrackList();
+
+        List<Track> trackList = playList.getPlayListTrackList()
+                .stream()
+                .skip(playListRequestDto.getOffset())
+                .limit(playListRequestDto.getLimit())      // limit 개수만큼만 선택
+                .toList();
 
         if (!trackList.isEmpty()) {
             for (int i = trackList.size() - 1; i >= 0; i--) {
@@ -408,6 +421,41 @@ public class PlayListServiceImpl implements PlayListService {
             hashMap.put("status","500");
             return hashMap;
         }
+    }
+
+    @Override
+    public List<PlayListDto> getPopularPlayList(PlayListRequestDto playListRequestDto) {
+
+
+        QPlayList qPlayList = QPlayList.playList;
+        QTrack qTrack = QTrack.track;
+
+        List<PlayList> queryResultPlayList =  jpaQueryFactory.selectFrom(qPlayList)
+                .join(qPlayList.playListTrackList, qTrack)
+                .groupBy(qPlayList.playListId)  // PlayList 단위로 그룹화
+                .orderBy(
+                        qTrack.trackPlayCnt.count().desc(),      // trackPlayCnt의 등장 횟수
+                        qTrack.trackLikeCnt.count().desc()
+                )
+                .where(qPlayList.playListTrackList.isNotEmpty()
+                        .and(qPlayList.isPlayListPrivacy.isFalse()))  // Track 리스트가 비어 있지 않은 PlayList만
+                .limit(playListRequestDto.getLimit())
+                .fetch();
+
+
+        List<PlayListDto> popularPlayList = new ArrayList<>();
+        for (PlayList playList : queryResultPlayList) {
+            PlayListDto playListDto = PlayListDto.builder()
+                    .playListId(playList.getPlayListId())
+                    .playListNm(playList.getPlayListNm())
+                    .playListImagePath(playList.getPlayListTrackList().get(playList.getPlayListTrackList().size() - 1).getTrackImagePath())
+                    .memberNickName(playList.getMember().getMemberNickName())
+                    .build();
+            popularPlayList.add(playListDto);
+
+
+        }
+        return popularPlayList;
     }
 
 

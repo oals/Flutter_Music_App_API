@@ -192,7 +192,6 @@ public class CommentServiceImpl implements CommentService {
         QComment qComment = QComment.comment;
 
         try {
-
             List<Comment> resultComment = jpaQueryFactory.selectFrom(qComment)
                     .where(qComment.track.trackId.eq(commentRequestDto.getTrackId()))
                     .fetch();
@@ -218,7 +217,6 @@ public class CommentServiceImpl implements CommentService {
                 }
 
             }
-
 
             hashMap.put("commentList", commentList);
             hashMap.put("status", "200");
@@ -250,8 +248,7 @@ public class CommentServiceImpl implements CommentService {
 
             CommentDto commentDto = commentModelMapper(comment, isLikeComment);
 
-            List<CommentDto> childCommentList = new ArrayList<>();
-            childCommentList = addAllChildComments(childCommentList, comment, commentRequestDto.getLoginMemberId());
+            List<CommentDto> childCommentList = addAllChildComments(new ArrayList<>(), comment, commentRequestDto.getLoginMemberId());
 
 
             hashMap.put("comment", commentDto);

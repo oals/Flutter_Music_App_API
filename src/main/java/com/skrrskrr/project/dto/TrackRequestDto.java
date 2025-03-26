@@ -13,6 +13,8 @@ public class TrackRequestDto extends BaseRequestDto {
 
      private String trackInfo;
 
+     private Long trackCategoryId;
+
      private boolean isTrackPrivacy;
 
 }

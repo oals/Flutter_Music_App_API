@@ -34,6 +34,7 @@ public class TrackController {
     @GetMapping("/api/getLikeTrack")
     public Map<String,Object> getLikeTrack(TrackRequestDto trackRequestDto){
         log.info("getLikeTrack");
+        trackRequestDto.setLimit(20L);
         return trackService.getLikeTrack(trackRequestDto);
     }
 
@@ -48,6 +49,13 @@ public class TrackController {
         log.info("getTrackInfo");
         return trackService.getTrackInfo(trackRequestDto);
     }
+
+    @GetMapping("/api/getRecommendTrack")
+    public Map<String,Object> getRecommendTrack(TrackRequestDto trackRequestDto){
+        log.info("getRecommendTrack");
+        return trackService.getRecommendTrack(trackRequestDto);
+    }
+
 
     @GetMapping("/api/getUploadTrack")
     public Map<String,Object>  getUploadTrack(TrackRequestDto trackRequestDto){

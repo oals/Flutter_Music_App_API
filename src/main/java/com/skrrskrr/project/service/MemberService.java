@@ -41,11 +41,11 @@ public interface MemberService {
 
     Map<String,Object> setMemberImage(UploadDto uploadDto);
 
-    List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long listIndex, Long limit );
+    List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long offset, Long limit );
 
-    List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long listIndex, Long limit);
+    List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long offset, Long limit);
 
-
+    List<MemberDto> getRandomMemberList(MemberRequestDto memberRequestDto);
 
 
 

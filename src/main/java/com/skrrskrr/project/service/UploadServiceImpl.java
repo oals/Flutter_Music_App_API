@@ -39,13 +39,8 @@ public class UploadServiceImpl implements UploadService {
         String uuid = generateUUID();
 
         try {
-            // 마지막 트랙 id 얻기
-            Long lastTrackId = trackService.getTrackLastId();
-
             // 트랙 이미지 업로드
-            if (uploadDto.getUploadImage() != null) {
-                uploadTrackImage(uploadDto, lastTrackId, uuid);
-            }
+            Long lastTrackId = uploadImage(uploadDto, uuid);
 
             //트랙 업로드
             uploadTrackFile(uploadDto, lastTrackId, uuid);
@@ -64,16 +59,10 @@ public class UploadServiceImpl implements UploadService {
     public Map<String, Object> albumUpload(UploadDto uploadDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
-        String imageUuid = generateUUID();
-
-        // 마지막 트랙 id 얻기
-        Long lastTrackId = trackService.getTrackLastId();
+        String uuid = generateUUID();
 
         // 앨범 이미지 업로드
-        if (uploadDto.getUploadImage() != null) {
-            uploadTrackImage(uploadDto, lastTrackId, imageUuid);
-        }
-
+        Long lastTrackId = uploadImage(uploadDto, uuid);
 
         try {
             List<Long> uploadTrackIdList = new ArrayList<>();
@@ -148,6 +137,19 @@ public class UploadServiceImpl implements UploadService {
     }
 
 
+    private Long uploadImage(UploadDto uploadDto, String uuid) {
+        // 마지막 트랙 id 얻기
+        Long lastTrackId = trackService.getTrackLastId();
+
+        // 앨범 이미지 업로드
+        if (uploadDto.getUploadImage() != null) {
+            uploadTrackImage(uploadDto, lastTrackId, uuid);
+        }
+
+        return lastTrackId;
+    }
+
+
     private void uploadTrackImage(UploadDto uploadDto, Long lastTrackId, String uuid)  {
         String imagePath = uploadPath + "/trackImage/" + lastTrackId + "/" + uuid;
         uploadDto.setUploadImagePath(imagePath);
@@ -155,7 +157,7 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private void uploadTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid)  {
-        String audioFilePath = streamServerUrl + "/music/getSegmentName/" + lastTrackId + "/playList.m3u8";
+        String audioFilePath = "/" + lastTrackId + "/playList.m3u8";
         uploadDto.setUploadFilePath(audioFilePath);
         trackService.saveTrack(uploadDto);
         fileService.uploadTrackFile(uploadDto.getUploadFile(), "/track/", lastTrackId, uuid);
@@ -163,7 +165,7 @@ public class UploadServiceImpl implements UploadService {
 
 
     private Long uploadAlbumTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid, int fileIdx)  {
-        String audioFilePath = streamServerUrl + "/music/getSegmentName/" + lastTrackId + "/playList.m3u8";
+        String audioFilePath =  "/" + lastTrackId + "/playList.m3u8";
         uploadDto.setUploadFilePath(audioFilePath);
 
         String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(fileIdx));

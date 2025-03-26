@@ -18,13 +18,13 @@ public interface TrackService {
 
     Map<String,Object> setTrackinfo(TrackRequestDto trackRequestDto);
 
-    Long getTrackLastId();
-
     Map<String,String> setTrackLike(TrackRequestDto trackRequestDto);
 
     Map<String,Object> getLikeTrack(TrackRequestDto trackRequestDto);
 
     List<TrackDto> getLikeTrackList(TrackRequestDto trackRequestDto);
+
+    List<TrackDto> getFollowMemberTrackList(TrackRequestDto trackRequestDto);
 
     Long getLikeTrackListCnt(TrackRequestDto trackRequestDto);
 
@@ -39,5 +39,11 @@ public interface TrackService {
     Long getUploadTrackListCnt(TrackRequestDto trackRequestDto);
 
     TrackLike getTrackLikeStatus(TrackRequestDto trackRequestDto);
+
+    Map<String, Object> getRecommendTrack(TrackRequestDto trackRequestDto);
+
+    List<TrackDto> getTrendingTrackList(TrackRequestDto trackRequestDto);
+
+    Long getTrackLastId();
 
 }

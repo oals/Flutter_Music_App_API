@@ -61,8 +61,8 @@ public class NotificationsServiceImpl implements NotificationsService{
         return jpaQueryFactory.selectFrom(qNotifications)
                 .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
                 .orderBy(qNotifications.notificationId.desc())
-                .offset(notificationsRequestDto.getListIndex())
-                .limit(20)
+                .offset(notificationsRequestDto.getOffset())
+                .limit(notificationsRequestDto.getLimit())
                 .fetch();
     }
 

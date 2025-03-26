@@ -205,7 +205,7 @@ public class MemberServiceImpl implements MemberService {
 
 
 
-    public List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long listIndex, Long limit){
+    public List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long offset, Long limit){
 
         QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
 
@@ -216,7 +216,7 @@ public class MemberServiceImpl implements MemberService {
                                     .or(qMemberTrack.member.memberId.eq(memberRequestDto.getLoginMemberId()))))
                     .orderBy(isPopular ? qMemberTrack.track.trackPlayCnt.desc() : qMemberTrack.track.trackId.desc())
                     .limit(limit)
-                    .offset(listIndex)
+                    .offset(offset)
                     .fetch();
 
 
@@ -246,7 +246,7 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
-    public List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long listIndex, Long limit) {
+    public List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long offset, Long limit) {
 
         QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
         List<PlayListDto> playListDtoList = new ArrayList<>();
@@ -257,7 +257,7 @@ public class MemberServiceImpl implements MemberService {
                         .and(qMemberPlayList.playList.isPlayListPrivacy.isFalse()
                                 .or(qMemberPlayList.member.memberId.eq(memberRequestDto.getLoginMemberId()))))
                 .limit(limit)
-                .offset(listIndex)
+                .offset(offset)
                 .fetch();
 
 
@@ -294,5 +294,59 @@ public class MemberServiceImpl implements MemberService {
     }
 
 
+    public List<MemberDto> getRandomMemberList(MemberRequestDto memberRequestDto){
+
+        QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
+
+        List<MemberTrack> queryResultMember = jpaQueryFactory.selectFrom(qMemberTrack)
+                .where(
+                        qMemberTrack.member.memberId.ne(memberRequestDto.getLoginMemberId()) // 자기 자신 제외
+                                .and(qMemberTrack.member.memberTrackList.isNotEmpty())  // 트랙 리스트가 비어 있지 않음
+                )
+                .groupBy(qMemberTrack.member.memberId) // 멤버 아이디별로 그룹화
+                .orderBy(
+                        Expressions.numberTemplate(Double.class, "function('RAND')").asc()  // 랜덤 정렬
+                )
+                .limit(memberRequestDto.getLimit())  // 랜덤으로 8개만 추출
+                .fetch();
+
+
+
+        return createRandomMmeberDtoList(queryResultMember, memberRequestDto.getLoginMemberId());
+    }
+
+    private List<MemberDto> createRandomMmeberDtoList(List<MemberTrack> queryResultMember, Long loginMemberId){
+
+        List<MemberDto> randomMemberList = new ArrayList<>();
+
+        for (MemberTrack randomItem : queryResultMember) {
+
+            int isFollowedCd = 0; // 관계없음
+
+            for (int i = 0; i < randomItem.getMember().getFollowers().size(); i++) {
+                if (randomItem.getMember().getFollowers().get(i).getFollowing().getMemberId().equals(loginMemberId)) {
+                    isFollowedCd = 1; // 내가 팔로우 중
+                    break;
+                }
+            }
+
+            for (int i = 0; i < randomItem.getMember().getFollowing().size(); i++) {
+                if (randomItem.getMember().getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
+                    if(isFollowedCd == 1){
+                        isFollowedCd = 3; //맞팔
+                    } else {
+                        isFollowedCd = 2; //내 팔로워
+                    }
+                }
+            }
+
+            MemberDto memberDto = modelMapper.map(randomItem.getMember(), MemberDto.class);
+            memberDto.setIsFollowedCd(isFollowedCd);
+
+
+            randomMemberList.add(memberDto);
+        }
+        return randomMemberList;
+    }
 
 }

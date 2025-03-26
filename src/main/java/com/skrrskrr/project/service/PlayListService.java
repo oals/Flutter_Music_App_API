@@ -3,6 +3,7 @@ package com.skrrskrr.project.service;
 import com.skrrskrr.project.dto.PlayListDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
 
+import java.util.List;
 import java.util.Map;
 
 public interface PlayListService {
@@ -19,5 +20,5 @@ public interface PlayListService {
 
     Map<String,Object> newPlayList(PlayListRequestDto playListRequestDto);
 
-
+    List<PlayListDto> getPopularPlayList(PlayListRequestDto playListRequestDto);
 }
