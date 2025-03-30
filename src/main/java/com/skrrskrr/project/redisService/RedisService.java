@@ -10,5 +10,7 @@ public interface RedisService {
 
     Map<String,Object> getLastListenTrackId(TrackRequestDto trackRequestDto);
 
+    Map<String,Object> getLastListenTrackIdList(TrackRequestDto trackRequestDto);
+
 
 }

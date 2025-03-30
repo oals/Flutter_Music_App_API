@@ -28,8 +28,9 @@ public interface MemberService {
         return memberDto;
     }
 
+    Member getMemberEntity(Long memberId);
 
-    MemberDto getMemberInfo(MemberRequestDto memberRequestDto);
+    Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto);
 
     Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto);
 
@@ -41,12 +42,10 @@ public interface MemberService {
 
     Map<String,Object> setMemberImage(UploadDto uploadDto);
 
-    List<TrackDto> getMemberTrack(MemberRequestDto memberRequestDto, boolean isPopular , Long offset, Long limit );
-
-    List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto, Long offset, Long limit);
+    List<FollowDto> getSearchMemberList(SearchRequestDto searchRequestDto);
 
     List<MemberDto> getRandomMemberList(MemberRequestDto memberRequestDto);
 
-
+    Long getSearchMemberListCnt(SearchRequestDto searchRequestDto);
 
 }

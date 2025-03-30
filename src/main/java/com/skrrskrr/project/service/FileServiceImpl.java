@@ -25,7 +25,7 @@ public class FileServiceImpl implements FileService{
     private String streamServerUrl;
 
     @Override
-    public boolean uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
+    public Boolean uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
         if (file.isEmpty()) {
             throw new RuntimeException("파일이 비어 있습니다.");
         }
@@ -70,7 +70,7 @@ public class FileServiceImpl implements FileService{
     }
 
     @Override
-    public boolean uploadTrackImageFile(MultipartFile file, String dir,String imageFileNm) {
+    public Boolean uploadTrackImageFile(MultipartFile file, String dir,String imageFileNm) {
         if (file.isEmpty()) {
             throw new RuntimeException("파일이 비어 있습니다.");
         }

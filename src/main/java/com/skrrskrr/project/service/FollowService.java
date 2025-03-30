@@ -11,6 +11,6 @@ public interface FollowService {
 
     Map<String,Object> getFollow(FollowRequestDto followRequestDto);
 
-    boolean isFollowCheck(Long followerId, Long followingId);
+    Boolean isFollowCheck(Long followerId, Long followingId);
 
 }

@@ -16,7 +16,5 @@ public interface CommentService {
 
     Map<String,Object> getChildComment(CommentRequestDto commentRequestDto);
 
-    Long getTrackCommentCnt(TrackRequestDto trackRequestDto);
-
 
 }

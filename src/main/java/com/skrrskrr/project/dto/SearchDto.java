@@ -35,5 +35,5 @@ public class SearchDto {
 
     private String trackImagePath;
 
-    private boolean trackLikeStatus;
+    private Boolean trackLikeStatus;
 }

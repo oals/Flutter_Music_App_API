@@ -26,7 +26,7 @@ public class CommentDto {
 
     private String memberImagePath;
 
-    private boolean commentLikeStatus;
+    private Boolean commentLikeStatus;
 
     private Long commentLikeCnt;
 
@@ -37,7 +37,7 @@ public class CommentDto {
 
     private Long parentCommentId; // 부모 댓글
 ;
-    private boolean isChildCommentActive;
+    private Boolean isChildCommentActive;
 
     private List<CommentDto> childComments; // 자식 댓글 목록
 

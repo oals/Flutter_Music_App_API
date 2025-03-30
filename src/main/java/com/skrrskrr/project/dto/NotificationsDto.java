@@ -25,6 +25,6 @@ public class NotificationsDto {
 
     private Long notificationMemberId;
 
-    private boolean notificationIsView;
+    private Boolean notificationIsView;
 
 }

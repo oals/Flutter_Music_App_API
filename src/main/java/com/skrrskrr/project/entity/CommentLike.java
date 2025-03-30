@@ -15,7 +15,7 @@ public class CommentLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentLikeId;
 
-    private boolean commentLikeStatus;
+    private Boolean commentLikeStatus;
 
     @ManyToOne
     @JoinColumn(name = "comment_id")

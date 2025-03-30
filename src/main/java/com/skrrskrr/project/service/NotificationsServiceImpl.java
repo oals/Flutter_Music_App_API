@@ -5,9 +5,9 @@ import com.skrrskrr.project.dto.NotificationsDto;
 import com.skrrskrr.project.dto.NotificationsRequestDto;
 import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.entity.QNotifications;
+import com.skrrskrr.project.queryBuilder.select.NotificationSelectQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -29,15 +29,13 @@ public class NotificationsServiceImpl implements NotificationsService{
     EntityManager entityManager;
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final ModelMapper modelMapper;
-
 
     @Override
     public Map<String, Object> getNotifications(NotificationsRequestDto notificationsRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            List<Notifications> queryResult = fetchNotifications(notificationsRequestDto);
+            List<NotificationsDto> queryResult = fetchNotifications(notificationsRequestDto);
 
             // 알림 목록 날짜별 분류
             Map<String, List<NotificationsDto>> classifiedNotifications = classifyNotificationsByDate(queryResult);
@@ -54,19 +52,20 @@ public class NotificationsServiceImpl implements NotificationsService{
         return hashMap;
     }
 
-    private List<Notifications> fetchNotifications(NotificationsRequestDto notificationsRequestDto) {
-        
-        QNotifications qNotifications = QNotifications.notifications;
+    private List<NotificationsDto> fetchNotifications(NotificationsRequestDto notificationsRequestDto) {
 
-        return jpaQueryFactory.selectFrom(qNotifications)
-                .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
-                .orderBy(qNotifications.notificationId.desc())
-                .offset(notificationsRequestDto.getOffset())
+        NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
+
+        return notificationSelectQueryBuilder
+                .selectFrom(QNotifications.notifications)
+                .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
                 .limit(notificationsRequestDto.getLimit())
-                .fetch();
+                .orderByNotificationIdDesc()
+                .offset(notificationsRequestDto.getOffset())
+                .fetchNotificationDetailDto(NotificationsDto.class);
     }
 
-    private Map<String, List<NotificationsDto>> classifyNotificationsByDate(List<Notifications> queryResult) {
+    private Map<String, List<NotificationsDto>> classifyNotificationsByDate(List<NotificationsDto> NotificationsDtoList) {
         List<NotificationsDto> todayNotificationList = new ArrayList<>();
         List<NotificationsDto> monthNotificationList = new ArrayList<>();
         List<NotificationsDto> yearNotificationList = new ArrayList<>();
@@ -80,8 +79,7 @@ public class NotificationsServiceImpl implements NotificationsService{
         // 날짜 포맷터
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        for (Notifications notification : queryResult) {
-            NotificationsDto notificationsDto = modelMapper.map(notification, NotificationsDto.class);
+        for (NotificationsDto notificationsDto : NotificationsDtoList) {
             LocalDate notificationDate = LocalDate.parse(notificationsDto.getNotificationDate(), formatter);
 
             // 날짜에 따라 알림을 분류
@@ -103,29 +101,29 @@ public class NotificationsServiceImpl implements NotificationsService{
     }
 
 
-
     @Override
     public Map<String,Object> setNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
 
-        QNotifications qNotifications = QNotifications.notifications;
         Map<String,Object> hashMap = new HashMap<>();
 
+        NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
+
         try {
-            Notifications notifications = jpaQueryFactory.selectFrom(qNotifications)
-                    .where(qNotifications.notificationId.eq(notificationsRequestDto.getNotificationId()))
-                    .fetchOne();
+            Notifications notifications = (Notifications) notificationSelectQueryBuilder
+                    .selectFrom(QNotifications.notifications)
+                    .findNotificationByNotificationId(notificationsRequestDto.getNotificationId())
+                    .fetchFirst(Notifications.class);
 
             assert notifications != null;
 
             updateIsNotificationViewStatus(notifications);
 
-            boolean notificationIsView = Boolean.FALSE.equals(
-                    jpaQueryFactory.select(
-                                    qNotifications.notificationIsView
-                            ).from(qNotifications)
-                            .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId())
-                                    .and(qNotifications.notificationIsView.isFalse()))
-                            .fetchFirst()
+            Boolean notificationIsView = Boolean.FALSE.equals(
+                    notificationSelectQueryBuilder
+                            .selectFrom(QNotifications.notifications)
+                            .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
+                            .findIsNotificationViewFalse()
+                            .fetchNotificationListViewStatus()
             );
 
             hashMap.put("notificationIsView",notificationIsView);
@@ -141,17 +139,21 @@ public class NotificationsServiceImpl implements NotificationsService{
     @Override
     public Map<String,Object> setAllNotificationisView(NotificationsRequestDto notificationsRequestDto) {
 
-        
-        QNotifications qNotifications = QNotifications.notifications;
+
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
-            List<Notifications> queryResult = jpaQueryFactory.selectFrom(qNotifications)
-                    .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId())
-                            .and(qNotifications.notificationIsView.isFalse()))
-                    .fetch();
 
-            for (Notifications notifications : queryResult) {
+            NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
+
+            List<Notifications> notificationsList = notificationSelectQueryBuilder
+                    .selectFrom(QNotifications.notifications)
+                    .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
+                    .findIsNotificationViewFalse()
+                    .fetch(Notifications.class);
+
+
+            for (Notifications notifications : notificationsList) {
                 updateIsNotificationViewStatus(notifications);
             }
 

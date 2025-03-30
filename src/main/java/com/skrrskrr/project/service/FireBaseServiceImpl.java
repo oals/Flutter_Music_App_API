@@ -107,6 +107,7 @@ public class FireBaseServiceImpl implements FireBaseService {
                 .notificationTrackId(fcmSendDto.getNotificationTrackId())
                 .notificationCommentId(fcmSendDto.getNotificationCommentId())
                 .notificationMemberId(fcmSendDto.getNotificationMemberId())
+                .notificationIsView(false)
                 .notificationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .build();
 

@@ -3,10 +3,13 @@ package com.skrrskrr.project.redisService;
 import com.skrrskrr.project.dto.TrackRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap; import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -16,26 +19,82 @@ public class RedisServiceImpl implements RedisService{
 
     private final RedisTemplate<String,String> redisTemplate;
 
-
-    public Map<String,Object> setLastListenTrackId(TrackRequestDto trackRequestDto){
-
+    @Override
+    public Map<String, Object> setLastListenTrackId(TrackRequestDto trackRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-            // Redis에 저장
-            String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
-            // 트랙 ID만 Redis에 저장 (사용자별로)
-            redisTemplate.opsForValue().set(key, trackRequestDto.getTrackId().toString());
-
+            saveLastListenTrackId(trackRequestDto);
+            saveLastListenTrackIdList(trackRequestDto);
             hashMap.put("status", "200");
-        } catch(Exception e) {
+        }  catch (Exception e) {
+            // 그 외 모든 예외 처리
             hashMap.put("status", "500");
-            e.printStackTrace();
+            log.error("Unexpected error: ", e);
         }
 
         return hashMap;
     }
 
+    private void saveLastListenTrackId(TrackRequestDto trackRequestDto) {
+        try {
+            // Redis에 저장
+            String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
+            redisTemplate.opsForValue().set(key, trackRequestDto.getTrackId().toString());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private void saveLastListenTrackIdList(TrackRequestDto trackRequestDto) {
+        try {
+
+            String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
+            String trackId = trackRequestDto.getTrackId().toString();
+
+
+            redisTemplate.opsForList().remove(key, 1, trackId);
+
+            Long listSize = redisTemplate.opsForList().size(key);
+
+            if (listSize == null) {
+                listSize = 0L;
+            }
+
+            if (listSize >= 30) {
+                redisTemplate.opsForList().rightPop(key);
+            }
+
+            redisTemplate.opsForList().leftPush(key, trackId);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public Map<String,Object> getLastListenTrackIdList(TrackRequestDto trackRequestDto){
+
+        Map<String,Object> hashMap = new HashMap<>();
+
+        String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
+        List<String> lastListenTrackList = redisTemplate.opsForList().range(key, 0, -1); // 모든 트랙 ID를 가져옵니다.
+
+        if (lastListenTrackList != null) {
+            hashMap.put("lastListenTrackList", lastListenTrackList);
+            hashMap.put("status", "200");
+        } else {
+            hashMap.put("status", "500");
+        }
+
+
+        return hashMap;
+    }
+
+
+    @Override
     public Map<String,Object> getLastListenTrackId(TrackRequestDto trackRequestDto){
 
         Map<String,Object> hashMap = new HashMap<>();

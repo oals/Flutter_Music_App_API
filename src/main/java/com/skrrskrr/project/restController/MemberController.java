@@ -24,10 +24,11 @@ public class MemberController {
     @GetMapping("/api/getMemberInfo")
     public Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto){
         log.info("getMemberInfo");
-        Map<String,Object> hashMap = new HashMap<>();
-        MemberDto memberDto = memberService.getMemberInfo(memberRequestDto);
 
-        if (memberDto != null){
+        Map<String,Object> hashMap = memberService.getMemberInfo(memberRequestDto);
+
+        if (hashMap.get("member") != null){
+            MemberDto memberDto = (MemberDto) hashMap.get("member");
             // 회원인 경우
             if (!Objects.equals(memberDto.getMemberDeviceToken(), memberRequestDto.getDeviceToken())) {
                 // 디바이스 토큰 업데이트

@@ -33,6 +33,6 @@ public class Notifications {
 
     private Long notificationMemberId;
 
-    private boolean notificationIsView;
+    private Boolean notificationIsView;
 
 }

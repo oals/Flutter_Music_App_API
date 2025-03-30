@@ -37,6 +37,6 @@ public class SearchRequestDto extends BaseRequestDto {
 
     private String trackImagePath;
 
-    private boolean trackLikeStatus;
+    private Boolean trackLikeStatus;
 
 }

@@ -1,5 +1,4 @@
 package com.skrrskrr.project.dto;
-
 import lombok.*;
 
 @Setter
@@ -15,6 +14,6 @@ public class TrackRequestDto extends BaseRequestDto {
 
      private Long trackCategoryId;
 
-     private boolean isTrackPrivacy;
+     private Boolean isTrackPrivacy;
 
 }

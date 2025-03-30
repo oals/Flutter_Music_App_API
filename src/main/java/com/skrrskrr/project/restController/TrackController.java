@@ -1,7 +1,7 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.TrackDto;
 import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.service.TrackLikeService;
 import com.skrrskrr.project.service.TrackService;
 import lombok.extern.log4j.Log4j2;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import java.util.*;
 public class TrackController {
 
     private final TrackService trackService;
+    private final TrackLikeService trackLikeService;
 
 
     @PutMapping("/api/setTrackInfo")
@@ -35,13 +36,13 @@ public class TrackController {
     public Map<String,Object> getLikeTrack(TrackRequestDto trackRequestDto){
         log.info("getLikeTrack");
         trackRequestDto.setLimit(20L);
-        return trackService.getLikeTrack(trackRequestDto);
+        return trackLikeService.getLikeTrackList(trackRequestDto);
     }
 
     @PostMapping("/api/setTrackLike")
     public Map<String,String> setInsertTrackLike(@RequestBody TrackRequestDto trackRequestDto){
         log.info("setInsertTrackLike");
-        return trackService.setTrackLike(trackRequestDto);
+        return trackLikeService.setTrackLike(trackRequestDto);
     }
 
     @GetMapping("/api/getTrackInfo")
@@ -58,8 +59,16 @@ public class TrackController {
 
 
     @GetMapping("/api/getUploadTrack")
-    public Map<String,Object>  getUploadTrack(TrackRequestDto trackRequestDto){
+    public Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto){
         log.info("getUploadTrack");
         return trackService.getUploadTrack(trackRequestDto);
     }
+
+
+    @GetMapping("/api/getLastListenTrackList")
+    public Map<String,Object> getLastListenTrackList(TrackRequestDto trackRequestDto) {
+        log.info("getLastListenTrackList");
+        return trackService.getLastListenTrackList(trackRequestDto);
+    }
+
 }

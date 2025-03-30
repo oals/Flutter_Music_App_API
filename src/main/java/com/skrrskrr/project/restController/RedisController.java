@@ -25,9 +25,9 @@ public class RedisController {
     }
 
 
-    @GetMapping("/api/getLastListenTrack")
+    @GetMapping("/api/getLastListenTrackId")
     public Map<String,Object> getLastListenTrack(TrackRequestDto trackRequestDto){
-        log.info("getLastListenTrack");
+        log.info("getLastListenTrackId");
         return redisService.getLastListenTrackId(trackRequestDto);
     }
 

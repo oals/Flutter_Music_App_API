@@ -17,6 +17,6 @@ public class PlayListRequestDto extends BaseRequestDto{
 
     private Boolean isPlayListPrivacy;
 
-    private boolean isAlbum;
+    private Boolean isAlbum;
 
 }

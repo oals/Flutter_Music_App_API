@@ -16,7 +16,7 @@ public class PlayListLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long playListLikeId;
 
-    private boolean playListLikeStatus;
+    private Boolean playListLikeStatus;
 
     @ManyToOne
     @JoinColumn(name = "member_play_list_id")

@@ -95,7 +95,7 @@ public class UploadServiceImpl implements UploadService {
 
         //서버 이미지 저장
         if(uploadDto.getUploadImage() != null){
-            boolean isTrackImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/trackImage",uuid);
+            Boolean isTrackImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/trackImage",uuid);
 
             if (isTrackImageUpload){
                 uploadDto.setUploadImagePath(uploadPath + "/trackImage/" + uuid);
@@ -120,7 +120,7 @@ public class UploadServiceImpl implements UploadService {
 
         //서버 이미지 저장
         if(uploadDto.getUploadImage() != null){
-            boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/memberImage",uuid);
+            Boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/memberImage",uuid);
 
             if (isMemberImageUpload){
                 uploadDto.setUploadImagePath(uploadPath + "/memberImage/" + uuid);
@@ -184,9 +184,9 @@ public class UploadServiceImpl implements UploadService {
     private void saveAlbum(UploadDto uploadDto, List<Long> uploadTrackIdList) {
         PlayListRequestDto playListRequestDto = new PlayListRequestDto();
         playListRequestDto.setPlayListNm(uploadDto.getAlbumNm());
-        playListRequestDto.setIsPlayListPrivacy(uploadDto.isTrackPrivacy());
+        playListRequestDto.setIsPlayListPrivacy(uploadDto.getTrackPrivacy());
         playListRequestDto.setLoginMemberId(uploadDto.getLoginMemberId());
-        playListRequestDto.setAlbum(true);
+        playListRequestDto.setIsAlbum(true);
 
 
         Map<String, Object> returnMap = playListService.newPlayList(playListRequestDto);

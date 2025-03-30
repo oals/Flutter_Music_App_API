@@ -8,9 +8,9 @@ import com.skrrskrr.project.entity.Follow;
 import com.skrrskrr.project.entity.Member;
 import com.skrrskrr.project.entity.QFollow;
 import com.skrrskrr.project.entity.QMember;
+import com.skrrskrr.project.queryBuilder.select.FollowSelectQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -143,8 +143,10 @@ public class FollowServiceImpl implements FollowService{
             // followingList에 대한 DTO 생성
             for (Follow following : followingList) {
                 FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 2L);
-                boolean isMutualFollow = isMutualFollow(following, followerList);
-                followingDTO.setMutualFollow(isMutualFollow);
+
+
+                Boolean isMutualFollow = isMutualFollow(following, followerList);
+                followingDTO.setIsMutualFollow(isMutualFollow);
                 if (isMutualFollow) {
                     followingDTO.setIsFollowedCd(3L);
                 }
@@ -154,8 +156,10 @@ public class FollowServiceImpl implements FollowService{
             // followerList에 대한 DTO 생성
             for (Follow follower : followerList) {
                 FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 1L);
-                boolean isMutualFollow = isMutualFollow(follower, followingList);
-                followerDTO.setMutualFollow(isMutualFollow);
+
+
+                Boolean isMutualFollow = isMutualFollow(follower, followingList);
+                followerDTO.setIsMutualFollow(isMutualFollow);
                 if (isMutualFollow) {
                     followerDTO.setIsFollowedCd(3L);
                 }
@@ -176,11 +180,17 @@ public class FollowServiceImpl implements FollowService{
 
     // 1. FollowList 가져오는 메서드들
     private List<Follow> getFollowingList(Long loginMemberId) {
-        QFollow qFollow = QFollow.follow;
 
-        return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.follower.memberId.eq(loginMemberId))
-                .fetch();
+
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
+
+
+        List<Follow> followList = followSelectQueryBuilder.selectFrom(QFollow.follow)
+                .findFollowingMember(loginMemberId)
+                .fetch(Follow.class);
+
+        return followList;
+
     }
 
     // 2. FollowDto로 매핑하는 메서드
@@ -195,15 +205,19 @@ public class FollowServiceImpl implements FollowService{
 
 
     private List<Follow> getFollowerList(Long loginMemberId) {
-        QFollow qFollow = QFollow.follow;
 
-        return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.following.memberId.eq(loginMemberId))
-                .fetch();
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
+
+
+        List<Follow> followList = followSelectQueryBuilder.selectFrom(QFollow.follow)
+                .findFollowerMember(loginMemberId)
+                .fetch(Follow.class);
+
+        return followList;
     }
 
 
-    private boolean isMutualFollow(Follow follow, List<Follow> otherList) {
+    private Boolean isMutualFollow(Follow follow, List<Follow> otherList) {
         for (Follow otherFollow : otherList) {
             if (otherFollow.getFollower().getMemberId().equals(follow.getFollowing().getMemberId())) {
                 return true;
@@ -213,7 +227,7 @@ public class FollowServiceImpl implements FollowService{
     }
 
     @Override
-    public boolean isFollowCheck(Long followerId, Long followingId) {
+    public Boolean isFollowCheck(Long followerId, Long followingId) {
         QFollow qFollow = QFollow.follow;
 
         Follow follow = jpaQueryFactory.selectFrom(qFollow)

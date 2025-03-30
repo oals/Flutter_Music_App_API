@@ -6,10 +6,10 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseRequestDto {
+public class BaseRequestDto extends BaseQueryDto{
 
     private Long loginMemberId;
-    private Long offset;
+    private Long offset = 0L;
     private Long limit;
 
 }

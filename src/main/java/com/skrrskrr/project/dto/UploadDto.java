@@ -32,9 +32,9 @@ public class UploadDto {
 
     private Long trackCategoryId;
 
-    private boolean isAlbum;
+    private Boolean isAlbum;
 
-    private boolean trackPrivacy;
+    private Boolean trackPrivacy;
 
     private String uploadFilePath;
 

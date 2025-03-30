@@ -17,7 +17,7 @@ public class FollowDto {
 
     private Long isFollowedCd;
 
-    private boolean isMutualFollow;
+    private Boolean isMutualFollow;
 
 
 

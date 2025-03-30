@@ -18,7 +18,7 @@ public class FollowRequestDto extends BaseRequestDto{
 //
 //    private Long isFollowedCd;
 //
-//    private boolean isMutualFollow;
+//    private Boolean isMutualFollow;
 
 
 }

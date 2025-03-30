@@ -22,7 +22,7 @@ public class PlayListDto {
 
     private Boolean isPlayListPrivacy;
 
-    private boolean isPlayListLike;
+    private Boolean isPlayListLike;
 
     private String playListImagePath;
 
@@ -35,11 +35,12 @@ public class PlayListDto {
     private List<TrackDto> playListTrackList;
 
     private Long memberId;
+
     private Long loginMemberId;
 
     private String memberNickName;
 
-    private boolean isAlbum;
+    private Boolean isAlbum;
 
     private String albumDate;
 

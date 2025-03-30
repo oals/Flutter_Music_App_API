@@ -30,11 +30,11 @@ public class TrackDto {
 
     private String trackImagePath;
 
-    private boolean isTrackPrivacy;
+    private Boolean isTrackPrivacy;
 
-    private boolean isFollowMember;
+    private Boolean isFollowMember;
 
-    private boolean trackLikeStatus;
+    private Boolean trackLikeStatus;
 
     private Long commentsCnt;
 

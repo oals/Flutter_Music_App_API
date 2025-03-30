@@ -1,5 +1,6 @@
 package com.skrrskrr.project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -35,7 +36,8 @@ public class Track {
 
     private String trackUploadDate;
 
-    private boolean isTrackPrivacy;
+    private Boolean isTrackPrivacy;
+
 
     @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MemberTrack> memberTrackList;

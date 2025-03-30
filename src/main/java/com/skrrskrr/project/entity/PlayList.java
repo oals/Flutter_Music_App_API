@@ -25,11 +25,14 @@ public class PlayList {
 
     private Boolean isPlayListPrivacy;
 
-    private boolean isAlbum;
+    private Boolean isAlbum;
 
     private String albumDate;
 
-//    private String playListImagePath;
+    private String playListImagePath;
+
+    private Long trackCnt;
+
     @ManyToOne
     @JoinColumn(name = "member_id") // 플레이리스트 소유자 ID
     @JsonIgnore
