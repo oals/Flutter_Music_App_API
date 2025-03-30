@@ -15,8 +15,6 @@ public interface PlayListService {
 
     Map<String,Object> setPlayListInfo(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> setPlayListLike(PlayListRequestDto playListRequestDto);
-
     Map<String,Object> newPlayList(PlayListRequestDto playListRequestDto);
 
     List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto);

@@ -33,20 +33,17 @@ public class CommentServiceImpl implements CommentService {
 
     private final FireBaseService fireBaseService;
     private final JPAQueryFactory jpaQueryFactory;
-    private final TrackService trackService;
     private final MemberService memberService;
 
     @Override
     public Map<String, Object> setComment(CommentRequestDto commentRequestDto) {
         Map<String, Object> hashMap = new HashMap<>();
-
+        CommentSelectQueryBuilder commentSelectQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
         QTrack qTrack = QTrack.track;
-        QMember qMember = QMember.member;
 
         LocalDate today = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = today.format(formatter);
-
         Long fcmMsgRecvMemberId = null;
 
         try {
@@ -56,7 +53,10 @@ public class CommentServiceImpl implements CommentService {
                     .where(qTrack.trackId.eq(commentRequestDto.getTrackId()))
                     .fetchOne();
 
-            assert track != null;
+            if (track == null) {
+                throw new IllegalStateException("track cannot be null.");
+            }
+
             fcmMsgRecvMemberId = track.getMemberTrackList().get(0).getMember().getMemberId();
 
             Comment insertComment = new Comment();
@@ -69,11 +69,10 @@ public class CommentServiceImpl implements CommentService {
 
             /// 자식 댓글 저장하는 쿼리 였을 시
             if (commentRequestDto.getCommentId() != null) {
-                QComment qComment = QComment.comment;
 
-                Comment parentComment = jpaQueryFactory.selectFrom(qComment)
-                        .where(qComment.commentId.eq(commentRequestDto.getCommentId()))
-                        .fetchFirst();
+                Comment parentComment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
+                        .findCommentByCommentId(commentRequestDto.getCommentId())
+                        .fetchOne(Comment.class);
 
                 /// 부모댓글 작성자
                 fcmMsgRecvMemberId = parentComment.getMember().getMemberId();
@@ -118,8 +117,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Map<String, Object> setCommentLike(CommentRequestDto commentRequestDto) {
 
+        CommentSelectQueryBuilder commentSelectQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
+
         QCommentLike qCommentLike = QCommentLike.commentLike;
-        QComment qComment = QComment.comment;
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
@@ -132,10 +132,9 @@ public class CommentServiceImpl implements CommentService {
                     .memberId(commentRequestDto.getLoginMemberId())
                     .build();
 
-            Comment comment = jpaQueryFactory.selectFrom(qComment)
-                    .where(qComment.commentId.eq(commentRequestDto.getCommentId()))
-                    .fetchFirst();
-
+            Comment comment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
+                    .findCommentByCommentId(commentRequestDto.getCommentId())
+                    .fetchOne(Comment.class);
 
             /// update
             if (commentLike != null) {
@@ -164,13 +163,10 @@ public class CommentServiceImpl implements CommentService {
                 insertCommentLike.setComment(comment);
                 insertCommentLike.setCommentLikeStatus(true);
                 insertCommentLike.setMember(member);
-
                 entityManager.persist(insertCommentLike);
-
 
                 comment.setCommentLikeCnt(comment.getCommentLikeCnt() + 1);
                 entityManager.merge(comment);
-
             }
 
             hashMap.put("status", "200");
@@ -240,7 +236,7 @@ public class CommentServiceImpl implements CommentService {
             CommentSelectQueryBuilder commentQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
 
             Comment comment = (Comment) commentQueryBuilder.selectFrom(QComment.comment)
-                    .findChildCommentByParentCommentId(commentRequestDto.getCommentId())
+                    .findCommentByCommentId(commentRequestDto.getCommentId())
                     .fetchOne(Comment.class);
 
             Boolean isLikeComment = false;

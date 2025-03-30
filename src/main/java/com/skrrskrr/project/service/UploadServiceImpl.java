@@ -205,7 +205,11 @@ public class UploadServiceImpl implements UploadService {
     private String getUploadTrackFileNm(MultipartFile trackFile){
 
         String originalFilename = trackFile.getOriginalFilename();
-        assert originalFilename != null;
+
+        if (originalFilename == null) {
+            throw new IllegalStateException("originalFilename cannot be null.");
+        }
+
         int dotIndex = originalFilename.lastIndexOf('.');
 
         return dotIndex != -1

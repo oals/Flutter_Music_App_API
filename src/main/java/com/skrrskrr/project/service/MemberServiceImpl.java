@@ -5,12 +5,15 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.MemberSelectQueryBuilder;
+import com.skrrskrr.project.queryBuilder.update.MemberUpdateQueryBuilder;
 import com.skrrskrr.project.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.*;
 
@@ -19,6 +22,9 @@ import java.util.*;
 @Transactional
 @Log4j2
 public class MemberServiceImpl implements MemberService {
+
+    @PersistenceContext
+    EntityManager entityManager;
 
     private final MemberRepository memberRepository;
     private final JPAQueryFactory jpaQueryFactory;
@@ -52,14 +58,18 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto) {
-        
-        QMember qMember = QMember.member;
+
         Map<String,Object> hashMap = new HashMap<>();
+
         try {
-            jpaQueryFactory.update(qMember)
-                    .set(qMember.memberDeviceToken, memberRequestDto.getDeviceToken())
-                    .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
+            MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
+
+            memberUpdateQueryBuilder
+                    .setEntity(QMember.member)
+                    .set(QMember.member.memberDeviceToken, memberRequestDto.getDeviceToken())
+                    .findMemberByMemberId(memberRequestDto.getLoginMemberId())
                     .execute();
+
             hashMap.put("status","200");
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,12 +84,14 @@ public class MemberServiceImpl implements MemberService {
         Map<String,Object> hashMap = new HashMap<>();
         try {
 
-            QMember qMember = QMember.member;
+            MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
 
-            jpaQueryFactory.update(qMember)
-                    .set(qMember.memberImagePath, uploadDto.getUploadImagePath())
-                    .where(qMember.memberId.eq(uploadDto.getLoginMemberId()))
+            memberUpdateQueryBuilder
+                    .setEntity(QMember.member)
+                    .set(QMember.member.memberImagePath, uploadDto.getUploadImagePath())
+                    .findMemberByMemberId(uploadDto.getLoginMemberId())
                     .execute();
+
             hashMap.put("status","200");
             return hashMap;
         } catch (Exception e) {
@@ -97,15 +109,14 @@ public class MemberServiceImpl implements MemberService {
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
-            // 동적으로 memberNickName과 memberInfo를 설정하는 방식
-            jpaQueryFactory.update(qMember)
-                    .set(qMember.memberNickName,
-                            memberRequestDto.getMemberNickName() != null ?
-                                    Expressions.constant(memberRequestDto.getMemberNickName()) : qMember.memberNickName)
-                    .set(qMember.memberInfo,
-                            memberRequestDto.getMemberNickName() == null ?
-                                    Expressions.constant(memberRequestDto.getMemberInfo()) : qMember.memberInfo)
-                    .where(qMember.memberId.eq(memberRequestDto.getLoginMemberId()))
+
+            MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
+
+            memberUpdateQueryBuilder
+                    .setEntity(QMember.member)
+                    .set(QMember.member.memberNickName, memberRequestDto.getMemberNickName())
+                    .set(qMember.memberInfo,memberRequestDto.getMemberInfo())
+                    .findMemberByMemberId(memberRequestDto.getLoginMemberId())
                     .execute();
 
             hashMap.put("status","200");

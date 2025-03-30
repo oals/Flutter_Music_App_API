@@ -1,28 +1,42 @@
 package com.skrrskrr.project.queryBuilder.update;
 
-import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 
 import javax.persistence.EntityManager;
 
-public abstract class ComnUpdateQueryBuilder<T> {
+public class ComnUpdateQueryBuilder <T extends ComnUpdateQueryBuilder<T>> {
 
-    protected final EntityManager entityManager;
-    protected final JPAUpdateClause updateClause;
+    protected EntityManager entityManager;
+    protected JPAUpdateClause updateClause;
 
-    public ComnUpdateQueryBuilder(EntityManager entityManager, T entity) {
+    public ComnUpdateQueryBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
-        this.updateClause = new JPAUpdateClause(entityManager, (EntityPath<?>) entity);
+    }
+
+    public ComnUpdateQueryBuilder<T> setEntity(EntityPathBase<?> entity) {
+        if (entity == null) {
+            throw new IllegalArgumentException("Entity must not be null.");
+        }
+        this.updateClause = new JPAUpdateClause(entityManager, entity); // 동적 엔티티 설정
+        return this;
+    }
+
+
+    // 업데이트 필드 설정
+    public <V> T set(Path<V> field, V value) {
+        if (this.updateClause == null) {
+            throw new IllegalStateException("Entity must be set before setting values.");
+        }
+        if (value != null) {
+            this.updateClause.set(field, value);
+        }
+        return (T) this;
     }
 
     // 공통 실행 메서드
     public Long execute() {
         return this.updateClause.execute();
     }
-
-    // 조건 추가 메서드는 서브 클래스에서 구현하도록 추상화
-    public abstract ComnUpdateQueryBuilder<T> where(com.querydsl.core.types.dsl.BooleanExpression condition);
-
-    // 업데이트 값 설정 메서드는 서브 클래스에서 구현하도록 추상화
-    public abstract <V> ComnUpdateQueryBuilder<T> set(com.querydsl.core.types.Path<V> field, V value);
 }

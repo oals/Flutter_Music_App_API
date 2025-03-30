@@ -27,16 +27,16 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
 
 
     public NotificationSelectQueryBuilder findNotificationByMemberId(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(qNotifications.member.memberId.eq(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qNotifications.member.memberId.eq(loginMemberId));
         return this;
     }
 
     public NotificationSelectQueryBuilder findNotificationByNotificationId(Long notificationId) {
-        if (notificationId != null) {
-            this.query.where(qNotifications.notificationId.eq(notificationId));
-        }
+        throwIfConditionNotMet(notificationId != null);
+
+        this.query.where(qNotifications.notificationId.eq(notificationId));
         return this;
     }
 
@@ -66,15 +66,15 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QNotifications.notifications.notificationId,
-                        QNotifications.notifications.notificationMsg,
-                        QNotifications.notifications.notificationType,
-                        QNotifications.notifications.notificationDate,
-                        QNotifications.notifications.member.memberId,
-                        QNotifications.notifications.notificationTrackId,
-                        QNotifications.notifications.notificationCommentId,
-                        QNotifications.notifications.notificationMemberId,
-                        QNotifications.notifications.notificationIsView
+                        qNotifications.notificationId,
+                        qNotifications.notificationMsg,
+                        qNotifications.notificationType,
+                        qNotifications.notificationDate,
+                        qNotifications.member.memberId,
+                        qNotifications.notificationTrackId,
+                        qNotifications.notificationCommentId,
+                        qNotifications.notificationMemberId,
+                        qNotifications.notificationIsView
                 )
         ).fetch();
     }

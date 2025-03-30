@@ -2,6 +2,7 @@ package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.PlayListDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
+import com.skrrskrr.project.service.PlayListLikeService;
 import com.skrrskrr.project.service.PlayListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -15,12 +16,13 @@ import java.util.Map;
 public class PlayListController {
 
     final private PlayListService playListService;
+    final private PlayListLikeService playListLikeService;
 
 
     @PostMapping("/api/setPlayListLike")
     public Map<String,Object> setPlayListLike(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListLike");
-        return playListService.setPlayListLike(playListRequestDto);
+        return playListLikeService.setPlayListLike(playListRequestDto);
     }
 
     @PostMapping("/api/newPlayList")

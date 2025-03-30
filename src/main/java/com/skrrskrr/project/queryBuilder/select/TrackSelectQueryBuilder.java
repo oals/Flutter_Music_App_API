@@ -1,8 +1,10 @@
 package com.skrrskrr.project.queryBuilder.select;
 
 import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -20,6 +22,8 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
 
     QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
     QMember qMember = QMember.member;
+    QTrackLike qTrackLike = QTrackLike.trackLike;
+    QTrackCategory qTrackCategory = QTrackCategory.trackCategory;
 
     // 생성자: JPAQueryFactory 주입
     public TrackSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
@@ -34,16 +38,14 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
     /** --------------------------where ---------------------------------------- */
 
     public TrackSelectQueryBuilder findTracksByMemberId(Long memberId) {
-        if (memberId != null) {
-            this.query.where(qMemberTrack.member.memberId.eq(memberId));
-        }
+        throwIfConditionNotMet(memberId != null);
+        this.query.where(qMemberTrack.member.memberId.eq(memberId));
         return this;
     }
 
     public TrackSelectQueryBuilder findTrackByTrackId(Long trackId) {
-        if (trackId != null) {
-            this.query.where(qMemberTrack.track.trackId.eq(trackId));
-        }
+        throwIfConditionNotMet(trackId != null);
+        this.query.where(qMemberTrack.track.trackId.eq(trackId));
         return this;
     }
 
@@ -54,17 +56,17 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
 
 
     public TrackSelectQueryBuilder findIsTrackPrivacyFalseOrLoginMemberIdEqual(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
         this.findIsTrackPrivacyFalse();
-
         this.query.where(qMemberTrack.track.isTrackPrivacy.isFalse().or(qMemberTrack.member.memberId.eq(loginMemberId)));
         return this;
     }
 
 
     public TrackSelectQueryBuilder findCategoryTracks(Long trackCategoryId){
-        if (trackCategoryId != null) {
-            this.query.where(qMemberTrack.track.trackCategoryId.eq(trackCategoryId));
-        }
+        throwIfConditionNotMet(trackCategoryId != null);
+        this.query.where(qMemberTrack.track.trackCategoryId.eq(trackCategoryId));
+
         return this;
 
     }
@@ -77,17 +79,18 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
     }
 
     public TrackSelectQueryBuilder findFollowerTracks(Long loginMemberId) {
-        if (loginMemberId != null) {
-            FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
-            followSelectQueryBuilder.setQuery(this.query).findFollowerMember(loginMemberId);
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
+        followSelectQueryBuilder.setQuery(this.query).findFollowerMember(loginMemberId);
+
         return this;
     }
 
     public TrackSelectQueryBuilder findTrackBySearchText(String searchText) {
-        if (searchText != null) {
-            this.query.where(qMemberTrack.track.trackNm.contains(searchText));
-        }
+        throwIfConditionNotMet(searchText != null);
+
+        this.query.where(qMemberTrack.track.trackNm.contains(searchText));
         return this;
     }
 
@@ -111,12 +114,12 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
     }
 
     public TrackSelectQueryBuilder joinTrackLikeWithMemberTrack(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
 
-        if (loginMemberId != null) {
-            this.query.leftJoin(QTrackLike.trackLike)
-                    .on(QTrackLike.trackLike.member.memberId.eq(loginMemberId)
-                            .and(QTrackLike.trackLike.memberTrack.eq(qMemberTrack)));
-        }
+        this.query.leftJoin(QTrackLike.trackLike)
+                .on(QTrackLike.trackLike.member.memberId.eq(loginMemberId)
+                        .and(QTrackLike.trackLike.memberTrack.eq(qMemberTrack)));
+
         return this;
     }
 
@@ -132,7 +135,7 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
 
     public TrackSelectQueryBuilder groupByMemberTrackId() {
         this.query.groupBy(
-                QMemberTrack.memberTrack.memberTrackId
+                qMemberTrack.memberTrackId
         );
         return this;
     }
@@ -179,10 +182,15 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
                         qMemberTrack.track.trackNm,
                         qMemberTrack.track.trackTime,
                         qMemberTrack.track.trackPlayCnt,
+                        qMemberTrack.track.trackLikeCnt,
                         qMemberTrack.track.trackImagePath,
-                        QTrackCategory.trackCategory.category.trackCategoryId,
-                        QTrackCategory.trackCategory.category.trackCategoryNm,
-                        QTrackLike.trackLike.trackLikeStatus
+                        qTrackCategory.category.trackCategoryId,
+                        qTrackCategory.category.trackCategoryNm,
+                        ExpressionUtils.as(
+                                new CaseBuilder()
+                                        .when(qTrackLike.trackLikeStatus.isNull()).then(false)
+                                        .otherwise(qTrackLike.trackLikeStatus), "trackLikeStatus"
+                        )
                 )
         ).fetch();
     }
@@ -191,19 +199,19 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QMemberTrack.memberTrack.track.trackId,
-                        QMemberTrack.memberTrack.track.trackNm,
-                        QMemberTrack.memberTrack.track.isTrackPrivacy,
-                        QMemberTrack.memberTrack.track.trackImagePath,
-                        QMemberTrack.memberTrack.track.trackPlayCnt,
-                        QMemberTrack.memberTrack.track.trackInfo,
-                        QMemberTrack.memberTrack.track.trackPath,
-                        QMemberTrack.memberTrack.track.trackTime,
-                        QMemberTrack.memberTrack.track.trackLikeCnt,
-                        QMemberTrack.memberTrack.track.trackCategoryId,
-                        QMemberTrack.memberTrack.track.trackUploadDate,
-                        QMemberTrack.memberTrack.member.memberId,
-                        QMemberTrack.memberTrack.member.memberNickName
+                        qMemberTrack.track.trackId,
+                        qMemberTrack.track.trackNm,
+                        qMemberTrack.track.isTrackPrivacy,
+                        qMemberTrack.track.trackImagePath,
+                        qMemberTrack.track.trackPlayCnt,
+                        qMemberTrack.track.trackInfo,
+                        qMemberTrack.track.trackPath,
+                        qMemberTrack.track.trackTime,
+                        qMemberTrack.track.trackLikeCnt,
+                        qMemberTrack.track.trackCategoryId,
+                        qMemberTrack.track.trackUploadDate,
+                        qMemberTrack.member.memberId,
+                        qMemberTrack.member.memberNickName
                 )
         ).fetchFirst();
     }
@@ -212,10 +220,10 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QMemberTrack.memberTrack.track.trackId,
-                        QMemberTrack.memberTrack.track.trackNm,
-                        QMemberTrack.memberTrack.track.trackImagePath,
-                        QMemberTrack.memberTrack.member.memberNickName
+                        qMemberTrack.track.trackId,
+                        qMemberTrack.track.trackNm,
+                        qMemberTrack.track.trackImagePath,
+                        qMemberTrack.member.memberNickName
                 )
         ).fetch();
     }
@@ -224,17 +232,17 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QMemberTrack.memberTrack.track.trackId,
-                        QMemberTrack.memberTrack.track.trackNm,
-                        QMemberTrack.memberTrack.track.trackTime,
-                        QMemberTrack.memberTrack.track.trackLikeCnt,
-                        QMemberTrack.memberTrack.track.trackPlayCnt,
-                        QMemberTrack.memberTrack.track.trackCategoryId,
-                        QMemberTrack.memberTrack.track.trackPath,
-                        QMemberTrack.memberTrack.track.trackUploadDate,
-                        QMemberTrack.memberTrack.track.trackImagePath,
-                        QMemberTrack.memberTrack.member.memberId,
-                        QMemberTrack.memberTrack.member.memberNickName
+                        qMemberTrack.track.trackId,
+                        qMemberTrack.track.trackNm,
+                        qMemberTrack.track.trackTime,
+                        qMemberTrack.track.trackLikeCnt,
+                        qMemberTrack.track.trackPlayCnt,
+                        qMemberTrack.track.trackCategoryId,
+                        qMemberTrack.track.trackPath,
+                        qMemberTrack.track.trackUploadDate,
+                        qMemberTrack.track.trackImagePath,
+                        qMemberTrack.member.memberId,
+                        qMemberTrack.member.memberNickName
                 )
         ).fetch();
     }

@@ -22,6 +22,12 @@ public class ComnSelectQueryBuilder<T extends ComnSelectQueryBuilder<T>> {
         this.query = jpaQueryFactory.query();  // 초기 쿼리 객체 설정
     }
 
+    public void throwIfConditionNotMet(boolean condition) {
+        if (!condition) {
+            throw new IllegalStateException("NULL 값이 전달되었음.");
+        }
+    }
+
     // select() 메서드: select할 필드를 설정
     public T select(Expression<?>... fields) {
         this.query = jpaQueryFactory.select(fields);

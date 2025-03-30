@@ -9,7 +9,7 @@ import java.util.List;
 
 public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySelectQueryBuilder> {
 
-    QComment qComment = QComment.comment;
+    QHistory qHistory = QHistory.history;
 
     public HistorySelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);
@@ -26,9 +26,9 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
 
 
     public HistorySelectQueryBuilder findHistoryByMemberId(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(QHistory.history.member.memberId.eq(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qHistory.member.memberId.eq(loginMemberId));
         return this;
     }
 
@@ -36,23 +36,18 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
     /** -------------------------join -------------------------------------------*/
 
 
-//    public HistorySelectQueryBuilder joinMemberFollowersAndFollow() {
-//        this.query.join(QMember.member.followers, QFollow.follow); // JOIN 조건 추가
-//        return this;
-//    }
-
 
 
     /** --------------------------ordeBy ---------------------------------------- */
 
 
     public HistorySelectQueryBuilder orderByHistoryIdDesc() {
-        this.query.orderBy(QHistory.history.historyId.desc()); // JOIN 조건 추가
+        this.query.orderBy(qHistory.historyId.desc()); // JOIN 조건 추가
         return this;
     }
 
     public HistorySelectQueryBuilder orderByHistoryIdAsc() {
-        this.query.orderBy(QHistory.history.historyId.asc()); // JOIN 조건 추가
+        this.query.orderBy(qHistory.historyId.asc()); // JOIN 조건 추가
         return this;
     }
 
@@ -61,7 +56,7 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
 
     public List<Long> fetchHistoryIdList() {
         return this.query.select(
-                QHistory.history.historyId
+                qHistory.historyId
         ).fetch();
     }
 
@@ -69,9 +64,9 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QHistory.history.historyId.as("historyId"),
-                        QHistory.history.historyText.as("historyText"),
-                        QHistory.history.historyDate.as("historyDate")
+                        qHistory.historyId.as("historyId"),
+                        qHistory.historyText.as("historyText"),
+                        qHistory.historyDate.as("historyDate")
                 )
         ).fetch();
     }

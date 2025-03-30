@@ -4,10 +4,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
+import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import com.skrrskrr.project.repository.PlayListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -24,12 +26,12 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class PlayListServiceImpl implements PlayListService {
 
-
     @PersistenceContext
     EntityManager entitiyManager;
-    
+
     private final JPAQueryFactory jpaQueryFactory;
     private final PlayListRepository playListRepository;
+    private final PlayListLikeService playListLikeService;
     private final ModelMapper modelMapper;
 
 
@@ -104,7 +106,7 @@ public class PlayListServiceImpl implements PlayListService {
             PlayListDto playListDto = getPlayListById(playListRequestDto);
             Long trackCnt = playListDto.getTrackCnt();
 
-            PlayListLike playListLike = selectPlayListLikeStatus(playListRequestDto);
+            PlayListLike playListLike = playListLikeService.selectPlayListLikeEntity(playListRequestDto);
 
             playListDto.setIsPlayListLike(isPlayListLike(playListLike));
 
@@ -214,14 +216,15 @@ public class PlayListServiceImpl implements PlayListService {
     @Override
     public Map<String,Object> setPlayListInfo(PlayListRequestDto playListRequestDto) {
 
-        QPlayList qPlayList = QPlayList.playList;
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
+            PlayListUpdateQueryBuilder playListUpdateQueryBuilder = new PlayListUpdateQueryBuilder(entitiyManager);
 
-            jpaQueryFactory.update(qPlayList)
-                    .set(qPlayList.playListNm, playListRequestDto.getPlayListNm())
-                    .where(qPlayList.playListId.eq(playListRequestDto.getPlayListId()))
+            playListUpdateQueryBuilder
+                    .setEntity(QPlayList.playList)
+                    .set(QPlayList.playList.playListNm, playListRequestDto.getPlayListNm())
+                    .findPlayListByPlayListId(playListRequestDto.getPlayListId())
                     .execute();
 
             hashMap.put("status","200");
@@ -233,122 +236,6 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
 
-    @Override
-    public Map<String,Object> setPlayListLike(PlayListRequestDto playListRequestDto) {
-
-        Map<String,Object> hashMap = new HashMap<>();
-
-        try {
-            /// 해당 플리에 좋아요 기록이 있는지 조회
-            PlayListLike playListLike = selectPlayListLikeStatus(playListRequestDto);
-
-            /// 없므면 insert 추가'
-            if (playListLike == null) {
-                insertPlayListLike(playListRequestDto);
-            } else {
-                updatePlayListLike(playListRequestDto, playListLike);
-            }
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-           e.printStackTrace();
-            hashMap.put("status","500");
-        }
-        return hashMap;
-    }
-
-    private PlayListLike selectPlayListLikeStatus(PlayListRequestDto playListRequestDto){
-
-        QPlayListLike qPlayListLike = QPlayListLike.playListLike;
-
-        return jpaQueryFactory.selectFrom(qPlayListLike)
-                .where(qPlayListLike.memberPlayList.playList.playListId.eq(playListRequestDto.getPlayListId())
-                        .and(qPlayListLike.member.memberId.eq(playListRequestDto.getLoginMemberId())))
-                .fetchFirst();
-    }
-
-    private void insertPlayListLike(PlayListRequestDto playListRequestDto) {
-
-        MemberPlayList memberPlayList = getMemberPlayList(playListRequestDto);
-
-        Member member = Member.builder()
-                .memberId(playListRequestDto.getLoginMemberId())
-                .build();
-
-        insertPlayListLikeStatus(member,memberPlayList);
-
-
-        insertPlayListLikeCnt(memberPlayList);
-
-    }
-
-    private void insertPlayListLikeStatus(Member member,MemberPlayList memberPlayList) {
-
-        PlayListLike insertPlayListLike = new PlayListLike();
-        insertPlayListLike.setMemberPlayList(memberPlayList);
-        insertPlayListLike.setMember(member);
-        insertPlayListLike.setPlayListLikeStatus(true);
-
-        entitiyManager.persist(insertPlayListLike);
-    }
-
-    private void insertPlayListLikeCnt(MemberPlayList memberPlayList) {
-
-        PlayList playList = memberPlayList.getPlayList();
-        playList.setPlayListLikeCnt(playList.getPlayListLikeCnt() + 1);  // 좋아요 수 증가
-
-        // 변경된 PlayList 엔티티를 merge하여 업데이트
-        entitiyManager.merge(playList);  // 기존 엔티티 상태를 업데이트
-    }
-
-    private void updatePlayListLike(PlayListRequestDto playListRequestDto, PlayListLike playListLike) {
-
-        Boolean trackLikeStatus = playListLike.getPlayListLikeStatus();
-
-        MemberPlayList memberPlayList = getMemberPlayList(playListRequestDto);
-
-        updatePlayListLikeStatus(memberPlayList,trackLikeStatus,playListRequestDto.getLoginMemberId());
-
-        updatePlayListLikeCnt(memberPlayList,trackLikeStatus);
-
-    }
-
-    private void updatePlayListLikeStatus(MemberPlayList memberPlayList, Boolean trackLikeStatus,Long memberId){
-        
-        QPlayListLike qPlayListLike = QPlayListLike.playListLike;
-
-        jpaQueryFactory.update(qPlayListLike)
-                .set(qPlayListLike.playListLikeStatus, !trackLikeStatus)
-                .where(qPlayListLike.memberPlayList.eq(memberPlayList)
-                        .and(qPlayListLike.member.memberId.eq(memberId)))
-                .execute();
-
-    }
-
-    private void updatePlayListLikeCnt(MemberPlayList memberPlayList, Boolean trackLikeStatus) {
-
-        PlayList playList = memberPlayList.getPlayList();
-        if (trackLikeStatus){
-            playList.setPlayListLikeCnt(playList.getPlayListLikeCnt() - 1);  // 좋아요 수 증가
-        } else {
-            playList.setPlayListLikeCnt(playList.getPlayListLikeCnt() + 1);  // 좋아요 수 감소
-        }
-
-        // 변경된 PlayList 엔티티를 merge하여 업데이트
-        entitiyManager.merge(playList);  // 기존 엔티티 상태를 업데이트
-    }
-
-
-
-    private MemberPlayList getMemberPlayList(PlayListRequestDto playListRequestDto) {
-
-        QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
-
-        return jpaQueryFactory.selectFrom(qMemberPlayList)
-                .where(qMemberPlayList.playList.playListId.eq(playListRequestDto.getPlayListId()))
-                .fetchFirst();
-    }
-
 
     @Override
     public Map<String,Object> newPlayList(PlayListRequestDto playListRequestDto) {
@@ -357,7 +244,10 @@ public class PlayListServiceImpl implements PlayListService {
 
         try {
             Member member = getMember(playListRequestDto.getLoginMemberId());
-            assert member != null;
+
+            if (member == null) {
+                throw new IllegalStateException("member cannot be null.");
+            }
 
             PlayList playList = createPlayList(playListRequestDto,member);
             Long playListId = setPlayListRelationships(playList,member);

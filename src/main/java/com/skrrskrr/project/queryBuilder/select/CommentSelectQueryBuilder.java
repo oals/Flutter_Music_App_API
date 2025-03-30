@@ -3,8 +3,7 @@ package com.skrrskrr.project.queryBuilder.select;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.entity.QComment;
-import com.skrrskrr.project.entity.QFollow;
-import com.skrrskrr.project.entity.QMember;
+
 
 public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSelectQueryBuilder> {
 
@@ -24,17 +23,17 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
     /** --------------------------where ---------------------------------------- */
 
 
-    public CommentSelectQueryBuilder findChildCommentByParentCommentId(Long commentId) {
-        if (commentId != null) {
-            this.query.where(qComment.commentId.eq(commentId));
-        }
+    public CommentSelectQueryBuilder findCommentByCommentId(Long commentId) {
+        throwIfConditionNotMet(commentId != null);
+
+        this.query.where(qComment.commentId.eq(commentId));
         return this;
     }
 
     public CommentSelectQueryBuilder findCommentByTrackId(Long trackId){
-        if (trackId != null ){
-            this.query .where(qComment.track.trackId.eq(trackId));
-        }
+        throwIfConditionNotMet(trackId != null);
+
+        this.query .where(qComment.track.trackId.eq(trackId));
         return this;
     }
 
@@ -42,11 +41,6 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
 
     /** -------------------------join -------------------------------------------*/
 
-
-    public CommentSelectQueryBuilder joinMemberFollowersAndFollow() {
-        this.query.join(QMember.member.followers, QFollow.follow); // JOIN 조건 추가
-        return this;
-    }
 
 
 

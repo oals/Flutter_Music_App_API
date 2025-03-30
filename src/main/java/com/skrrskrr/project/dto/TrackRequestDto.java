@@ -14,6 +14,6 @@ public class TrackRequestDto extends BaseRequestDto {
 
      private Long trackCategoryId;
 
-     private Boolean isTrackPrivacy;
+     private Boolean trackPrivacy;
 
 }

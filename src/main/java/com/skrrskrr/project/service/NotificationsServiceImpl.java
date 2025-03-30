@@ -114,7 +114,9 @@ public class NotificationsServiceImpl implements NotificationsService{
                     .findNotificationByNotificationId(notificationsRequestDto.getNotificationId())
                     .fetchFirst(Notifications.class);
 
-            assert notifications != null;
+            if (notifications == null) {
+                throw new IllegalStateException("notifications cannot be null.");
+            }
 
             updateIsNotificationViewStatus(notifications);
 

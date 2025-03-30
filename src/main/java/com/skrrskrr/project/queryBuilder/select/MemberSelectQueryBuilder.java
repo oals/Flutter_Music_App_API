@@ -26,30 +26,29 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
 
 
     public MemberSelectQueryBuilder findMemberByMemberEmail(String memberEmail) {
-        if (memberEmail != null) {
-            this.query.where(qMember.memberEmail.eq(memberEmail));
-        }
+        throwIfConditionNotMet(memberEmail != null);
+
+        this.query.where(qMember.memberEmail.eq(memberEmail));
         return this;
     }
 
     public MemberSelectQueryBuilder findMemberByMemberId(Long memberId) {
-        if (memberId != null) {
-            this.query.where(qMember.memberId.eq(memberId));
-        }
+        throwIfConditionNotMet(memberId != null);
+
+        this.query.where(qMember.memberId.eq(memberId));
         return this;
     }
 
     public MemberSelectQueryBuilder findMemberByMemberIdNotEqual(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(qMember.memberId.ne(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qMember.memberId.ne(loginMemberId));
         return this;
     }
 
     public MemberSelectQueryBuilder findMemberBySearchText(String searchText) {
-        if (searchText != null) {
-            this.query.where(qMember.memberNickName.lower().contains(searchText.toLowerCase()));
-        }
+        throwIfConditionNotMet(searchText != null);
+        this.query.where(qMember.memberNickName.lower().contains(searchText.toLowerCase()));
         return this;
     }
 
@@ -89,11 +88,11 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QMember.member.memberId,
-                        QMember.member.memberNickName,
-                        QMember.member.memberEmail,
-                        QMember.member.memberImagePath,
-                        QMember.member.memberDeviceToken
+                        qMember.memberId,
+                        qMember.memberNickName,
+                        qMember.memberEmail,
+                        qMember.memberImagePath,
+                        qMember.memberDeviceToken
                 )
         ).fetchOne();
     }

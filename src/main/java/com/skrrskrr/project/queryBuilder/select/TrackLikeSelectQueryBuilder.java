@@ -39,16 +39,16 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
 
 
     public TrackLikeSelectQueryBuilder findTrackLikesByTrackId(Long trackId) {
-        if (trackId != null) {
-            this.query.where(qTrackLike.memberTrack.track.trackId.eq(trackId));
-        }
+        throwIfConditionNotMet(trackId != null);
+
+        this.query.where(qTrackLike.memberTrack.track.trackId.eq(trackId));
         return this;
     }
 
     public TrackLikeSelectQueryBuilder findTrackLikesByMemberId(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(qTrackLike.member.memberId.eq(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qTrackLike.member.memberId.eq(loginMemberId));
         return this;
     }
 
@@ -76,24 +76,24 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QTrackLike.trackLike.memberTrack.track.trackId,
-                        QTrackLike.trackLike.memberTrack.track.trackNm,
-                        QTrackLike.trackLike.memberTrack.track.trackPlayCnt,
-                        QTrackLike.trackLike.memberTrack.track.trackImagePath,
-                        QTrackLike.trackLike.memberTrack.track.trackCategoryId,
-                        QTrackLike.trackLike.memberTrack.member.memberNickName,
-                        QTrackLike.trackLike.memberTrack.member.memberId,
-                        QTrackLike.trackLike.memberTrack.track.trackPath,
-                        QTrackLike.trackLike.memberTrack.track.trackLikeCnt,
-                        QTrackLike.trackLike.memberTrack.track.trackInfo,
-                        QTrackLike.trackLike.trackLikeStatus
+                        qTrackLike.memberTrack.track.trackId,
+                        qTrackLike.memberTrack.track.trackNm,
+                        qTrackLike.memberTrack.track.trackPlayCnt,
+                        qTrackLike.memberTrack.track.trackImagePath,
+                        qTrackLike.memberTrack.track.trackCategoryId,
+                        qTrackLike.memberTrack.member.memberNickName,
+                        qTrackLike.memberTrack.member.memberId,
+                        qTrackLike.memberTrack.track.trackPath,
+                        qTrackLike.memberTrack.track.trackLikeCnt,
+                        qTrackLike.memberTrack.track.trackInfo,
+                        qTrackLike.trackLikeStatus
                 )
         ).fetch();
     }
 
 
     public Boolean fetchTrackLikeStatus() {
-        Boolean trackLikeStatus = this.query.select(QTrackLike.trackLike.trackLikeStatus)
+        Boolean trackLikeStatus = this.query.select(qTrackLike.trackLikeStatus)
                 .fetchFirst();
 
         return trackLikeStatus != null && trackLikeStatus;
@@ -103,8 +103,8 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        QTrackLike.trackLike.trackLikeStatus,
-                        QTrackLike.trackLike.memberTrack
+                        qTrackLike.trackLikeStatus,
+                        qTrackLike.memberTrack
                 )
         ).fetchFirst();
     }

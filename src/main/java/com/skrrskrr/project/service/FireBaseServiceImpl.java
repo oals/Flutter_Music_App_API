@@ -63,7 +63,9 @@ public class FireBaseServiceImpl implements FireBaseService {
                 .where(qMember.memberId.eq(fcmSendDto.getMemberId()))
                 .fetchOne();
 
-        assert member != null;
+        if (member == null) {
+            throw new IllegalStateException("member cannot be null.");
+        }
 
         saveNotifications(fcmSendDto, member);
 

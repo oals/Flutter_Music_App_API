@@ -8,8 +8,11 @@ import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.MemberSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.TrackLikeSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.TrackSelectQueryBuilder;
+import com.skrrskrr.project.queryBuilder.update.TrackLikeUpdateQueryBuilder;
+import com.skrrskrr.project.queryBuilder.update.TrackUpdateQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -151,6 +154,31 @@ public class trackLikeServiceImpl implements TrackLikeService{
         return hashMap;
     }
 
+
+    private void updateTrackLike(TrackRequestDto trackRequestDto, TrackLike trackLike) {
+
+        MemberTrack memberTrack = getMemberTrackEntity(trackRequestDto);
+
+        updateTrackLikeStatus(trackLike, memberTrack, trackRequestDto.getLoginMemberId());
+
+        updateTrackLikeCount(trackLike.getMemberTrack().getTrack(), trackLike.getTrackLikeStatus());
+
+    }
+
+
+    private void updateTrackLikeStatus(TrackLike trackLike, MemberTrack memberTrack, Long loginMemberId) {
+
+        TrackLikeUpdateQueryBuilder trackLikeUpdateQueryBuilder = new TrackLikeUpdateQueryBuilder(entityManager);
+
+        trackLikeUpdateQueryBuilder.setEntity(QTrackLike.trackLike)
+                .set(QTrackLike.trackLike.trackLikeStatus, !trackLike.getTrackLikeStatus())
+                .findMemberTrackByMemberTrackId(memberTrack.getMemberTrackId())
+                .findTrackLikeByMemberMemberId(loginMemberId)
+                .execute();
+
+    }
+
+
     private Long insertTrackLike(TrackRequestDto trackRequestDto) {
 
         Member member = Member.builder().memberId(trackRequestDto.getLoginMemberId()).build();
@@ -159,22 +187,12 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
         insertTrackLikeStatus(memberTrack,member);
 
-        insertTrackLikeCount(memberTrack);
+        updateTrackLikeCount(memberTrack.getTrack(), false);
 
         return memberTrack.getMember().getMemberId();
 
     }
 
-
-    private void updateTrackLike(TrackRequestDto trackRequestDto, TrackLike trackLike) {
-
-        MemberTrack memberTrack = getMemberTrackEntity(trackRequestDto);
-
-        updateTrackLikeStatus(trackLike, memberTrack, trackRequestDto.getLoginMemberId());
-
-        updateTrackLikeCount(trackLike);
-
-    }
 
     private void insertTrackLikeStatus(MemberTrack memberTrack, Member member) {
 
@@ -187,36 +205,16 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
     }
 
-    private void updateTrackLikeStatus(TrackLike trackLike, MemberTrack memberTrack, Long memberId) {
 
-        QTrackLike qTrackLike = QTrackLike.trackLike;
+    private void updateTrackLikeCount(Track track, Boolean isTrackLikeStatus) {
+        TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(entityManager);
 
-        jpaQueryFactory.update(qTrackLike)
-                .set(qTrackLike.trackLikeStatus, !trackLike.getTrackLikeStatus())
-                .where(qTrackLike.memberTrack.eq(memberTrack)
-                        .and(qTrackLike.member.memberId.eq(memberId)))
+        trackUpdateQueryBuilder.setEntity(QTrack.track)
+                .set(QTrack.track.trackLikeCnt, isTrackLikeStatus
+                        ? track.getTrackLikeCnt() - 1
+                        : track.getTrackLikeCnt() + 1)
+                .findTrackByTrackId(track.getTrackId())
                 .execute();
-    }
-
-
-    private void insertTrackLikeCount(MemberTrack memberTrack){
-        Track track = memberTrack.getTrack();
-        track.setTrackLikeCnt(track.getTrackLikeCnt() + 1);
-
-        entityManager.merge(track);
-    }
-
-    private void updateTrackLikeCount(TrackLike trackLike) {
-        Track track = trackLike.getMemberTrack().getTrack();
-
-        if (trackLike.getTrackLikeStatus()) {
-            track.setTrackLikeCnt(track.getTrackLikeCnt() - 1);
-        } else {
-            track.setTrackLikeCnt(track.getTrackLikeCnt() + 1);
-
-        }
-
-        entityManager.merge(track);  // track 엔티티를 병합하여 업데이트
     }
 
 }

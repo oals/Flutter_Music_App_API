@@ -7,6 +7,9 @@ import com.skrrskrr.project.entity.QMember;
 
 public class FollowSelectQueryBuilder extends ComnSelectQueryBuilder<FollowSelectQueryBuilder> {
 
+    QFollow qFollow = QFollow.follow;
+    QMember qMember = QMember.member;
+
     public FollowSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);
         this.query = jpaQueryFactory.query(); // 외부에서 전달받은 JPAQuery를 사용
@@ -22,16 +25,16 @@ public class FollowSelectQueryBuilder extends ComnSelectQueryBuilder<FollowSelec
 
 
     public FollowSelectQueryBuilder findFollowerMember(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(QFollow.follow.following.memberId.eq(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qFollow.following.memberId.eq(loginMemberId));
         return this;
     }
 
     public FollowSelectQueryBuilder findFollowingMember(Long loginMemberId) {
-        if (loginMemberId != null) {
-            this.query.where(QFollow.follow.follower.memberId.eq(loginMemberId));
-        }
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.where(qFollow.follower.memberId.eq(loginMemberId));
         return this;
     }
 
@@ -39,7 +42,7 @@ public class FollowSelectQueryBuilder extends ComnSelectQueryBuilder<FollowSelec
 
 
     public FollowSelectQueryBuilder joinMemberFollowersAndFollow() {
-        this.query.join(QMember.member.followers, QFollow.follow); // JOIN 조건 추가
+        this.query.join(qMember.followers, QFollow.follow); // JOIN 조건 추가
         return this;
     }
 

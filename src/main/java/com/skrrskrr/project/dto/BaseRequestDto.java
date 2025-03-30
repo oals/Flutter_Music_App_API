@@ -6,7 +6,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseRequestDto extends BaseQueryDto{
+public class BaseRequestDto {
 
     private Long loginMemberId;
     private Long offset = 0L;

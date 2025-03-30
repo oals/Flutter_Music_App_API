@@ -1,6 +1,5 @@
 package com.skrrskrr.project.service;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
@@ -75,8 +74,10 @@ public class TrackServiceImpl implements TrackService {
                 .where(qCategory.trackCategoryId.eq(uploadDto.getTrackCategoryId()))
                 .fetchOne();
 
-        assert member != null;
-        assert category != null;
+        if (member == null || category == null) {
+            throw new IllegalStateException("member or category cannot be null.");
+        }
+
 
         // Track 엔티티 생성
         Track track = Track.builder()
@@ -111,8 +112,9 @@ public class TrackServiceImpl implements TrackService {
                 .where(qCategory.trackCategoryId.eq(uploadDto.getTrackCategoryId()))
                 .fetchOne();
 
-        assert member != null;
-        assert category != null;
+        if (member == null || category == null) {
+            throw new IllegalStateException("member or category cannot be null.");
+        }
 
         // MemberTrack 연관 설정
         MemberTrack memberTrack = new MemberTrack();
@@ -138,7 +140,7 @@ public class TrackServiceImpl implements TrackService {
         Map<String,Object> hashMap = new HashMap<>();
         try {
 
-            TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(jpaQueryFactory,entitiyManager);
+            TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(entitiyManager);
 
             trackUpdateQueryBuilder.setEntity(QTrack.track)
                     .set(QTrack.track.trackImagePath, uploadDto.getUploadImagePath())
@@ -158,23 +160,13 @@ public class TrackServiceImpl implements TrackService {
         Map<String, Object> hashMap = new HashMap<>();
 
         try {
-
-            TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(jpaQueryFactory,entitiyManager);
+            TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(entitiyManager);
 
             trackUpdateQueryBuilder.setEntity(QTrack.track)
-                    .set(QTrack.track.isTrackPrivacy, trackRequestDto.getIsTrackPrivacy())
+                    .set(QTrack.track.isTrackPrivacy, trackRequestDto.getTrackPrivacy())
                     .findTrackByTrackId(trackRequestDto.getTrackId())
                     .execute();
 
-
-//            trackRequestDto.setEntityPathBase(QTrack.track);
-//            trackRequestDto.setUpdateStringEntityPath(null);
-//            trackRequestDto.setUpdateBooleanEntityPath(QTrack.track.isTrackPrivacy);
-//            trackRequestDto.setUpdateValue(trackRequestDto.getIsTrackPrivacy());
-//            trackRequestDto.setTrackId(trackRequestDto.getTrackId());
-//            trackRequestDto.setCondition(QTrack.track.trackId.eq(trackRequestDto.getTrackId()));
-
-//            updateTrackInfo(trackRequestDto);
 
             hashMap.put("status","200");
         } catch (Exception e) {
@@ -191,14 +183,12 @@ public class TrackServiceImpl implements TrackService {
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
-            trackRequestDto.setEntityPathBase(QTrack.track);
-            trackRequestDto.setUpdateStringEntityPath(QTrack.track.trackInfo);
-            trackRequestDto.setUpdateBooleanEntityPath(null);
-            trackRequestDto.setUpdateValue(trackRequestDto.getTrackInfo());
-            trackRequestDto.setTrackId(trackRequestDto.getTrackId());
-            trackRequestDto.setCondition(QTrack.track.trackId.eq(trackRequestDto.getTrackId()));
+            TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(entitiyManager);
 
-            updateTrackInfo(trackRequestDto);
+            trackUpdateQueryBuilder.setEntity(QTrack.track)
+                    .set(QTrack.track.trackInfo, trackRequestDto.getTrackInfo())
+                    .findTrackByTrackId(trackRequestDto.getTrackId())
+                    .execute();
 
             hashMap.put("status","200");
             return hashMap;
@@ -249,9 +239,6 @@ public class TrackServiceImpl implements TrackService {
                 .findIsTrackPrivacyFalse()
                 .fetchCount();
     }
-
-
-
 
 
 
@@ -328,7 +315,6 @@ public class TrackServiceImpl implements TrackService {
     @Override
     public Long getMemberTrackListCnt(MemberRequestDto memberRequestDto) {
 
-
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
         return trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
@@ -340,7 +326,6 @@ public class TrackServiceImpl implements TrackService {
     @Override
     public Map<String, Object> getTrackInfo(TrackRequestDto trackRequestDto) {
 
-
         Map<String,Object> hashMap = new HashMap<>();
 
         try {
@@ -349,7 +334,6 @@ public class TrackServiceImpl implements TrackService {
             TrackDto trackInfoDto = trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                             .findTrackByTrackId(trackRequestDto.getTrackId())
                             .fetchTrackDetailDto(TrackDto.class);
-
 
             /* 해당 트랙에 좋아요 여부 */
             Boolean trackLikeStatus = trackLikeService.getTrackLikeStatus(trackRequestDto);
@@ -494,7 +478,6 @@ public class TrackServiceImpl implements TrackService {
 
     }
 
-
     private List<TrackDto> getTrendingTrackLikeDesc(TrackRequestDto trackRequestDto, List<TrackDto> trackLikeDescList){
 
         List<Long> excludedTrackIds = trackLikeDescList.stream()
@@ -511,27 +494,6 @@ public class TrackServiceImpl implements TrackService {
                 .offset(trackRequestDto.getOffset())
                 .limit(trackRequestDto.getLimit())
                 .fetchTrackListDto(TrackDto.class);
-    }
-
-
-
-    private void updateTrackInfo(TrackRequestDto trackRequestDto) {
-
-        try {
-            if (trackRequestDto.getUpdateStringEntityPath() != null) {
-                jpaQueryFactory.update(trackRequestDto.getEntityPathBase())
-                        .set(trackRequestDto.getUpdateStringEntityPath(), trackRequestDto.getUpdateValue().toString())
-                        .where(trackRequestDto.getCondition())
-                        .execute();
-            } else if (trackRequestDto.getUpdateBooleanEntityPath() != null) {
-                jpaQueryFactory.update(trackRequestDto.getEntityPathBase())
-                        .set(trackRequestDto.getUpdateBooleanEntityPath(), (Boolean) trackRequestDto.getUpdateValue())
-                        .where(trackRequestDto.getCondition())
-                        .execute();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

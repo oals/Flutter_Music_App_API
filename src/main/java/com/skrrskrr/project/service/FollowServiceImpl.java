@@ -42,9 +42,9 @@ public class FollowServiceImpl implements FollowService{
             Member follower = getFollowMember(followRequestDto.getFollowerId());
             Member following = getFollowMember(followRequestDto.getFollowingId());
 
-            Follow followResult = isFollowStatus(followRequestDto);
+            Boolean isFollow = isFollowCheck(follower.getMemberId(), following.getMemberId());
 
-            if (followResult != null) {
+            if (isFollow) {
                 // 팔로우, 팔로워 삭제
                 deleteFollow(followRequestDto);
                 updateFollowCounts(follower, following, -1L);
@@ -97,16 +97,6 @@ public class FollowServiceImpl implements FollowService{
                 .execute();
     }
 
-
-    private Follow isFollowStatus(FollowRequestDto followRequestDto){
-
-        QFollow qFollow = QFollow.follow;
-
-        return jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.follower.memberId.eq(followRequestDto.getFollowerId())
-                        .and(qFollow.following.memberId.eq(followRequestDto.getFollowingId())))
-                .fetchFirst();
-    }
 
 
     private Member getFollowMember(Long followId){
@@ -181,16 +171,11 @@ public class FollowServiceImpl implements FollowService{
     // 1. FollowList 가져오는 메서드들
     private List<Follow> getFollowingList(Long loginMemberId) {
 
-
         FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
 
-
-        List<Follow> followList = followSelectQueryBuilder.selectFrom(QFollow.follow)
+        return followSelectQueryBuilder.selectFrom(QFollow.follow)
                 .findFollowingMember(loginMemberId)
                 .fetch(Follow.class);
-
-        return followList;
-
     }
 
     // 2. FollowDto로 매핑하는 메서드
@@ -208,12 +193,9 @@ public class FollowServiceImpl implements FollowService{
 
         FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
 
-
-        List<Follow> followList = followSelectQueryBuilder.selectFrom(QFollow.follow)
+        return followSelectQueryBuilder.selectFrom(QFollow.follow)
                 .findFollowerMember(loginMemberId)
                 .fetch(Follow.class);
-
-        return followList;
     }
 
 
@@ -228,14 +210,13 @@ public class FollowServiceImpl implements FollowService{
 
     @Override
     public Boolean isFollowCheck(Long followerId, Long followingId) {
-        QFollow qFollow = QFollow.follow;
 
-        Follow follow = jpaQueryFactory.selectFrom(qFollow)
-                .where(qFollow.follower.memberId.eq(followerId)
-                        .and(qFollow.following.memberId.eq(followingId)))
-                .fetchFirst();
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
 
-        return follow != null;
+        return followSelectQueryBuilder.selectFrom(QFollow.follow)
+                .findFollowingMember(followerId)
+                .findFollowerMember(followingId)
+                .fetchOne(Follow.class) != null;
 
     }
 }
