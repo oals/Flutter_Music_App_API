@@ -102,8 +102,8 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         this.query.join(qMemberTrack.member, qMember);;
         return this; // 체이닝 유지
     }
-    public TrackSelectQueryBuilder leftJoinTrackCommentListWithComment() {
-        this.query.leftJoin(qMemberTrack.track.commentList, QComment.comment);; // JOIN 조건 추가
+    public TrackSelectQueryBuilder joinTrackCommentListWithComment() {
+        this.query.join(qMemberTrack.track.commentList, QComment.comment);; // JOIN 조건 추가
         return this; // 체이닝 유지
     }
 

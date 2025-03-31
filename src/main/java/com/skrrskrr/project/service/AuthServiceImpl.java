@@ -1,8 +1,6 @@
 package com.skrrskrr.project.service;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +10,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 
-import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap; import java.util.Map;
@@ -45,40 +41,50 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-
     @Override
-    public Map<String,Object> validateJwtToken(String jwtToken) {
-        Map<String,Object> hashMap = new HashMap<>();
-        try {
+    public void validateJwtToken(String jwtToken) {
+
             // JWT 토큰을 파싱하고 서명을 검증
-            Jws<Claims> jwts = Jwts.parser()
+            Jwts.parser()
                     .setSigningKey(SECRET_KEY) // 비밀 키 설정
                     .build()
                     .parseSignedClaims(jwtToken); // 토큰 검증
 
-            hashMap.put("claims",jwts.getBody());
-            hashMap.put("status","200");
-
-            return hashMap; // 유효한 클레임을 반환
-
-        } catch (ExpiredJwtException e) {
-            e.printStackTrace();
-            return null;
-        } catch (JwtException e) {
-            e.printStackTrace();
-            // JWT 관련 다른 예외 처리
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 예기치 않은 오류 처리
-            return null;
-        }
     }
 
     // 토큰에서 인증 정보 가져오기
     public Authentication getAuthentication(String token) {
         User userDetails = new User(getUsername(token), "", new ArrayList<>());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    @Override
+    public Map<String,Object> refreshAccessToken(String refreshToken) {
+
+        Map<String,Object> hashMap = new HashMap<>();
+        try {
+            // 리프레시 토큰을 검증하고 사용자 정보를 추출
+            Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET_KEY)  // 서명 검증을 위한 비밀 키 설정
+                    .build()
+                    .parseSignedClaims(refreshToken)  // 리프레시 토큰을 파싱하여 클레임 추출
+                    .getBody();  // 클레임 추출
+
+            String uid = claims.getSubject();  // 사용자 ID
+            String email = claims.get("email", String.class);  // 이메일 추출
+
+            // 새로운 액세스 토큰 발급
+            Date accessTokenExpiration = new Date(System.currentTimeMillis() + 1000 * 60 * 30);  // 15분 후 만료
+
+            String jwtToken = generateJwtToken(uid, email, accessTokenExpiration, "access");
+            hashMap.put("jwtToken",jwtToken);
+            hashMap.put("status","200");
+        } catch (Exception e) {
+            // 리프레시 토큰이 유효하지 않거나 오류가 발생한 경우 처리
+            hashMap.put("status","401");
+        }
+
+        return hashMap;
     }
 
 

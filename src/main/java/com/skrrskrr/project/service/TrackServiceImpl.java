@@ -365,7 +365,7 @@ public class TrackServiceImpl implements TrackService {
 
         return trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                 .findTrackByTrackId(trackRequestDto.getTrackId())
-                .leftJoinTrackCommentListWithComment()
+                .joinTrackCommentListWithComment()
                 .fetchCount();
     }
 

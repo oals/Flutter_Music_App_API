@@ -11,7 +11,9 @@ public interface AuthService {
 
     String generateJwtToken(String uid, String email, Date exp,String tokenType);
 
-    Map<String,Object> validateJwtToken(String jwtToken);
+    void validateJwtToken(String jwtToken);
 
     Authentication getAuthentication(String token);
+
+    Map<String,Object> refreshAccessToken(String refreshToken);
 }
