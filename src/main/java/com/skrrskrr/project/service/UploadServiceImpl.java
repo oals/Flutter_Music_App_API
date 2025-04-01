@@ -1,7 +1,6 @@
 package com.skrrskrr.project.service;
 
 
-import com.skrrskrr.project.dto.PlayListDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
 import com.skrrskrr.project.dto.UploadDto;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +38,11 @@ public class UploadServiceImpl implements UploadService {
         String uuid = generateUUID();
 
         try {
+            // 마지막 트랙 id 얻기
+            Long lastTrackId = trackService.getTrackLastId();
+
             // 트랙 이미지 업로드
-            Long lastTrackId = uploadImage(uploadDto, uuid);
+            uploadImage(uploadDto,lastTrackId, uuid);
 
             //트랙 업로드
             uploadTrackFile(uploadDto, lastTrackId, uuid);
@@ -61,8 +63,11 @@ public class UploadServiceImpl implements UploadService {
         Map<String, Object> hashMap = new HashMap<>();
         String uuid = generateUUID();
 
+        // 마지막 트랙 id 얻기
+        Long lastTrackId = trackService.getTrackLastId();
+
         // 앨범 이미지 업로드
-        Long lastTrackId = uploadImage(uploadDto, uuid);
+        uploadImage(uploadDto,lastTrackId,uuid);
 
         try {
             List<Long> uploadTrackIdList = new ArrayList<>();
@@ -137,16 +142,12 @@ public class UploadServiceImpl implements UploadService {
     }
 
 
-    private Long uploadImage(UploadDto uploadDto, String uuid) {
-        // 마지막 트랙 id 얻기
-        Long lastTrackId = trackService.getTrackLastId();
-
+    private void uploadImage(UploadDto uploadDto, Long lastTrackId, String uuid) {
         // 앨범 이미지 업로드
         if (uploadDto.getUploadImage() != null) {
             uploadTrackImage(uploadDto, lastTrackId, uuid);
         }
 
-        return lastTrackId;
     }
 
 

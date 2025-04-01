@@ -204,7 +204,7 @@ public class MemberServiceImpl implements MemberService {
             }
 
             hashMap.put("memberDTO", memberDto);
-            hashMap.put("playListDTO", playListDtoList);
+            hashMap.put("playListList", playListDtoList);
             hashMap.put("popularTrackList",popularTrackDtoList);
             hashMap.put("allTrackList",allTrackDtoList);
             hashMap.put("playListListCnt", playListDtoListCnt);

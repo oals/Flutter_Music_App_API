@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,22 +76,14 @@ public class RedisServiceImpl implements RedisService{
 
 
     @Override
-    public Map<String,Object> getLastListenTrackIdList(TrackRequestDto trackRequestDto){
-
-        Map<String,Object> hashMap = new HashMap<>();
+    public List<Long> getLastListenTrackIdList(TrackRequestDto trackRequestDto){
 
         String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
         List<String> lastListenTrackList = redisTemplate.opsForList().range(key, 0, -1); // 모든 트랙 ID를 가져옵니다.
 
-        if (lastListenTrackList != null) {
-            hashMap.put("lastListenTrackList", lastListenTrackList);
-            hashMap.put("status", "200");
-        } else {
-            hashMap.put("status", "500");
-        }
-
-
-        return hashMap;
+        return  lastListenTrackList.stream()
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
     }
 
 

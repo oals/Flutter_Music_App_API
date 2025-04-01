@@ -45,9 +45,6 @@ public class Track {
     @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TrackCategory> trackCategoryList;
 
-    @ManyToMany(mappedBy = "playListTrackList", fetch = FetchType.LAZY)
-    private List<PlayList> playlistTrack; // 여러 플레이리스트에 포함될 수 있다.
-
     @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> commentList; // 트랙에 대한 댓글 목록
 

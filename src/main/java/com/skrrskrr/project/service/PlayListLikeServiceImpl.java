@@ -7,7 +7,6 @@ import com.skrrskrr.project.queryBuilder.select.PlayListLikeSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListLikeUpdateQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
-import com.skrrskrr.project.queryBuilder.update.TrackUpdateQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -136,7 +135,7 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
         return (MemberPlayList) playListSelectQueryBuilder.selectFrom(QMemberPlayList.memberPlayList)
-                .findPlayListsById(playListRequestDto.getPlayListId())
+                .findPlayListsByPlayListId(playListRequestDto.getPlayListId())
                 .fetchOne(PlayList.class);
 
     }

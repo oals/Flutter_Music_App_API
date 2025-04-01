@@ -29,6 +29,8 @@ public class PlayList {
 
     private String albumDate;
 
+    private String totalPlayTime;
+
     private String playListImagePath;
 
     private Long trackCnt;
@@ -46,10 +48,10 @@ public class PlayList {
     @JoinTable(
             name = "playlist_track", // 중간 테이블 이름
             joinColumns = @JoinColumn(name = "playlist_id"), // 플레이리스트 외래 키
-            inverseJoinColumns = @JoinColumn(name = "track_id") // 트랙 외래 키
+            inverseJoinColumns = @JoinColumn(name = "member_track_Id") // 트랙 외래 키
     )
     @Builder.Default
-    private List<Track> playListTrackList = new ArrayList<>(); // 여러 트랙을 가진다.
+    private List<MemberTrack> playListTrackList = new ArrayList<>(); // 여러 트랙을 가진다.
 
 
 }

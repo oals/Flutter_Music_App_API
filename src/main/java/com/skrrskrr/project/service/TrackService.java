@@ -33,6 +33,8 @@ public interface TrackService {
 
     Long getMemberTrackListCnt(MemberRequestDto memberRequestDto);
 
+    List<TrackDto> getPlayListTracks(PlayListRequestDto playListRequestDto);
+
     List<TrackDto> getTrendingTrackList(TrackRequestDto trackRequestDto);
 
     List<SearchDto> getSearchTrackList(SearchRequestDto searchRequestDto);
@@ -41,6 +43,6 @@ public interface TrackService {
 
     Long getTrackLastId();
 
-    Map<String,Object> getLastListenTrackList(TrackRequestDto trackRequestDto);
+    List<TrackDto> getLastListenTrackList(TrackRequestDto trackRequestDto);
 
 }

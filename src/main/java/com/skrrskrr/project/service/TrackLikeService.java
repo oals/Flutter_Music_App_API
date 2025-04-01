@@ -12,7 +12,5 @@ public interface TrackLikeService {
 
     Map<String,Object> getLikeTrackList(TrackRequestDto trackRequestDto);
 
-    Boolean getTrackLikeStatus(TrackRequestDto trackRequestDto);
-
     TrackLike getTrackLikeEntity(TrackRequestDto trackRequestDto);
 }

@@ -50,12 +50,11 @@ public class FileServiceImpl implements FileService{
             fileType = ".mp3"; // 기본값
         }
 
-
         File destFile = new File(uploadDir, trackNm + fileType);
 
         try {
-            String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8";   // 100/playlist.m3u8; // m3u8 파일 경로
-            String baseUrl =  streamServerUrl + "/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
+            String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8"; // m3u8 파일 경로
+            String baseUrl = streamServerUrl + "/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
 
             // 파일 저장
             file.transferTo(destFile);

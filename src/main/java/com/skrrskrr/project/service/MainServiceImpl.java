@@ -36,9 +36,12 @@ public class MainServiceImpl implements MainService {
             memberRequestDto.setLimit(4L);
             trackRequestDto.setOffset(0L);
             trackRequestDto.setLoginMemberId(memberRequestDto.getLoginMemberId());
+            playListRequestDto.setLoginMemberId(memberRequestDto.getLoginMemberId());
 
+            // 최근 감상 음악 리스트
+            List<TrackDto> lastListenTrackList =  trackService.getLastListenTrackList(trackRequestDto);
 
-            /// 인기 앨범 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
+            /// 인기 플리 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
             List<PlayListDto> popularPlayList = playListService.getPopularPlayLists(playListRequestDto);
 
             /// 인기 유저 추천 -  곡 한개 이상 업로드 ~ / 선택된 카테고리 (카테고리는 폰에 캐시로 저장 )
@@ -52,6 +55,8 @@ public class MainServiceImpl implements MainService {
             // 트랜드 음악 조회
             List<TrackDto> trendingTrackList = trackService.getTrendingTrackList(trackRequestDto);
 
+
+            hashMap.put("lastListenTrackList",lastListenTrackList);
             hashMap.put("popularPlayList",popularPlayList);
             hashMap.put("followMemberTrackList",followMemberTrackList);
             hashMap.put("likedTrackList",result.get("likeTrackList"));

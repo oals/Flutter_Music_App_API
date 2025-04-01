@@ -40,6 +40,8 @@ public class PlayListDto {
 
     private String memberNickName;
 
+    private String memberImagePath;
+
     private Boolean isAlbum;
 
     private String albumDate;

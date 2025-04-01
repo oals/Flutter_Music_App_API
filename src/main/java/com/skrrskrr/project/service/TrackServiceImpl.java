@@ -18,6 +18,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -36,8 +37,6 @@ public class TrackServiceImpl implements TrackService {
     private final MemberTrackRepository memberTrackRepository;
     private final RedisService redisService;
     private final FollowService followService;
-    private final TrackLikeService trackLikeService;
-
 
     @Override
     public Map<String, Object> saveTrack(UploadDto uploadDto) {
@@ -218,14 +217,13 @@ public class TrackServiceImpl implements TrackService {
 
         return (List<SearchDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                 .joinTrackLikeWithMemberTrack(searchRequestDto.getLoginMemberId())
-                .joinCategoryWithTrackCategoryId()
                 .findTrackBySearchText(searchRequestDto.getSearchText())
                 .findIsTrackPrivacyFalse()
                 .groupByMemberTrackId()
                 .offset(searchRequestDto.getOffset())
                 .limit(searchRequestDto.getLimit())
                 .orderByMemberTrackIdDesc()
-                .fetTrackSearchDto(SearchDto.class);
+                .fetchTrackListDto(SearchDto.class);
 
     }
 
@@ -243,39 +241,29 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public Map<String, Object> getLastListenTrackList(TrackRequestDto trackRequestDto) {
+    public List<TrackDto> getLastListenTrackList(TrackRequestDto trackRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
-
-        try {
-
-            Object lastListenTrackIdObject = redisService.getLastListenTrackIdList(trackRequestDto).get("lastListenTrackList");
-
-            if (lastListenTrackIdObject instanceof List<?>) {
-
-                List<String> lastListenTrackIdList = (List<String>) lastListenTrackIdObject;
+        TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
 
+            List<Long> lastListenTrackIdList = redisService.getLastListenTrackIdList(trackRequestDto);
+
+            List<TrackDto> lastListenTrackList = (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                    .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
+                    .findTrackInList(lastListenTrackIdList)
+                    .fetchTrackListDto(TrackDto.class);
+
+            Map<Long, TrackDto> trackMap = lastListenTrackList.stream()
+                    .collect(Collectors.toMap(TrackDto::getTrackId, Function.identity()));
+
+            List<TrackDto> lastListenTrackListOrderBy = lastListenTrackIdList.stream()
+                    .map(trackMap::get)
+                    .toList();
 
 
+            return lastListenTrackListOrderBy;
 
 
-
-
-
-            } else {
-                // 타입이 맞지 않으면 예외를 던짐
-                throw new IllegalArgumentException();
-            }
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-
-
-        return hashMap;
     }
 
 
@@ -288,10 +276,11 @@ public class TrackServiceImpl implements TrackService {
                 trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                         .findTracksByMemberId(memberRequestDto.getMemberId())
                         .findIsTrackPrivacyFalseOrLoginMemberIdEqual(memberRequestDto.getLoginMemberId())
+                        .joinTrackLikeWithMemberTrack(memberRequestDto.getLoginMemberId())
                         .orderByMemberTrackIdDesc()
                         .offset(memberRequestDto.getOffset())
                         .limit(memberRequestDto.getLimit())
-                        .fetchTrackPreviewDto(TrackDto.class);
+                        .fetchTrackListDto(TrackDto.class);
 
 
     }
@@ -305,10 +294,11 @@ public class TrackServiceImpl implements TrackService {
                 trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                         .findTracksByMemberId(memberRequestDto.getMemberId())
                         .findIsTrackPrivacyFalseOrLoginMemberIdEqual(memberRequestDto.getLoginMemberId())
+                        .joinTrackLikeWithMemberTrack(memberRequestDto.getLoginMemberId())
                         .orderByTrackPlayCntDesc()
                         .offset(memberRequestDto.getOffset())
                         .limit(memberRequestDto.getLimit())
-                        .fetchTrackPreviewDto(TrackDto.class);
+                        .fetchTrackListDto(TrackDto.class);
 
     }
 
@@ -332,12 +322,9 @@ public class TrackServiceImpl implements TrackService {
             TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
             TrackDto trackInfoDto = trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
-                            .findTrackByTrackId(trackRequestDto.getTrackId())
-                            .fetchTrackDetailDto(TrackDto.class);
-
-            /* 해당 트랙에 좋아요 여부 */
-            Boolean trackLikeStatus = trackLikeService.getTrackLikeStatus(trackRequestDto);
-            trackInfoDto.setTrackLikeStatus(trackLikeStatus);
+                    .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
+                    .findTrackByTrackId(trackRequestDto.getTrackId())
+                    .fetchTrackDetailDto(TrackDto.class);
 
             /* 트랙의 댓글 수 조회 */
             Long commentCount = getTrackCommentCnt(trackRequestDto);
@@ -379,13 +366,14 @@ public class TrackServiceImpl implements TrackService {
 
             List<TrackDto> recommendTrackDtoList = (List<TrackDto>)
                     trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                            .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
                             .findTrackNotInList(Collections.singletonList(trackRequestDto.getTrackId()))
                             .findIsTrackPrivacyFalse()
                             .findCategoryTracks(trackRequestDto.getTrackCategoryId())
                             .orderByTrackUploadDateDesc()
                             .offset(trackRequestDto.getOffset())
                             .limit(trackRequestDto.getLimit())
-                            .fetchTrackPreviewDto(TrackDto.class);
+                            .fetchTrackListDto(TrackDto.class);
 
             hashMap.put("recommendTrackList",recommendTrackDtoList);
             hashMap.put("status","200");
@@ -398,6 +386,21 @@ public class TrackServiceImpl implements TrackService {
         return hashMap;
     }
 
+    @Override
+    public List<TrackDto> getPlayListTracks(PlayListRequestDto playListRequestDto) {
+
+        TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
+
+        return (List<TrackDto>) trackSelectQueryBuilder
+                .selectFrom(QMemberTrack.memberTrack)
+                .joinTrackLikeWithMemberTrack(playListRequestDto.getLoginMemberId())
+                .findMemberTrackByPlayListId(playListRequestDto.getPlayListId())
+                .findIsTrackPrivacyFalse()
+                .fetchTrackListDto(TrackDto.class);
+
+
+    }
+
 
     @Override
     public Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto) {
@@ -406,13 +409,14 @@ public class TrackServiceImpl implements TrackService {
         try {
             TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
-            List<TrackDto> uploadTrackDtoList = (List<TrackDto>)
-                    trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+            List<TrackDto> uploadTrackDtoList = (List<TrackDto>) trackSelectQueryBuilder
+                    .selectFrom(QMemberTrack.memberTrack)
+                    .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
                     .findTracksByMemberId(trackRequestDto.getLoginMemberId())
-                            .orderByMemberTrackIdDesc()
-                            .offset(trackRequestDto.getOffset())
-                            .limit(trackRequestDto.getLimit())
-                            .fetchTrackListDto(TrackDto.class);
+                    .orderByMemberTrackIdDesc()
+                    .offset(trackRequestDto.getOffset())
+                    .limit(trackRequestDto.getLimit())
+                    .fetchTrackListDto(TrackDto.class);
 
            Long totalCount = trackSelectQueryBuilder
                     .resetQuery()
@@ -441,6 +445,7 @@ public class TrackServiceImpl implements TrackService {
                 trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                         .joinMemberTrackWithMember()
                         .joinMemberFollowersAndFollow()
+                        .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
                         .findIsTrackPrivacyFalse()
                         .findFollowerTracks(trackRequestDto.getLoginMemberId())
                         .orderByTrackUploadDateDesc()
@@ -470,6 +475,7 @@ public class TrackServiceImpl implements TrackService {
 
         return (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                         .isUploadedThisWeekOrLastWeek(QMemberTrack.memberTrack.track.trackUploadDate)
+                        .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
                         .findIsTrackPrivacyFalse()
                         .orderByTrackPlayCntDesc()
                         .offset(trackRequestDto.getOffset())
@@ -488,6 +494,7 @@ public class TrackServiceImpl implements TrackService {
 
         return (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                 .isUploadedThisWeekOrLastWeek(QMemberTrack.memberTrack.track.trackUploadDate)
+                .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
                 .findIsTrackPrivacyFalse()
                 .findTrackNotInList(excludedTrackIds)
                 .orderByTrackLikeCntDesc()

@@ -65,10 +65,5 @@ public class TrackController {
     }
 
 
-    @GetMapping("/api/getLastListenTrackList")
-    public Map<String,Object> getLastListenTrackList(TrackRequestDto trackRequestDto) {
-        log.info("getLastListenTrackList");
-        return trackService.getLastListenTrackList(trackRequestDto);
-    }
 
 }

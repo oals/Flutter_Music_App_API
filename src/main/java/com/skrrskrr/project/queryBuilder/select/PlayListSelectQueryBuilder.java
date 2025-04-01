@@ -1,6 +1,8 @@
 package com.skrrskrr.project.queryBuilder.select;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.entity.*;
@@ -11,6 +13,8 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
 
     QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
+    QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
+    QPlayListLike qPlayListLike = QPlayListLike.playListLike;
 
     public PlayListSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);  // 상위 클래스의 생성자 호출
@@ -30,7 +34,7 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
-    public PlayListSelectQueryBuilder findPlayListsById (Long playListId) {
+    public PlayListSelectQueryBuilder findPlayListsByPlayListId(Long playListId) {
         throwIfConditionNotMet(playListId != null);
         this.query.where(qMemberPlayList.playList.playListId.eq(playListId));
         return this;
@@ -44,7 +48,7 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
     public PlayListSelectQueryBuilder findIsInPlayListTrack (Long trackId) {
         throwIfConditionNotMet(trackId != null);
-        this.query.where(qMemberPlayList.playList.playListTrackList.any().trackId.eq(trackId));
+        this.query.where(qMemberPlayList.playList.playListTrackList.any().track.trackId.eq(trackId));
         return this;
     }
 
@@ -77,6 +81,16 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
     /** --------------------------join -------------------------------------------*/
 
+    public PlayListSelectQueryBuilder joinPlayListLikeWithMemberPlayList(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
+
+        this.query.leftJoin(qPlayListLike)
+                .on(qPlayListLike.member.memberId.eq(loginMemberId)
+                        .and(qPlayListLike.memberPlayList.eq(qMemberPlayList)));
+
+        return this;
+    }
+
 
     /** --------------------------ordeBy ---------------------------------------- */
 
@@ -93,11 +107,27 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
     /** -------------------------fetch ------------------------------------------- */
 
-    public <T> T fetchPlayListEntity(Class<T> clazz) {
+    public <T> T fetchPlayListDetailDto(Class<T> clazz) {
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        qMemberPlayList.playList
+                        qMemberPlayList.playList.playListId,
+                        qMemberPlayList.playList.playListNm,
+                        qMemberPlayList.playList.playListLikeCnt,
+                        qMemberPlayList.playList.isPlayListPrivacy,
+                        qMemberPlayList.playList.playListImagePath,
+                        qMemberPlayList.playList.totalPlayTime,
+                        qMemberPlayList.playList.isAlbum,
+                        qMemberPlayList.playList.trackCnt,
+                        qMemberPlayList.playList.albumDate,
+                        qMemberPlayList.playList.member.memberId,
+                        qMemberPlayList.playList.member.memberNickName,
+                        qMemberPlayList.playList.member.memberImagePath,
+                        ExpressionUtils.as(
+                                new CaseBuilder()
+                                        .when(qPlayListLike.playListLikeStatus.isNull()).then(false)
+                                        .otherwise(qPlayListLike.playListLikeStatus), "isPlayListLike"
+                        )
                 )
         ).fetchFirst();
     }
@@ -109,31 +139,24 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
                         clazz,
                         qMemberPlayList.playList.playListId,
                         qMemberPlayList.playList.playListNm,
-                        qMemberPlayList.playList.playListImagePath,
-                        qMemberPlayList.playList.member.memberId,
-                        qMemberPlayList.playList.member.memberNickName
-                )
-        ).fetch();
-    }
-
-
-    public <T> List<?> fetchPlayListsDto(Class<T> clazz) {
-        return this.query.select(
-                Projections.bean(
-                        clazz,
-                        qMemberPlayList.playList.playListId,
-                        qMemberPlayList.playList.playListNm,
                         qMemberPlayList.playList.playListLikeCnt,
                         qMemberPlayList.playList.isPlayListPrivacy,
+                        qMemberPlayList.playList.playListImagePath,
                         qMemberPlayList.playList.isAlbum,
                         qMemberPlayList.playList.trackCnt,
-                        qMemberPlayList.playList.playListImagePath,
                         qMemberPlayList.playList.albumDate,
                         qMemberPlayList.playList.member.memberId,
-                        qMemberPlayList.playList.member.memberNickName
+                        qMemberPlayList.playList.member.memberNickName,
+                        qMemberPlayList.playList.member.memberImagePath,
+                        ExpressionUtils.as(
+                                new CaseBuilder()
+                                        .when(qPlayListLike.playListLikeStatus.isNull()).then(false)
+                                        .otherwise(qPlayListLike.playListLikeStatus), "isPlayListLike"
+                        )
                 )
         ).fetch();
     }
+
 
 
 }

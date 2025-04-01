@@ -35,18 +35,6 @@ public class trackLikeServiceImpl implements TrackLikeService{
     private final JPAQueryFactory jpaQueryFactory;
     private final FireBaseService fireBaseService;
 
-
-    @Override
-    public Boolean getTrackLikeStatus(TrackRequestDto trackRequestDto) {
-
-        TrackLikeSelectQueryBuilder trackLikeSelectQueryBuilder = new TrackLikeSelectQueryBuilder(jpaQueryFactory);
-
-        return trackLikeSelectQueryBuilder.selectFrom(QTrackLike.trackLike)
-                .findTrackLikesByTrackId(trackRequestDto.getTrackId())
-                .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
-                .fetchTrackLikeStatus();
-    }
-
     @Override
     public TrackLike getTrackLikeEntity(TrackRequestDto trackRequestDto) {
 
