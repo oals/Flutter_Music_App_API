@@ -9,8 +9,6 @@ import java.util.Objects;
 
 public interface MainService {
 
-    Map<String, Object> firstLoad(MemberRequestDto memberRequestDto);
-
 
 
 }

@@ -44,8 +44,13 @@ public class UploadServiceImpl implements UploadService {
             // 트랙 이미지 업로드
             uploadImage(uploadDto,lastTrackId, uuid);
 
+
             //트랙 업로드
-            uploadTrackFile(uploadDto, lastTrackId, uuid);
+            String audioPlayTime = uploadTrackFile(uploadDto.getUploadFile(), lastTrackId, uuid);
+            String audioFilePath = "/" + lastTrackId + "/playList.m3u8";
+            uploadDto.setUploadFilePath(audioFilePath);
+            uploadDto.setTrackTime(audioPlayTime);
+            trackService.saveTrack(uploadDto);
 
             hashMap.put("status", "200");
             return hashMap;
@@ -74,11 +79,21 @@ public class UploadServiceImpl implements UploadService {
             //앨범 트랙 업로드
             for (int i = 0; i < uploadDto.getUploadFileList().size(); i++) {
                 String fileUuid = generateUUID();
-                Long uploadTrackId = uploadAlbumTrackFile(uploadDto, lastTrackId, fileUuid, i);
-                uploadTrackIdList.add(uploadTrackId);
+                lastTrackId += i;
+                String audioPlayTime = uploadTrackFile(uploadDto.getUploadFileList().get(i), lastTrackId, fileUuid);
+
+                String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(i));
+                String audioFilePath =  "/" + lastTrackId + "/playList.m3u8";
+                uploadDto.setUploadFilePath(audioFilePath);
+                uploadDto.setTrackNm(trackNm);
+                uploadDto.setTrackTime(audioPlayTime);
+
+                trackService.saveTrack(uploadDto);
+
+                uploadTrackIdList.add(lastTrackId);
             }
 
-            // 앱럼 정보 저장
+            // 앨범 정보 저장
             saveAlbum(uploadDto,uploadTrackIdList);
 
             hashMap.put("status", "200");
@@ -157,30 +172,12 @@ public class UploadServiceImpl implements UploadService {
         fileService.uploadTrackImageFile(uploadDto.getUploadImage(), "/trackImage/" + lastTrackId, uuid);
     }
 
-    private void uploadTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid)  {
-        String audioFilePath = "/" + lastTrackId + "/playList.m3u8";
-        uploadDto.setUploadFilePath(audioFilePath);
-        trackService.saveTrack(uploadDto);
-        fileService.uploadTrackFile(uploadDto.getUploadFile(), "/track/", lastTrackId, uuid);
-    }
+    private String uploadTrackFile(MultipartFile uploadTrackFile, Long lastTrackId, String uuid)  {
 
-
-    private Long uploadAlbumTrackFile(UploadDto uploadDto, Long lastTrackId, String uuid, int fileIdx)  {
-        String audioFilePath =  "/" + lastTrackId + "/playList.m3u8";
-        uploadDto.setUploadFilePath(audioFilePath);
-
-        String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(fileIdx));
-        uploadDto.setTrackNm(trackNm);
-
-        Map<String, Object> trackInfoMap = trackService.saveTrack(uploadDto);
-
-        if (trackInfoMap.get("status").equals("200")) {
-            fileService.uploadTrackFile(uploadDto.getUploadFileList().get(fileIdx), "/track/", lastTrackId, uuid);
-        }
-
-        return (Long) trackInfoMap.get("trackId");
+        return fileService.uploadTrackFile(uploadTrackFile, "/track/", lastTrackId, uuid);
 
     }
+
 
     private void saveAlbum(UploadDto uploadDto, List<Long> uploadTrackIdList) {
         PlayListRequestDto playListRequestDto = new PlayListRequestDto();
@@ -196,7 +193,7 @@ public class UploadServiceImpl implements UploadService {
 
             for (Long trackId : uploadTrackIdList) {
                 playListRequestDto.setTrackId(trackId);
-                playListService.setPlayListTrack(playListRequestDto); //id랑 trackId
+                playListService.setPlayListTrack(playListRequestDto);
             }
         }
     }

@@ -163,6 +163,56 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
+    public Map<String, Object> getHomeInitMember(MemberRequestDto memberRequestDto) {
+
+        Map<String, Object> hashMap = new HashMap<>();
+
+        try{
+            /// 인기 유저 추천 -  곡 한개 이상 업로드 ~ / 선택된 카테고리 (카테고리는 폰에 캐시로 저장 )
+            memberRequestDto.setLimit(4L);
+            List<MemberDto> randomMemberList = getRandomMemberList(memberRequestDto);
+            hashMap.put("randomMemberList", randomMemberList);
+            hashMap.put("status","200");
+        }catch(Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+
+        }
+
+
+
+        return hashMap;
+    }
+
+    @Override
+    public Map<String, Object> getSearchMember(SearchRequestDto searchRequestDto) {
+
+        Map<String,Object> hashMap = new HashMap<>();
+        List<FollowDto> memberList = new ArrayList<>();
+
+        try {
+            Long memberListCnt = getSearchMemberListCnt(searchRequestDto);
+            /* 검색된 멤버 정보*/
+
+            if (memberListCnt != 0L) {
+                memberList = getSearchMemberList(searchRequestDto);
+            }
+
+
+            hashMap.put("memberList", memberList);   // 검색된 멤버 리스트
+            hashMap.put("memberListCnt", memberListCnt);   // 전체 멤버 수
+            hashMap.put("status","200");
+
+        }catch(Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+
+        }
+
+        return hashMap;
+    }
+
+    @Override
     public Member getMemberEntity(Long memberId) {
 
         MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
@@ -183,32 +233,8 @@ public class MemberServiceImpl implements MemberService {
             Member member = getMemberEntity(memberRequestDto.getMemberId());
             MemberDto memberDto = EntityToDto(member);
 
-            // 플레이리스트 조회
-            Long playListDtoListCnt = playListService.getMemberPlayListCnt(memberRequestDto);
-            List<PlayListDto> playListDtoList = new ArrayList<>();
-            if(playListDtoListCnt != 0L) {
-                memberRequestDto.setLimit(6L);
-                playListDtoList = playListService.getMemberPlayList(memberRequestDto);
-            }
-
-            List<TrackDto> allTrackDtoList = new ArrayList<>();
-            List<TrackDto> popularTrackDtoList = new ArrayList<>();
-            Long allTrackDtoListCnt = trackService.getMemberTrackListCnt(memberRequestDto);
-
-            if (allTrackDtoListCnt != 0){
-                memberRequestDto.setLimit(10L);
-                allTrackDtoList = trackService.getAllMemberTrackList(memberRequestDto);
-
-                memberRequestDto.setLimit(5L);
-                popularTrackDtoList = trackService.getPopularMemberTrackList(memberRequestDto);
-            }
 
             hashMap.put("memberDTO", memberDto);
-            hashMap.put("playListList", playListDtoList);
-            hashMap.put("popularTrackList",popularTrackDtoList);
-            hashMap.put("allTrackList",allTrackDtoList);
-            hashMap.put("playListListCnt", playListDtoListCnt);
-            hashMap.put("allTrackListCnt",allTrackDtoListCnt);
             hashMap.put("status","200");
         } catch (Exception e) {
             e.printStackTrace();
@@ -217,6 +243,8 @@ public class MemberServiceImpl implements MemberService {
 
         return hashMap;
     }
+
+
 
     @Override
     public List<FollowDto> getSearchMemberList(SearchRequestDto searchRequestDto) {

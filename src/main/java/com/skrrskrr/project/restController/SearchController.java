@@ -17,25 +17,18 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    @GetMapping("/api/search")
-    public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
-        log.info("search");
-        searchService.setSearchHistory(searchRequestDto);
+    @GetMapping("/api/setSearchHistory")
+    public Map<String,Object> setSearchHistory(SearchRequestDto searchRequestDto) {
+        log.info("setSearchHistory");
 
-        return searchService.search(searchRequestDto);
+
+        return searchService.setSearchHistory(searchRequestDto);
     }
 
     @GetMapping("/api/getSearchTextHistory")
     public Map<String,Object> getSearchTextHistory(SearchRequestDto searchRequestDto){
         log.info("getSearchTextHistory");
         return searchService.getSearchTextHistory(searchRequestDto);
-    }
-
-
-    @GetMapping("/api/getSearchMore")
-    public Map<String,Object> getsearchMore(SearchRequestDto searchRequestDto){
-        log.info("getSearchMore");
-        return searchService.getSearchMore(searchRequestDto);
     }
 
 

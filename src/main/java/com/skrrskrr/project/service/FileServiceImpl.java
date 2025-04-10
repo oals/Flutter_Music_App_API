@@ -25,7 +25,7 @@ public class FileServiceImpl implements FileService{
     private String streamServerUrl;
 
     @Override
-    public Boolean uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
+    public String uploadTrackFile(MultipartFile file, String dir, Long lastTrackId ,String trackNm) {
         if (file.isEmpty()) {
             throw new RuntimeException("파일이 비어 있습니다.");
         }
@@ -55,16 +55,17 @@ public class FileServiceImpl implements FileService{
         try {
             String m3u8FilePath = "C:/uploads/track/" + lastTrackId + "/playlist.m3u8"; // m3u8 파일 경로
             String baseUrl = streamServerUrl + "/music/getSegmentName?segmentName=" + lastTrackId + "/"; // .ts 파일을 서빙할 HTTP URL
+            String uploadFilePath = uploadDir + "/" + trackNm + fileType;
 
             // 파일 저장
             file.transferTo(destFile);
-            fFmpegExecutor.convertAudioToM3U8(uploadDir + "/" + trackNm + fileType, uploadDir);
+            fFmpegExecutor.convertAudioToM3U8(uploadFilePath, uploadDir);
             fFmpegExecutor.modifyM3U8(m3u8FilePath,baseUrl);
 
-            return true;
+            return fFmpegExecutor.getAudioPlayTime(uploadFilePath);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 

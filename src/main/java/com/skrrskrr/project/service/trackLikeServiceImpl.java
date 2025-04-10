@@ -119,7 +119,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
                     .findIsTrackPrivacyFalse()
                     .findIsTrackLikeStatusTrue()
                     .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
-                    .orderByMemberTrackIdDesc()
+                    .orderByTrackLikeIdDesc()
                     .offset(trackRequestDto.getOffset())
                     .limit(trackRequestDto.getLimit())
                     .fetchTrackLikeListDto(TrackDto.class);

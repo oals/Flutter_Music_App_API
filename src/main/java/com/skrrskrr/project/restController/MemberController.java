@@ -3,6 +3,7 @@ package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.MemberDto;
 import com.skrrskrr.project.dto.MemberRequestDto;
+import com.skrrskrr.project.dto.SearchRequestDto;
 import com.skrrskrr.project.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -56,14 +57,29 @@ public class MemberController {
 
     }
 
-
     @GetMapping("/api/getMemberPageInfo")
-    public Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto)
-    {
+    public Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto) {
         log.info("getMemberPageInfo");
         return memberService.getMemberPageInfo(memberRequestDto);
+    }
+
+
+    @GetMapping("/api/getHomeInitMember")
+    public Map<String,Object> getHomeInitMember(MemberRequestDto memberRequestDto)
+    {
+        log.info("getHomeInitMember");
+        return memberService.getHomeInitMember(memberRequestDto);
 
     }
+
+    @GetMapping("/api/getSearchMember")
+    public Map<String,Object> getSearchMember(SearchRequestDto searchRequestDto)
+    {
+        log.info("getSearchMember");
+        return memberService.getSearchMember(searchRequestDto);
+
+    }
+
 
 
 }

@@ -27,50 +27,48 @@ public class FFmpegExecutor {
         }
     }
 
-    public long getAudioDuration(String inputFilePath) {
+    public String getAudioPlayTime(String inputFilePath) {
         try {
-            // ffmpeg 명령어로 미디어 파일의 메타데이터를 확인
+
             String command = String.format("ffmpeg -i %s", inputFilePath);
             Process process = new ProcessBuilder(command.split(" ")).start();
 
-            // ffmpeg의 stderr에서 duration을 찾음
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String line;
-            long duration = -1;
+            String durationString = null;
 
-            // 출력에서 "Duration" 부분을 찾아서 시간을 추출
             while ((line = reader.readLine()) != null) {
                 if (line.contains("Duration")) {
-                    // Duration: 00:03:40.05 형태의 라인에서 시간을 추출
                     String[] parts = line.split(",")[0].split(" ");
 
-                    // parts 배열이 정상적으로 분리되었는지 확인하고 접근
                     if (parts.length > 1) {
-                        String timeString = parts[3];  // "00:03:40.05" 부분
-                        String[] timeParts = timeString.split(":");  // ":"로 나누기
-
-                        // timeParts 배열의 크기가 3인지 확인 (시, 분, 초)
-                        if (timeParts.length == 3) {
-                            // 각 부분을 파싱하여 총 초 단위로 계산
-                            int hours = parseIntSafe(timeParts[0]); // 시간
-                            int minutes = parseIntSafe(timeParts[1]); // 분
-                            int seconds = parseIntSafe(timeParts[2].split("\\.")[0]);  // 초 (밀리초는 제외)
-
-                            // 총 시간을 초 단위로 계산
-                            duration = hours * 3600 + minutes * 60 + seconds;
-                            break;  // 계산 후 종료
-                        }
+                        durationString = parts[3];
+                        break;
                     }
                 }
             }
 
-            return duration; // 초 단위로 반환
+            if (durationString != null) {
+                String[] timeParts = durationString.split("\\.")[0].split(":");
+
+                if (timeParts.length == 3) {
+                    if (timeParts[0].equals("00")) {
+                        return timeParts[1] + ":" + timeParts[2];
+                    } else {
+                        return timeParts[0] + ":" + timeParts[1] + ":" + timeParts[2];
+                    }
+                }
+            }
+
+
+            return null;  // Duration을 찾지 못했을 때
 
         } catch (Exception e) {
             e.printStackTrace();
-            return -1; // 오류 발생 시 -1 반환
+            return null; // 오류 발생 시 처리
         }
     }
+
 
     public void convertAudioToM3U8(String inputFilePath, String outputDir) {
         try {

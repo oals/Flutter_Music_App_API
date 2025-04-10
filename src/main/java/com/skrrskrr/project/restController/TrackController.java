@@ -1,5 +1,8 @@
 package com.skrrskrr.project.restController;
 
+import com.skrrskrr.project.dto.MemberRequestDto;
+import com.skrrskrr.project.dto.PlayListRequestDto;
+import com.skrrskrr.project.dto.SearchRequestDto;
 import com.skrrskrr.project.dto.TrackRequestDto;
 import com.skrrskrr.project.service.TrackLikeService;
 import com.skrrskrr.project.service.TrackService;
@@ -35,15 +38,54 @@ public class TrackController {
     @GetMapping("/api/getLikeTrack")
     public Map<String,Object> getLikeTrack(TrackRequestDto trackRequestDto){
         log.info("getLikeTrack");
-        trackRequestDto.setLimit(20L);
         return trackLikeService.getLikeTrackList(trackRequestDto);
     }
+
+    @GetMapping("/api/getMemberPageTrack")
+    public Map<String,Object> getMemberPageTrack(MemberRequestDto memberRequestDto){
+        log.info("getMemberPageTrack");
+        return trackService.getMemberPageTrack(memberRequestDto);
+    }
+    @GetMapping("/api/getMemberPagePopularTrack")
+    public Map<String,Object> getMemberPagePopularTrack(MemberRequestDto memberRequestDto){
+        log.info("getMemberPagePopularTrack");
+        return trackService.getMemberPagePopularTrack(memberRequestDto);
+    }
+
+
+
 
     @PostMapping("/api/setTrackLike")
     public Map<String,String> setInsertTrackLike(@RequestBody TrackRequestDto trackRequestDto){
         log.info("setInsertTrackLike");
         return trackLikeService.setTrackLike(trackRequestDto);
     }
+
+
+    @GetMapping("/api/getLastListenTrackList")
+    public Map<String,Object> getLastListenTrackList(TrackRequestDto trackRequestDto) {
+        log.info("getLastListenTrackList");
+        return trackService.getLastListenTrackList(trackRequestDto);
+    }
+
+    @GetMapping("/api/getFollowMemberTrackList")
+    public Map<String,Object> getFollowMemberTrackList(TrackRequestDto trackRequestDto) {
+        log.info("getFollowMemberTrackList");
+        return trackService.getFollowMemberTrackList(trackRequestDto);
+    }
+
+    @GetMapping("/api/getSearchTrack")
+    public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
+        log.info("getSearchTrack");
+        return trackService.getSearchTrack(searchRequestDto);
+    }
+
+    @GetMapping("/api/getPlayListTrackList")
+    public Map<String,Object> getPlayListTrackList(PlayListRequestDto playListRequestDto) {
+        log.info("getPlayListTrackList");
+        return trackService.getPlayListTrackList(playListRequestDto);
+    }
+
 
     @GetMapping("/api/getTrackInfo")
     public Map<String,Object> getTrackInfo(TrackRequestDto trackRequestDto){

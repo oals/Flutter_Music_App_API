@@ -28,6 +28,10 @@ public interface MemberService {
         return memberDto;
     }
 
+    Map<String,Object> getHomeInitMember(MemberRequestDto memberRequestDto);
+
+    Map<String,Object> getSearchMember(SearchRequestDto searchRequestDto);
+
     Member getMemberEntity(Long memberId);
 
     Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto);

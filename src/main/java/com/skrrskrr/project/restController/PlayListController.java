@@ -1,7 +1,6 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.PlayListDto;
-import com.skrrskrr.project.dto.PlayListRequestDto;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.service.PlayListLikeService;
 import com.skrrskrr.project.service.PlayListService;
 import lombok.RequiredArgsConstructor;
@@ -61,5 +60,30 @@ public class PlayListController {
 
         return playListService.getPlayListInfo(playListRequestDto);
     }
+
+    @GetMapping("/api/getMemberPagePlayList")
+    public Map<String,Object> getMemberPagePlayList(MemberRequestDto memberRequestDto) {
+        log.info("getMemberPagePlayList");
+
+        return playListService.getMemberPagePlayList(memberRequestDto);
+    }
+
+
+    @GetMapping("/api/getHomeInitPlayList")
+    public Map<String,Object> getHomeInitPlayList(PlayListRequestDto playListRequestDto) {
+        log.info("getHomeInitPlayList");
+
+        return playListService.getHomeInitPlayList(playListRequestDto);
+    }
+
+    @GetMapping("/api/getSearchPlayList")
+    public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
+        log.info("getSearchTrack");
+        return playListService.getSearchPlayList(searchRequestDto);
+    }
+
+
+
+
 
 }

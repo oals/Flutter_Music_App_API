@@ -36,6 +36,85 @@ public class PlayListServiceImpl implements PlayListService {
 
 
     @Override
+    public Map<String, Object> getHomeInitPlayList(PlayListRequestDto playListRequestDto) {
+
+        Map<String, Object> hashMap = new HashMap<>();
+        playListRequestDto.setLimit(6L);
+        try {
+            /// 인기 플리 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
+            List<PlayListDto> popularPlayList = getPopularPlayLists(playListRequestDto);
+            hashMap.put("popularPlayList",popularPlayList);
+            hashMap.put("status","200");
+        } catch(Exception e){
+            e.printStackTrace();
+            hashMap.put("status","500");
+        }
+
+
+        return hashMap;
+    }
+
+    @Override
+    public Map<String, Object> getSearchPlayList(SearchRequestDto searchRequestDto) {
+
+        Map<String,Object> hashMap = new HashMap<>();
+        List<PlayListDto> playListDtoList = new ArrayList<>();
+
+        try {
+
+            /* 검색된 앨범, 플레이리스트 수 */
+            Long playListCnt = getSearchPlayListCnt(searchRequestDto);
+
+            if (playListCnt != 0L) {
+                /* 검색된 앨범, 플레이리스트 정보 */
+                playListDtoList = getSearchPlayLists(searchRequestDto);
+            }
+            hashMap.put("playListList", playListDtoList);   // 검색된 플레이리스트 리스트
+            hashMap.put("playListListCnt", playListCnt);   // 전체 플레이리스트 수
+            hashMap.put("status","200");
+        }catch(Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+
+        }
+
+        return hashMap;
+
+
+    }
+
+    @Override
+    public Map<String, Object> getMemberPagePlayList(MemberRequestDto memberRequestDto) {
+
+        Map<String, Object> hashMap = new HashMap<>();
+
+        try {
+
+            // 플레이리스트 조회
+            Long playListDtoListCnt = getMemberPlayListCnt(memberRequestDto);
+            List<PlayListDto> playListDtoList = new ArrayList<>();
+            if (playListDtoListCnt != 0L) {
+                playListDtoList = getMemberPlayList(memberRequestDto);
+            }
+
+
+            hashMap.put("playListList", playListDtoList);
+            hashMap.put("playListListCnt", playListDtoListCnt);
+            hashMap.put("status", "200");
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status", "500");
+        }
+
+        return hashMap;
+
+
+    }
+
+
+
+
+    @Override
     public Map<String,Object> getPlayList(PlayListRequestDto playListRequestDto) {
 
         Map<String,Object> hashMap = new HashMap<>();
@@ -106,10 +185,6 @@ public class PlayListServiceImpl implements PlayListService {
         try {
             PlayListDto playListDto = getPlayListById(playListRequestDto);
 
-            List<TrackDto> trackDtoList = trackService.getPlayListTracks(playListRequestDto);
-            playListDto.setPlayListTrackList(trackDtoList);
-
-
             hashMap.put("playList", playListDto);
             hashMap.put("status", "200");
         } catch (Exception e) {
@@ -136,7 +211,7 @@ public class PlayListServiceImpl implements PlayListService {
 
 
     @Override
-    public List<PlayListDto> getSearchPlayList(SearchRequestDto searchRequestDto) {
+    public List<PlayListDto> getSearchPlayLists(SearchRequestDto searchRequestDto) {
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
@@ -181,11 +256,14 @@ public class PlayListServiceImpl implements PlayListService {
 
             if (playList != null && memberTrack != null) {
 
+                if (playList.getPlayListImagePath() == null) {
+                   playList.setPlayListImagePath(memberTrack.getTrack().getTrackImagePath());
+                }
+
                 String playListTotalPlayTime = addTimes(memberTrack.getTrack().getTrackTime(),playList.getTotalPlayTime());
 
                 playList.setTotalPlayTime(playListTotalPlayTime);
                 playList.setTrackCnt(playList.getTrackCnt() + 1);
-
                 playList.getPlayListTrackList().add(memberTrack);
 
                 playListRepository.save(playList);
@@ -311,7 +389,9 @@ public class PlayListServiceImpl implements PlayListService {
                 .member(member)
                 .playListNm(playListRequestDto.getPlayListNm())
                 .isPlayListPrivacy(playListRequestDto.getIsPlayListPrivacy())
+                .totalPlayTime("00:00")
                 .playListLikeCnt(0L)
+                .trackCnt(0L)
                 .isAlbum(playListRequestDto.getIsAlbum())
                 .albumDate(playListRequestDto.getIsAlbum() ? LocalDateTime.now().format(formatter) : null)
                 .memberPlayListList(new ArrayList<>()) // 관계 설정을 위한 리스트 초기화
@@ -376,19 +456,24 @@ public class PlayListServiceImpl implements PlayListService {
 
 
     private String addTimes(String trackTime, String playListTotalTime) {
+        DateTimeFormatter formatterWithSeconds = DateTimeFormatter.ofPattern("H:mm:ss");
+        DateTimeFormatter formatterWithoutHours = DateTimeFormatter.ofPattern("mm:ss");
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-        LocalTime time1 = parseTime(trackTime, formatter);
-
-        LocalTime time2 = parseTime(playListTotalTime, formatter);
+        LocalTime time1 = parseTime(trackTime, formatterWithSeconds);
+        LocalTime time2 = parseTime(playListTotalTime, formatterWithSeconds);
 
         LocalTime totalTime = time1.plusHours(time2.getHour())
                 .plusMinutes(time2.getMinute())
                 .plusSeconds(time2.getSecond());
 
-        return totalTime.format(formatter);
+        if (totalTime.getHour() == 0) {
+            return totalTime.format(formatterWithoutHours);
+        } else {
+            return totalTime.format(formatterWithSeconds);
+        }
     }
+
+
 
 
     private LocalTime parseTime(String time, DateTimeFormatter formatter) {

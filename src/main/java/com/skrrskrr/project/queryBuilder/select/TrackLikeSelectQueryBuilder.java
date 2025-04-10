@@ -61,8 +61,8 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
 
 
 
-    public TrackLikeSelectQueryBuilder orderByMemberTrackIdDesc() {
-        this.query.orderBy(qTrackLike.memberTrack.memberTrackId.desc());
+    public TrackLikeSelectQueryBuilder orderByTrackLikeIdDesc() {
+        this.query.orderBy(qTrackLike.trackLikeId.desc());
         return this;
     }
 

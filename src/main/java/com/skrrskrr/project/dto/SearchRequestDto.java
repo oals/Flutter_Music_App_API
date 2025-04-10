@@ -13,7 +13,7 @@ public class SearchRequestDto extends BaseRequestDto {
 
     private Long memberTrackId;
 
-    private Long moreId;
+//    private Long moreId;
 
     private String searchText;
 

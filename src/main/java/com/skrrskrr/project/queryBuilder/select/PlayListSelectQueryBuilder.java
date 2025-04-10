@@ -142,6 +142,7 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
                         qMemberPlayList.playList.playListLikeCnt,
                         qMemberPlayList.playList.isPlayListPrivacy,
                         qMemberPlayList.playList.playListImagePath,
+                        qMemberPlayList.playList.totalPlayTime,
                         qMemberPlayList.playList.isAlbum,
                         qMemberPlayList.playList.trackCnt,
                         qMemberPlayList.playList.albumDate,

@@ -20,19 +20,6 @@ import java.util.Objects;
 @Log4j2
 public class MainController {
 
-    private final MainService mainService;
-    private final RedisService redisService;
-
-    @GetMapping("/api/firstLoad")
-    public Map<String, Object> firstLoad(MemberRequestDto memberRequestDto){
-        log.info("firstLoad");
-        return mainService.firstLoad(memberRequestDto);
-    }
-
-
-
-
-
 
 
 }

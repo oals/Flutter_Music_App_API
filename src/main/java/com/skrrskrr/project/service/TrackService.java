@@ -11,13 +11,21 @@ import java.util.Map;
 public interface TrackService {
 
 
-    Map<String,Object> saveTrack(UploadDto uploadDto);
+    Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto);
+
+    Map<String,Object> getPlayListTrackList(PlayListRequestDto playListRequestDto);
+
+    Map<String,Object> getMemberPageTrack(MemberRequestDto memberRequestDto);
+
+    Map<String,Object> getMemberPagePopularTrack(MemberRequestDto memberRequestDto);
+
+    void saveTrack(UploadDto uploadDto);
 
     Map<String,Object> updateTrackImage(UploadDto uploadDto);
 
     Map<String,Object> setTrackinfo(TrackRequestDto trackRequestDto);
 
-    List<TrackDto> getFollowMemberTrackList(TrackRequestDto trackRequestDto);
+    Map<String, Object> getFollowMemberTrackList(TrackRequestDto trackRequestDto);
 
     Map<String,Object> setLockTrack(TrackRequestDto trackRequestDto);
 
@@ -35,14 +43,12 @@ public interface TrackService {
 
     List<TrackDto> getPlayListTracks(PlayListRequestDto playListRequestDto);
 
-    List<TrackDto> getTrendingTrackList(TrackRequestDto trackRequestDto);
-
-    List<SearchDto> getSearchTrackList(SearchRequestDto searchRequestDto);
+    List<TrackDto> getSearchTrackList(SearchRequestDto searchRequestDto);
 
     Long getSearchTrackListCnt(SearchRequestDto searchRequestDto);
 
     Long getTrackLastId();
 
-    List<TrackDto> getLastListenTrackList(TrackRequestDto trackRequestDto);
+    Map<String, Object> getLastListenTrackList(TrackRequestDto trackRequestDto);
 
 }
