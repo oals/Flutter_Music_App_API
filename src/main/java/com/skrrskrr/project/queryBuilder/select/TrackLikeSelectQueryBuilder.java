@@ -3,6 +3,8 @@ package com.skrrskrr.project.queryBuilder.select;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.skrrskrr.project.entity.QComment;
+import com.skrrskrr.project.entity.QTrack;
 import com.skrrskrr.project.entity.QTrackLike;
 
 import java.util.List;
@@ -26,9 +28,19 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
     /** --------------------------where ---------------------------------------- */
 
 
-
     public TrackLikeSelectQueryBuilder findIsTrackPrivacyFalse() {
+
         this.query.where(qTrackLike.memberTrack.track.isTrackPrivacy.isFalse());
+
+        return this;
+    }
+
+    public TrackLikeSelectQueryBuilder findIsTrackPrivacyFalseOrLoginMemberIdEqual(Long loginMemberId) {
+
+        this.query.where(
+                qTrackLike.memberTrack.track.isTrackPrivacy.isFalse()
+                        .or(qTrackLike.memberTrack.member.memberId.eq(loginMemberId))
+        );
         return this;
     }
 
@@ -57,12 +69,13 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
     /** --------------------------join -------------------------------------------*/
 
 
+
     /** --------------------------ordeBy ---------------------------------------- */
 
 
 
-    public TrackLikeSelectQueryBuilder orderByTrackLikeIdDesc() {
-        this.query.orderBy(qTrackLike.trackLikeId.desc());
+    public TrackLikeSelectQueryBuilder orderByTrackLikeDateDesc() {
+        this.query.orderBy(qTrackLike.trackLikeDate.desc());
         return this;
     }
 
@@ -70,6 +83,11 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
 
 
 
+    public List<Long> fetchTrackByMemberIdList() {
+        return this.query.select(
+                qTrackLike.memberTrack.member.memberId
+        ).fetch();
+    }
 
 
     public <T> List<?> fetchTrackLikeListDto(Class<T> clazz) {
@@ -81,6 +99,7 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
                         qTrackLike.memberTrack.track.trackPlayCnt,
                         qTrackLike.memberTrack.track.trackTime,
                         qTrackLike.memberTrack.track.trackImagePath,
+                        qTrackLike.memberTrack.track.isTrackPrivacy,
                         qTrackLike.memberTrack.track.trackCategoryId,
                         qTrackLike.memberTrack.member.memberNickName,
                         qTrackLike.memberTrack.member.memberImagePath,
@@ -93,13 +112,6 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         ).fetch();
     }
 
-
-    public Boolean fetchTrackLikeStatus() {
-        Boolean trackLikeStatus = this.query.select(qTrackLike.trackLikeStatus)
-                .fetchFirst();
-
-        return trackLikeStatus != null && trackLikeStatus;
-    }
 
     public <T> T fetchTrackLike(Class<T> clazz) {
         return this.query.select(

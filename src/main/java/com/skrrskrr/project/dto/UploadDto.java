@@ -34,7 +34,7 @@ public class UploadDto {
 
     private Boolean isAlbum;
 
-    private Boolean trackPrivacy;
+    private Boolean isTrackPrivacy;
 
     private String uploadFilePath;
 

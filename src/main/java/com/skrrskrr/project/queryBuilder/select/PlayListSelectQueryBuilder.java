@@ -2,6 +2,7 @@ package com.skrrskrr.project.queryBuilder.select;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -34,6 +35,12 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
+    public PlayListSelectQueryBuilder findPlayListsByNotMemberId (Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
+        this.query.where(qMemberPlayList.playList.member.memberId.ne(loginMemberId));
+        return this;
+    }
+
     public PlayListSelectQueryBuilder findPlayListsByPlayListId(Long playListId) {
         throwIfConditionNotMet(playListId != null);
         this.query.where(qMemberPlayList.playList.playListId.eq(playListId));
@@ -58,11 +65,57 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
     }
 
     public PlayListSelectQueryBuilder findPlayListBySearchText (String searchText) {
-        throwIfConditionNotMet(searchText != null);
 
-        this.query.where(qMemberPlayList.playList.playListNm.contains(searchText));
+        if (searchText != null) {
+            this.query.where(qMemberPlayList.playList.playListNm.contains(searchText));
+        }
         return this;
     }
+
+    public PlayListSelectQueryBuilder findPlayListBySearchTextList(List<String> searchTextList) {
+        if (searchTextList != null) {
+            BooleanExpression containsCondition = searchTextList.stream()
+                    .map(searchText -> qMemberPlayList.playList.playListNm.contains(searchText))
+                    .reduce(BooleanExpression::or)
+                    .orElse(null);
+
+            if (containsCondition != null) {
+                this.query.where(containsCondition);
+            }
+        }
+        return this;
+    }
+
+
+    public PlayListSelectQueryBuilder findPlayListByPlayListIdList(List<Long> playListId) {
+        if (playListId != null) {
+            BooleanExpression containsCondition = playListId.stream()
+                    .map(id -> qMemberPlayList.playList.playListId.eq(id))
+                    .reduce(BooleanExpression::or)
+                    .orElse(null);
+
+            if (containsCondition != null) {
+                this.query.where(containsCondition);
+            }
+        }
+        return this;
+    }
+
+    public PlayListSelectQueryBuilder findPlayListByMemberIdList(List<Long> memberId) {
+        if (memberId != null) {
+            BooleanExpression containsCondition = memberId.stream()
+                    .map(id -> qMemberPlayList.playList.member.memberId.eq(id))
+                    .reduce(BooleanExpression::or)
+                    .orElse(null);
+
+            if (containsCondition != null) {
+                this.query.where(containsCondition);
+            }
+        }
+        return this;
+    }
+
+
 
     public PlayListSelectQueryBuilder findIsPlayListPrivacyFalse () {
         this.query.where(qMemberPlayList.playList.isPlayListPrivacy.isFalse());
@@ -71,7 +124,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
     public PlayListSelectQueryBuilder findIsPlayListPrivacyFalseOrLoginMemberIdEqual(Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
-        this.findIsPlayListPrivacyFalse();
         this.query.where(qMemberPlayList.playList.isPlayListPrivacy.isFalse()
                 .or(qMemberPlayList.playList.member.memberId.eq(loginMemberId)));
         return this;
@@ -80,6 +132,27 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
 
 
     /** --------------------------join -------------------------------------------*/
+
+    public PlayListSelectQueryBuilder joinMemberPlayListWithMember() {
+        this.query.join(qMemberPlayList.member, QMember.member);;
+        return this; // 체이닝 유지
+    }
+
+
+    public PlayListSelectQueryBuilder findFollowerPlayLists(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
+
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
+        followSelectQueryBuilder.setQuery(this.query).findFollowerMember(loginMemberId);
+
+        return this;
+    }
+
+    public PlayListSelectQueryBuilder joinMemberFollowersAndFollow() {
+        FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
+        followSelectQueryBuilder.setQuery(this.query).joinMemberFollowersAndFollow();
+        return this;
+    }
 
     public PlayListSelectQueryBuilder joinPlayListLikeWithMemberPlayList(Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
@@ -132,8 +205,19 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         ).fetchFirst();
     }
 
-
     public <T> List<?> fetchPlayListPreviewDto(Class<T> clazz) {
+        return this.query.select(
+                Projections.bean(
+                        clazz,
+                        qMemberPlayList.playList.playListId,
+                        qMemberPlayList.playList.playListNm,
+                        qMemberPlayList.playList.playListImagePath,
+                        qMemberPlayList.member.memberId
+                )
+        ).fetch();
+    }
+
+    public <T> List<?> fetchPlayListDto(Class<T> clazz) {
         return this.query.select(
                 Projections.bean(
                         clazz,
@@ -143,6 +227,7 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
                         qMemberPlayList.playList.isPlayListPrivacy,
                         qMemberPlayList.playList.playListImagePath,
                         qMemberPlayList.playList.totalPlayTime,
+                        qMemberPlayList.playList.trackCnt,
                         qMemberPlayList.playList.isAlbum,
                         qMemberPlayList.playList.trackCnt,
                         qMemberPlayList.playList.albumDate,

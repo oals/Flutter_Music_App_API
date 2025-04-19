@@ -52,15 +52,11 @@ public class TrackController {
         return trackService.getMemberPagePopularTrack(memberRequestDto);
     }
 
-
-
-
     @PostMapping("/api/setTrackLike")
     public Map<String,String> setInsertTrackLike(@RequestBody TrackRequestDto trackRequestDto){
         log.info("setInsertTrackLike");
         return trackLikeService.setTrackLike(trackRequestDto);
     }
-
 
     @GetMapping("/api/getLastListenTrackList")
     public Map<String,Object> getLastListenTrackList(TrackRequestDto trackRequestDto) {
@@ -68,11 +64,6 @@ public class TrackController {
         return trackService.getLastListenTrackList(trackRequestDto);
     }
 
-    @GetMapping("/api/getFollowMemberTrackList")
-    public Map<String,Object> getFollowMemberTrackList(TrackRequestDto trackRequestDto) {
-        log.info("getFollowMemberTrackList");
-        return trackService.getFollowMemberTrackList(trackRequestDto);
-    }
 
     @GetMapping("/api/getSearchTrack")
     public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
@@ -88,9 +79,15 @@ public class TrackController {
 
 
     @GetMapping("/api/getTrackInfo")
-    public Map<String,Object> getTrackInfo(TrackRequestDto trackRequestDto){
+    public Map<String,Object> getTrackInfoList(TrackRequestDto trackRequestDto){
         log.info("getTrackInfo");
         return trackService.getTrackInfo(trackRequestDto);
+    }
+
+    @GetMapping("/api/getAudioPlayerTrackList")
+    public Map<String,Object> getAudioPlayerTrackList(TrackRequestDto trackRequestDto){
+        log.info("getAudioPlayList");
+        return trackService.getAudioPlayerTrackList(trackRequestDto);
     }
 
     @GetMapping("/api/getRecommendTrack")

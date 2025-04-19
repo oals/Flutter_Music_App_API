@@ -1,6 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.skrrskrr.project.dto.PlayListDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.PlayListLikeSelectQueryBuilder;
@@ -9,18 +10,22 @@ import com.skrrskrr.project.queryBuilder.update.PlayListLikeUpdateQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 @Log4j2
+@SuppressWarnings("unchecked")
 public class PlayListLikeServiceImpl implements PlayListLikeService{
 
 
@@ -66,6 +71,47 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
 
     }
 
+    @Override
+    public Map<String, Object> getLikePlayList(PlayListRequestDto playListRequestDto) {
+
+        Map<String,Object> hashMap = new HashMap<>();
+        PlayListLikeSelectQueryBuilder playListLikeSelectQueryBuilder = new PlayListLikeSelectQueryBuilder(jpaQueryFactory);
+
+        try {
+
+
+            List<PlayListDto> likePlayListDtoList = (List<PlayListDto>) playListLikeSelectQueryBuilder
+                    .selectFrom(QPlayListLike.playListLike)
+                    .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
+                    .findIsPlayListLikeStatusTrue()
+                    .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
+                    .findIsAlbum(playListRequestDto.getIsAlbum())
+                    .orderByPlayListLikeDateDesc()
+                    .offset(playListRequestDto.getOffset())
+                    .limit(playListRequestDto.getLimit())
+                    .fetchLikePlayListDto(PlayListDto.class);
+
+
+            Long totalCount = playListLikeSelectQueryBuilder
+                    .resetQuery()
+                    .from(QPlayListLike.playListLike)
+                    .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
+                    .findIsPlayListLikeStatusTrue()
+                    .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
+                    .findIsAlbum(playListRequestDto.getIsAlbum())
+                    .fetchCount();
+
+
+            hashMap.put("playList",likePlayListDtoList);
+            hashMap.put("totalCount",totalCount);
+            hashMap.put("status","200");
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+        }
+        return hashMap;
+    }
+
     private void insertPlayListLike(PlayListRequestDto playListRequestDto) {
 
         MemberPlayList memberPlayList = getMemberPlayList(playListRequestDto);
@@ -86,6 +132,7 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
         insertPlayListLike.setMemberPlayList(memberPlayList);
         insertPlayListLike.setMember(member);
         insertPlayListLike.setPlayListLikeStatus(true);
+        insertPlayListLike.setPlayListLikeDate(LocalDateTime.now());
 
         entitiyManager.persist(insertPlayListLike);
     }
@@ -110,6 +157,7 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
 
         playListLikeUpdateQueryBuilder.setEntity(QPlayListLike.playListLike)
                 .set(QPlayListLike.playListLike.playListLikeStatus, !playListLikeStatus)
+                .set(QPlayListLike.playListLike.playListLikeDate, LocalDateTime.now())
                 .findPlayListLikeByMemberPlayListId(memberPlayList.getMemberPlayListId())
                 .findPlayListLikeByMemberId(memberId)
                 .execute();

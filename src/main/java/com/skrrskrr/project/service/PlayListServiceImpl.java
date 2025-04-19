@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
+import com.skrrskrr.project.queryBuilder.select.TrackSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import com.skrrskrr.project.repository.PlayListRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,28 +33,48 @@ public class PlayListServiceImpl implements PlayListService {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final PlayListRepository playListRepository;
-    private final TrackService trackService;
-    private final ModelMapper modelMapper;
-
+    private final TrackLikeService trackLikeService;
+    private final SearchService searchService;
 
     @Override
-    public Map<String, Object> getHomeInitPlayList(PlayListRequestDto playListRequestDto) {
+    public Map<String, Object> getRecommendPlayList(PlayListRequestDto playListRequestDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
         playListRequestDto.setLimit(6L);
+        playListRequestDto.setIsAlbum(false);
         try {
-            /// 인기 플리 추천  - 카테고리에 해당하는 곡의 수 , 조회수, 좋아요 수 ,
-            List<PlayListDto> popularPlayList = getPopularPlayLists(playListRequestDto);
-            hashMap.put("popularPlayList",popularPlayList);
+
+            List<PlayListDto> recommendPlayList = getRecommendPlayLists(playListRequestDto);
+
+            hashMap.put("recommendPlayList",recommendPlayList);
             hashMap.put("status","200");
         } catch(Exception e){
             e.printStackTrace();
             hashMap.put("status","500");
         }
-
-
         return hashMap;
     }
+
+    @Override
+    public Map<String, Object> getRecommendAlbum(PlayListRequestDto playListRequestDto) {
+
+        Map<String, Object> hashMap = new HashMap<>();
+        playListRequestDto.setLimit(6L);
+        playListRequestDto.setIsAlbum(true);
+        try {
+
+            List<PlayListDto> recommendAlbum = getRecommendPlayLists(playListRequestDto);
+
+            hashMap.put("recommendAlbum",recommendAlbum);
+            hashMap.put("status","200");
+        } catch(Exception e){
+            e.printStackTrace();
+            hashMap.put("status","500");
+        }
+        return hashMap;
+    }
+
+
 
     @Override
     public Map<String, Object> getSearchPlayList(SearchRequestDto searchRequestDto) {
@@ -84,17 +106,45 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     @Override
-    public Map<String, Object> getMemberPagePlayList(MemberRequestDto memberRequestDto) {
+    public Map<String, Object> getMemberPagePlayList(PlayListRequestDto playListRequestDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
-
+        playListRequestDto.setIsAlbum(false);
         try {
 
             // 플레이리스트 조회
-            Long playListDtoListCnt = getMemberPlayListCnt(memberRequestDto);
+            Long playListDtoListCnt = getMemberPlayListCnt(playListRequestDto);
             List<PlayListDto> playListDtoList = new ArrayList<>();
             if (playListDtoListCnt != 0L) {
-                playListDtoList = getMemberPlayList(memberRequestDto);
+                playListDtoList = getMemberPlayList(playListRequestDto);
+            }
+
+
+            hashMap.put("playListList", playListDtoList);
+            hashMap.put("playListListCnt", playListDtoListCnt);
+            hashMap.put("status", "200");
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status", "500");
+        }
+
+        return hashMap;
+
+
+    }
+
+    @Override
+    public Map<String, Object> getMemberPageAlbums(PlayListRequestDto playListRequestDto) {
+
+        Map<String, Object> hashMap = new HashMap<>();
+        playListRequestDto.setIsAlbum(true);
+        try {
+
+            // 플레이리스트 조회
+            Long playListDtoListCnt = getMemberPlayListCnt(playListRequestDto);
+            List<PlayListDto> playListDtoList = new ArrayList<>();
+            if (playListDtoListCnt != 0L) {
+                playListDtoList = getMemberPlayList(playListRequestDto);
             }
 
 
@@ -130,7 +180,7 @@ public class PlayListServiceImpl implements PlayListService {
                     .orderByPlayListIdDesc()
                     .limit(playListRequestDto.getLimit())
                     .offset(playListRequestDto.getOffset())
-                    .fetchPlayListPreviewDto(PlayListDto.class);
+                    .fetchPlayListDto(PlayListDto.class);
 
 
             Long totalCount = playListSelectQueryBuilder
@@ -155,7 +205,6 @@ public class PlayListServiceImpl implements PlayListService {
         }
         return hashMap;
     }
-
 
     private List<PlayListDto> checkIsInPlayListTrack(Long trackId, List<PlayListDto> playListDtoList){
 
@@ -218,12 +267,18 @@ public class PlayListServiceImpl implements PlayListService {
         return (List<PlayListDto>) playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
                 .findPlayListBySearchText(searchRequestDto.getSearchText())
+                .findPlayListBySearchTextList(searchRequestDto.getSearchTextList())
                 .joinPlayListLikeWithMemberPlayList(searchRequestDto.getLoginMemberId())
                 .findIsPlayListPrivacyFalse()
                 .findIsPlayListNotEmpty()
+                .findIsAlbum(searchRequestDto.getIsAlbum())
                 .limit(searchRequestDto.getLimit())
+                .orderByPlayListLikeCntDesc()
+                .orderByPlayListIdDesc()
                 .offset(searchRequestDto.getOffset())
-                .fetchPlayListPreviewDto(PlayListDto.class);
+                .fetchPlayListDto(PlayListDto.class);
+
+
     }
 
     @Override
@@ -328,46 +383,119 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
 
-    public List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto) {
+    public List<PlayListDto> getMemberPlayList(PlayListRequestDto playListRequestDto) {
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
         return (List<PlayListDto>) playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
-                .findPlayListsByMemberId(memberRequestDto.getMemberId())
-                .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(memberRequestDto.getLoginMemberId())
-                .joinPlayListLikeWithMemberPlayList(memberRequestDto.getLoginMemberId())
+                .findPlayListsByMemberId(playListRequestDto.getMemberId())
+                .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .joinPlayListLikeWithMemberPlayList(playListRequestDto.getLoginMemberId())
                 .orderByPlayListIdDesc()
-                .limit(memberRequestDto.getLimit())
-                .offset(memberRequestDto.getOffset())
-                .fetchPlayListPreviewDto(PlayListDto.class);
+                .limit(playListRequestDto.getLimit())
+                .offset(playListRequestDto.getOffset())
+                .fetchPlayListDto(PlayListDto.class);
     }
 
-    public Long getMemberPlayListCnt(MemberRequestDto memberRequestDto) {
+    public Long getMemberPlayListCnt(PlayListRequestDto playListRequestDto) {
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
         return playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
-                .findPlayListsByMemberId(memberRequestDto.getMemberId())
-                .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(memberRequestDto.getLoginMemberId())
+                .findPlayListsByMemberId(playListRequestDto.getMemberId())
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
                 .fetchCount();
     }
 
 
     @Override
-    public List<PlayListDto> getPopularPlayLists(PlayListRequestDto playListRequestDto) {
+    public List<PlayListDto> getRecommendPlayLists(PlayListRequestDto playListRequestDto) {
+
+        List<PlayListDto> recommendPlayList = new ArrayList<>();
+
+
+        /** 최근 좋아요 누른 트랙의 사용자 최근 플리 조회 */
+        TrackRequestDto trackRequestDto = new TrackRequestDto();
+        trackRequestDto.setLoginMemberId(playListRequestDto.getLoginMemberId());
+        trackRequestDto.setLimit(5L);
+
+        List<Long> likeTrackMemberIdList = trackLikeService.getRecommendLikeTrackMemberId(trackRequestDto);
+
+        playListRequestDto.setLimit(1L);
+
+        for (Long memberId : likeTrackMemberIdList) {
+            playListRequestDto.setMemberId(memberId);
+            recommendPlayList.addAll(getMemberPlayList(playListRequestDto));
+        }
+
+        /** 팔로우한 유저의 최근 플리 */
+        playListRequestDto.setLimit(5L);
+        recommendPlayList.addAll(getFollowMemberPlayList(playListRequestDto));
+
+        /** 검색어 기반 플리 조회*/
+        SearchRequestDto searchRequestDto = new SearchRequestDto();
+        searchRequestDto.setLoginMemberId(trackRequestDto.getLoginMemberId());
+        searchRequestDto.setLimit(5L);
+        searchRequestDto.setIsAlbum(playListRequestDto.getIsAlbum());
+
+        searchRequestDto.setSearchTextList(searchService.processSearchKeywords(searchRequestDto));
+
+        recommendPlayList.addAll(getSearchPlayLists(searchRequestDto));
+
+        recommendPlayList = recommendPlayList.stream()
+                .distinct()
+                .collect(Collectors.toList());
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
-        return (List<PlayListDto>) playListSelectQueryBuilder
-                .selectFrom(QMemberPlayList.memberPlayList)
-                .joinPlayListLikeWithMemberPlayList(playListRequestDto.getLoginMemberId())
-                .findIsPlayListNotEmpty()
-                .findIsPlayListPrivacyFalse()
-                .orderByPlayListLikeCntDesc()
-                .limit(playListRequestDto.getLimit())
-                .fetchPlayListPreviewDto(PlayListDto.class);
+        if (recommendPlayList.isEmpty()){
+
+            recommendPlayList.addAll(
+                    (List<PlayListDto>) playListSelectQueryBuilder
+                            .selectFrom(QMemberPlayList.memberPlayList)
+                            .joinPlayListLikeWithMemberPlayList(playListRequestDto.getLoginMemberId())
+                            .findIsPlayListNotEmpty()
+                            .findPlayListsByNotMemberId(playListRequestDto.getLoginMemberId())
+                            .findIsPlayListPrivacyFalse()
+                            .orderByPlayListLikeCntDesc()
+                            .findIsAlbum(playListRequestDto.getIsAlbum())
+                            .limit(playListRequestDto.getLimit())
+                            .fetchPlayListPreviewDto(PlayListDto.class)
+            );
+
+        } else {
+            Long addRecommendPlayListLimit = (long) (16 - recommendPlayList.size());
+
+            List<Long> playListMemberIdList = recommendPlayList.stream()
+                    .map(PlayListDto::getMemberId)
+                    .toList();
+
+            List<Long> playListIdList = recommendPlayList.stream()
+                    .map(PlayListDto::getPlayListId)
+                    .toList();
+
+           recommendPlayList.addAll(
+                    (List<PlayListDto>) playListSelectQueryBuilder
+                            .selectFrom(QMemberPlayList.memberPlayList)
+                            .findIsPlayListNotEmpty()
+                            .findPlayListByMemberIdList(playListMemberIdList)
+                            .findPlayListByPlayListIdList(playListIdList)
+                            .findIsPlayListPrivacyFalse()
+                            .orderByPlayListLikeCntDesc()
+                            .findIsAlbum(playListRequestDto.getIsAlbum())
+                            .limit(addRecommendPlayListLimit)
+                            .fetchPlayListPreviewDto(PlayListDto.class)
+            );
+
+        }
+
+
+
+        return recommendPlayList;
     }
 
 
@@ -380,6 +508,21 @@ public class PlayListServiceImpl implements PlayListService {
                 .fetchOne();
     }
 
+
+    private List<PlayListDto> getFollowMemberPlayList(PlayListRequestDto playListRequestDto) {
+
+        PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
+
+        return (List<PlayListDto>) playListSelectQueryBuilder.selectFrom(QMemberPlayList.memberPlayList)
+                .joinMemberPlayListWithMember()
+                .joinMemberFollowersAndFollow()
+                .findIsPlayListPrivacyFalse()
+                .findFollowerPlayLists(playListRequestDto.getLoginMemberId())
+                .orderByPlayListIdDesc()
+                .limit(playListRequestDto.getLimit())
+                .fetchPlayListPreviewDto(PlayListDto.class);
+
+    }
 
     private PlayList createPlayList(PlayListRequestDto playListRequestDto, Member member) {
 
@@ -411,47 +554,6 @@ public class PlayListServiceImpl implements PlayListService {
         member.getMemberPlayListList().add(memberPlayList);
 
         return playListRepository.save(playList).getPlayListId();
-    }
-
-
-    private PlayListDto playListEntityToDto(PlayList playList, PlayListRequestDto playListRequestDto){
-
-        PlayListDto playListDto = PlayListDto.builder()
-                .playListId(playList.getPlayListId())
-                .playListNm(playList.getPlayListNm())
-                .trackCnt(playList.getTrackCnt())
-                .playListImagePath(playList.getPlayListImagePath())
-                .isPlayListPrivacy(playList.getIsPlayListPrivacy())
-                .playListLikeCnt(playList.getPlayListLikeCnt())
-                .trackCnt(playList.getTrackCnt())
-                .albumDate(playList.getAlbumDate())
-                .memberId(playList.getMember().getMemberId())
-                .memberNickName(playList.getMember().getMemberNickName())
-                .build();
-
-        List<TrackDto> trackDtoList = new ArrayList<>();
-
-        for (int i = playList.getPlayListTrackList().size() - 1; i >= 0; i--) {
-            MemberTrack memberTrack = playList.getPlayListTrackList().get(i);
-
-            if (memberTrack.getTrack().getIsTrackPrivacy()) {
-                if (!Objects.equals(memberTrack.getTrack().getMemberTrackList().get(0).getMember().getMemberId(),
-                        playListRequestDto.getLoginMemberId())) {
-                    continue;
-                }
-            }
-
-            TrackDto trackDto = modelMapper.map(memberTrack.getTrack(), TrackDto.class);
-            trackDto.setMemberId(memberTrack.getMember().getMemberId());
-            trackDto.setMemberNickName(memberTrack.getMember().getMemberNickName());
-            trackDto.setTrackLikeStatus(false);
-            trackDtoList.add(trackDto);
-        }
-
-        playListDto.setPlayListTrackList(trackDtoList);
-
-
-        return playListDto;
     }
 
 

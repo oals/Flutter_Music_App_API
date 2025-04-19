@@ -24,6 +24,11 @@ public class RedisController {
         return redisService.setLastListenTrackId(trackRequestDto);
     }
 
+    @PostMapping("/api/setAudioPlayerTrackIdList")
+    public Map<String,Object> setAudioPlayerTrackIdList(@RequestBody TrackRequestDto trackRequestDto){
+        log.info("setAudioPlayerTrackIdList");
+        return redisService.setAudioPlayerTrackIdList(trackRequestDto);
+    }
 
     @GetMapping("/api/getLastListenTrackId")
     public Map<String,Object> getLastListenTrack(TrackRequestDto trackRequestDto){

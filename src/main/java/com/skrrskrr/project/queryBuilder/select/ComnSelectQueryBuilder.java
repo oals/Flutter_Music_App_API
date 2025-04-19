@@ -57,6 +57,11 @@ public class ComnSelectQueryBuilder<T extends ComnSelectQueryBuilder<T>> {
         return (T) this;
     }
 
+    public T distinct() {
+        this.query.distinct();
+        return (T) this;
+    }
+
     // offset() 메서드: 오프셋을 설정
     public T offset(long offset) {
         this.query.offset(offset);

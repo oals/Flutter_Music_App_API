@@ -28,7 +28,7 @@ public interface MemberService {
         return memberDto;
     }
 
-    Map<String,Object> getHomeInitMember(MemberRequestDto memberRequestDto);
+    Map<String,Object> getRecommendMember(MemberRequestDto memberRequestDto);
 
     Map<String,Object> getSearchMember(SearchRequestDto searchRequestDto);
 

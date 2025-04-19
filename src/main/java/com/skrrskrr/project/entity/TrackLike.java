@@ -3,6 +3,7 @@ package com.skrrskrr.project.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -25,6 +26,8 @@ public class TrackLike {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    private LocalDateTime trackLikeDate;
 
 
 

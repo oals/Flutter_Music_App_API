@@ -19,17 +19,15 @@ public interface TrackService {
 
     Map<String,Object> getMemberPagePopularTrack(MemberRequestDto memberRequestDto);
 
-    void saveTrack(UploadDto uploadDto);
-
     Map<String,Object> updateTrackImage(UploadDto uploadDto);
 
     Map<String,Object> setTrackinfo(TrackRequestDto trackRequestDto);
 
-    Map<String, Object> getFollowMemberTrackList(TrackRequestDto trackRequestDto);
-
     Map<String,Object> setLockTrack(TrackRequestDto trackRequestDto);
 
     Map<String,Object> getTrackInfo(TrackRequestDto trackRequestDto);
+
+    Map<String,Object> getAudioPlayerTrackList(TrackRequestDto trackRequestDto);
 
     Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto);
 
@@ -43,11 +41,9 @@ public interface TrackService {
 
     List<TrackDto> getPlayListTracks(PlayListRequestDto playListRequestDto);
 
-    List<TrackDto> getSearchTrackList(SearchRequestDto searchRequestDto);
-
-    Long getSearchTrackListCnt(SearchRequestDto searchRequestDto);
-
     Long getTrackLastId();
+
+    void saveTrack(UploadDto uploadDto);
 
     Map<String, Object> getLastListenTrackList(TrackRequestDto trackRequestDto);
 

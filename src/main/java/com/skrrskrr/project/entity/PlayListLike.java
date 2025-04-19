@@ -3,6 +3,7 @@ package com.skrrskrr.project.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -26,4 +27,5 @@ public class PlayListLike {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private LocalDateTime playListLikeDate;
 }

@@ -1,6 +1,5 @@
 package com.skrrskrr.project.queryBuilder.select;
 
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -14,7 +13,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Arrays;
 import java.util.List;
 
 public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQueryBuilder> {
@@ -43,6 +41,12 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this;
     }
 
+    public TrackSelectQueryBuilder findTracksByNotMemberId(Long memberId) {
+        throwIfConditionNotMet(memberId != null);
+        this.query.where(qMemberTrack.member.memberId.ne(memberId));
+        return this;
+    }
+
     public TrackSelectQueryBuilder findTrackByTrackId(Long trackId) {
         throwIfConditionNotMet(trackId != null);
         this.query.where(qMemberTrack.track.trackId.eq(trackId));
@@ -54,14 +58,10 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this;
     }
 
-
-    public TrackSelectQueryBuilder findIsTrackPrivacyFalseOrLoginMemberIdEqual(Long loginMemberId) {
-        throwIfConditionNotMet(loginMemberId != null);
-        this.findIsTrackPrivacyFalse();
+    public TrackSelectQueryBuilder findIsTrackPrivacyFalseOrEqualLoginMemberId(Long loginMemberId) {
         this.query.where(qMemberTrack.track.isTrackPrivacy.isFalse().or(qMemberTrack.member.memberId.eq(loginMemberId)));
         return this;
     }
-
 
     public TrackSelectQueryBuilder findCategoryTracks(Long trackCategoryId){
         throwIfConditionNotMet(trackCategoryId != null);
@@ -71,8 +71,9 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
 
     }
 
+
     public TrackSelectQueryBuilder findTrackNotInList(List<Long> excludedTrackIds) {
-        if (!excludedTrackIds.isEmpty()) {
+        if (excludedTrackIds != null) {
             this.query.where(qMemberTrack.track.trackId.notIn(excludedTrackIds));
         }
         return this;
@@ -103,12 +104,25 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
     }
 
     public TrackSelectQueryBuilder findTrackBySearchText(String searchText) {
-        throwIfConditionNotMet(searchText != null);
-
-        this.query.where(qMemberTrack.track.trackNm.contains(searchText));
+        if(searchText != null) {
+            this.query.where(qMemberTrack.track.trackNm.contains(searchText));
+        }
         return this;
     }
 
+    public TrackSelectQueryBuilder findTracksBySearchTextList(List<String> searchTextList) {
+        if (searchTextList != null) {
+            BooleanExpression containsCondition = searchTextList.stream()
+                    .map(searchText -> qMemberTrack.track.trackNm.contains(searchText))
+                    .reduce(BooleanExpression::or)
+                    .orElse(null);
+
+            if (containsCondition != null) {
+                this.query.where(containsCondition);
+            }
+        }
+        return this;
+    }
 
 
     /** --------------------------join -------------------------------------------*/
@@ -215,6 +229,7 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
                         qMemberTrack.track.trackNm,
                         qMemberTrack.track.trackTime,
                         qMemberTrack.track.trackLikeCnt,
+                        qMemberTrack.track.isTrackPrivacy,
                         qMemberTrack.track.trackPlayCnt,
                         qMemberTrack.track.trackCategoryId,
                         qMemberTrack.track.trackPath,

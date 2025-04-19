@@ -9,6 +9,10 @@ public interface RedisService {
 
     Map<String,Object> setLastListenTrackId(TrackRequestDto trackRequestDto);
 
+    Map<String,Object> setAudioPlayerTrackIdList(TrackRequestDto trackRequestDto);
+
+    List<Long> getAudioPlayerTrackIdList(TrackRequestDto trackRequestDto);
+
     Map<String,Object> getLastListenTrackId(TrackRequestDto trackRequestDto);
 
     List<Long> getLastListenTrackIdList(TrackRequestDto trackRequestDto);

@@ -7,9 +7,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +34,48 @@ public class RedisServiceImpl implements RedisService{
 
         return hashMap;
     }
+
+    @Override
+    public Map<String, Object> setAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
+        Map<String, Object> hashMap = new HashMap<>();
+        try {
+
+            String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
+            List<Long> trackIdList = trackRequestDto.getTrackIdList();
+            redisTemplate.opsForValue().set(key, trackIdList.toString());
+            hashMap.put("status","200");
+        } catch (Exception e) {
+            e.printStackTrace();
+            hashMap.put("status","500");
+
+        }
+
+        return hashMap;
+    }
+
+    @Override
+    public List<Long> getAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
+        // 레디스 키 생성
+        String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
+
+        // 레디스에서 저장된 데이터를 가져오기
+        String trackIdListString = redisTemplate.opsForValue().get(key);
+
+        // String 데이터를 원래 List<Long> 형식으로 복원
+        if (trackIdListString != null && !trackIdListString.isEmpty()) {
+            return Arrays.stream(trackIdListString
+                            .replace("[", "")
+                            .replace("]", "")
+                            .split(","))
+                    .map(String::trim)
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+        }
+
+        // trackIdList가 없으면 빈 리스트 반환
+        return new ArrayList<>();
+    }
+
 
     private void saveLastListenTrackId(TrackRequestDto trackRequestDto) {
         try {

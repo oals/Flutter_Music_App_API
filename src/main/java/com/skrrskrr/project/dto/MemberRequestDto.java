@@ -9,7 +9,6 @@ import lombok.*;
 @Builder
 public class MemberRequestDto extends BaseRequestDto{
 
-    private Long memberId;
     private String memberEmail;
     private String deviceToken;
     private String memberNickName;

@@ -54,6 +54,13 @@ public class PlayListController {
         return playListService.getPlayList(playListRequestDto);
     }
 
+    @GetMapping("/api/getLikePlayList")
+    public Map<String,Object> getLikePlayList(PlayListRequestDto playListRequestDto) {
+
+        log.info("getLikePlayList");
+        return playListLikeService.getLikePlayList(playListRequestDto);
+    }
+
     @GetMapping("/api/getPlayListInfo")
     public Map<String,Object> getPlayListInfo(PlayListRequestDto playListRequestDto) {
         log.info("getPlayListInfo");
@@ -62,28 +69,41 @@ public class PlayListController {
     }
 
     @GetMapping("/api/getMemberPagePlayList")
-    public Map<String,Object> getMemberPagePlayList(MemberRequestDto memberRequestDto) {
+    public Map<String,Object> getMemberPagePlayList(PlayListRequestDto playListRequestDto) {
         log.info("getMemberPagePlayList");
 
-        return playListService.getMemberPagePlayList(memberRequestDto);
+        return playListService.getMemberPagePlayList(playListRequestDto);
+    }
+
+    @GetMapping("/api/getMemberPageAlbums")
+    public Map<String,Object> getMemberPageAlbums(PlayListRequestDto playListRequestDto) {
+        log.info("getMemberPageAlbums");
+
+        return playListService.getMemberPageAlbums(playListRequestDto);
     }
 
 
-    @GetMapping("/api/getHomeInitPlayList")
-    public Map<String,Object> getHomeInitPlayList(PlayListRequestDto playListRequestDto) {
-        log.info("getHomeInitPlayList");
 
-        return playListService.getHomeInitPlayList(playListRequestDto);
+    @GetMapping("/api/getRecommendPlayList")
+    public Map<String,Object> getRecommendPlayList(PlayListRequestDto playListRequestDto) {
+        log.info("getRecommendPlayList");
+
+        return playListService.getRecommendPlayList(playListRequestDto);
     }
+
+    @GetMapping("/api/getRecommendAlbum")
+    public Map<String,Object> getRecommendAlbum(PlayListRequestDto playListRequestDto) {
+        log.info("getRecommendAlbum");
+
+        return playListService.getRecommendAlbum(playListRequestDto);
+    }
+
 
     @GetMapping("/api/getSearchPlayList")
     public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
         log.info("getSearchTrack");
         return playListService.getSearchPlayList(searchRequestDto);
     }
-
-
-
 
 
 }

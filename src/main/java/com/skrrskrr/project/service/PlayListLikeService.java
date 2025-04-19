@@ -10,4 +10,7 @@ public interface PlayListLikeService {
     Map<String,Object> setPlayListLike(PlayListRequestDto playListRequestDto);
 
     PlayListLike selectPlayListLikeEntity(PlayListRequestDto playListRequestDto);
+
+    Map<String,Object> getLikePlayList(PlayListRequestDto playListRequestDto);
+
 }

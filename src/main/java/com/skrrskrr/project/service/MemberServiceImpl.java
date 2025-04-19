@@ -163,7 +163,7 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public Map<String, Object> getHomeInitMember(MemberRequestDto memberRequestDto) {
+    public Map<String, Object> getRecommendMember(MemberRequestDto memberRequestDto) {
 
         Map<String, Object> hashMap = new HashMap<>();
 

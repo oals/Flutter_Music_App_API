@@ -2,6 +2,7 @@ package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.FcmSendDto;
+import com.skrrskrr.project.dto.MemberDto;
 import com.skrrskrr.project.dto.TrackDto;
 import com.skrrskrr.project.dto.TrackRequestDto;
 import com.skrrskrr.project.entity.*;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,6 @@ public class trackLikeServiceImpl implements TrackLikeService{
                 .fetchFirst(MemberTrack.class);
     }
 
-    /// 멤버 서비스 연결시 순환 참조 오류
     private Member getMemberEntity(Long memberId) {
 
         MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
@@ -105,6 +106,22 @@ public class trackLikeServiceImpl implements TrackLikeService{
         return hashMap;
     }
 
+    @Override
+    public List<Long> getRecommendLikeTrackMemberId(TrackRequestDto trackRequestDto) {
+
+        TrackLikeSelectQueryBuilder trackLikeSelectQueryBuilder = new TrackLikeSelectQueryBuilder(jpaQueryFactory);
+
+        return trackLikeSelectQueryBuilder
+                .selectFrom(QTrackLike.trackLike)
+                .findIsTrackPrivacyFalse()
+                .findIsTrackLikeStatusTrue()
+                .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
+                .orderByTrackLikeDateDesc()
+                .distinct()
+                .limit(5L)
+                .fetchTrackByMemberIdList();
+    }
+
 
     @Override
     public Map<String, Object> getLikeTrackList(TrackRequestDto trackRequestDto) {
@@ -116,10 +133,10 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
             List<TrackDto> likeTrackList = (List<TrackDto>) trackLikeSelectQueryBuilder
                     .selectFrom(QTrackLike.trackLike)
-                    .findIsTrackPrivacyFalse()
+                    .findIsTrackPrivacyFalseOrLoginMemberIdEqual(trackRequestDto.getLoginMemberId())
                     .findIsTrackLikeStatusTrue()
                     .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
-                    .orderByTrackLikeIdDesc()
+                    .orderByTrackLikeDateDesc()
                     .offset(trackRequestDto.getOffset())
                     .limit(trackRequestDto.getLimit())
                     .fetchTrackLikeListDto(TrackDto.class);
@@ -127,7 +144,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
             Long totalCount = trackLikeSelectQueryBuilder
                     .resetQuery()
                     .from(QTrackLike.trackLike)
-                    .findIsTrackPrivacyFalse()
+                    .findIsTrackPrivacyFalseOrLoginMemberIdEqual(trackRequestDto.getLoginMemberId())
                     .findIsTrackLikeStatusTrue()
                     .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
                     .fetchCount();
@@ -160,6 +177,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
         trackLikeUpdateQueryBuilder.setEntity(QTrackLike.trackLike)
                 .set(QTrackLike.trackLike.trackLikeStatus, !trackLike.getTrackLikeStatus())
+                .set(QTrackLike.trackLike.trackLikeDate, LocalDateTime.now())
                 .findMemberTrackByMemberTrackId(memberTrack.getMemberTrackId())
                 .findTrackLikeByMemberMemberId(loginMemberId)
                 .execute();
@@ -188,6 +206,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
         insertTrackLike.setMemberTrack(memberTrack);
         insertTrackLike.setMember(member);
         insertTrackLike.setTrackLikeStatus(true);
+        insertTrackLike.setTrackLikeDate(LocalDateTime.now());
 
         entityManager.persist(insertTrackLike);
 

@@ -9,6 +9,7 @@ import lombok.*;
 public class BaseRequestDto {
 
     private Long loginMemberId;
+    private Long memberId;
     private Long offset = 0L;
     private Long limit;
 

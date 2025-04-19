@@ -2,6 +2,8 @@ package com.skrrskrr.project.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -9,19 +11,19 @@ import lombok.*;
 @NoArgsConstructor
 public class SearchRequestDto extends BaseRequestDto {
 
-    private Long memberId;
-
     private Long memberTrackId;
 
-//    private Long moreId;
-
     private String searchText;
+
+    private List<String> searchTextList;
 
     private Long playListId;
 
     private Long trackCategoryId;
 
     private String memberNickName;
+
+    private Boolean isAlbum;
 
     private Long trackId;
 

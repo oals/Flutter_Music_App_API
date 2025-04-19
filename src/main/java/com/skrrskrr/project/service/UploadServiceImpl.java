@@ -182,7 +182,7 @@ public class UploadServiceImpl implements UploadService {
     private void saveAlbum(UploadDto uploadDto, List<Long> uploadTrackIdList) {
         PlayListRequestDto playListRequestDto = new PlayListRequestDto();
         playListRequestDto.setPlayListNm(uploadDto.getAlbumNm());
-        playListRequestDto.setIsPlayListPrivacy(uploadDto.getTrackPrivacy());
+        playListRequestDto.setIsPlayListPrivacy(uploadDto.getIsTrackPrivacy());
         playListRequestDto.setLoginMemberId(uploadDto.getLoginMemberId());
         playListRequestDto.setIsAlbum(true);
 

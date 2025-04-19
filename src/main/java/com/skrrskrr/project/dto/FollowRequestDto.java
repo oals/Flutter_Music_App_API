@@ -12,13 +12,6 @@ public class FollowRequestDto extends BaseRequestDto{
     private Long followerId;
     private Long followingId;
 
-//    private String followNickName;
-//
-//    private String followImagePath;
-//
-//    private Long isFollowedCd;
-//
-//    private Boolean isMutualFollow;
 
 
 }

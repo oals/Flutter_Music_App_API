@@ -7,11 +7,15 @@ import java.util.Map;
 
 public interface PlayListService {
 
-    Map<String,Object> getHomeInitPlayList(PlayListRequestDto playListRequestDto);
+    Map<String,Object> getRecommendPlayList(PlayListRequestDto playListRequestDto);
+
+    Map<String,Object> getRecommendAlbum(PlayListRequestDto playListRequestDto);
 
     Map<String, Object> getSearchPlayList(SearchRequestDto searchRequestDto);
 
-    Map<String, Object> getMemberPagePlayList(MemberRequestDto memberRequestDto);
+    Map<String, Object> getMemberPagePlayList(PlayListRequestDto playListRequestDto);
+
+    Map<String, Object> getMemberPageAlbums(PlayListRequestDto playListRequestDto);
 
     Map<String,Object> getPlayList(PlayListRequestDto playListRequestDto);
 
@@ -23,13 +27,13 @@ public interface PlayListService {
 
     Map<String,Object> newPlayList(PlayListRequestDto playListRequestDto);
 
-    List<PlayListDto> getMemberPlayList(MemberRequestDto memberRequestDto);
+    List<PlayListDto> getMemberPlayList(PlayListRequestDto playListRequestDto);
 
-    Long getMemberPlayListCnt(MemberRequestDto memberRequestDto);
+    Long getMemberPlayListCnt(PlayListRequestDto playListRequestDto);
 
     List<PlayListDto> getSearchPlayLists(SearchRequestDto searchRequestDto);
 
     Long getSearchPlayListCnt(SearchRequestDto searchRequestDto);
 
-    List<PlayListDto> getPopularPlayLists(PlayListRequestDto playListRequestDto);
+    List<PlayListDto> getRecommendPlayLists(PlayListRequestDto playListRequestDto);
 }

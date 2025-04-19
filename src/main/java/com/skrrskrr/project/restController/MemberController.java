@@ -64,11 +64,11 @@ public class MemberController {
     }
 
 
-    @GetMapping("/api/getHomeInitMember")
-    public Map<String,Object> getHomeInitMember(MemberRequestDto memberRequestDto)
+    @GetMapping("/api/getRecommendMember")
+    public Map<String,Object> getRecommendMember(MemberRequestDto memberRequestDto)
     {
-        log.info("getHomeInitMember");
-        return memberService.getHomeInitMember(memberRequestDto);
+        log.info("getRecommendMember");
+        return memberService.getRecommendMember(memberRequestDto);
 
     }
 
