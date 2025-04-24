@@ -9,7 +9,6 @@ import java.util.List;
 
 public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<NotificationSelectQueryBuilder> {
 
-
     QNotifications qNotifications = QNotifications.notifications;
 
     public NotificationSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
@@ -22,9 +21,7 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public NotificationSelectQueryBuilder findNotificationByMemberId(Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
@@ -47,20 +44,14 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
 
     /** -------------------------join -------------------------------------------*/
 
-
-
-
     /** --------------------------ordeBy ---------------------------------------- */
-
 
     public NotificationSelectQueryBuilder orderByNotificationIdDesc() {
         this.query.orderBy(qNotifications.notificationId.desc());
         return this;
     }
 
-
     /** --------------------------fetch ------------------------------------------*/
-
 
     public <T> List<T> fetchNotificationDetailDto(Class<T> clazz) {
         return this.query.select(
@@ -78,7 +69,6 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
                 )
         ).fetch();
     }
-
 
     public Boolean fetchNotificationListViewStatus() {
         Boolean notificationIsView = this.query.select(QNotifications.notifications.notificationIsView)

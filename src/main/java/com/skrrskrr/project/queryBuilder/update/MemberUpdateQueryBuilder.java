@@ -25,9 +25,7 @@ public class MemberUpdateQueryBuilder extends ComnUpdateQueryBuilder<MemberUpdat
         return this;
     }
 
-
     /** -------------------------- WHERE 조건 추가 ------------------------------ */
-
 
     public MemberUpdateQueryBuilder findMemberByMemberId(Long loginMemberId) {
         if (loginMemberId == null) {
@@ -36,6 +34,4 @@ public class MemberUpdateQueryBuilder extends ComnUpdateQueryBuilder<MemberUpdat
         this.updateClause.where(qMember.memberId.eq(loginMemberId));
         return this;
     }
-
-
 }

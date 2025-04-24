@@ -26,9 +26,7 @@ public class TrackLikeUpdateQueryBuilder extends ComnUpdateQueryBuilder<TrackLik
         return this;
     }
 
-
     /** -------------------------- WHERE 조건 추가 ------------------------------ */
-
 
     public TrackLikeUpdateQueryBuilder findMemberTrackByMemberTrackId(Long memberTrackId) {
         if (memberTrackId == null) {

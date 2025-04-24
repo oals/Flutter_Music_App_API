@@ -21,9 +21,7 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public HistorySelectQueryBuilder findHistoryByMemberId(Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
@@ -32,14 +30,10 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
         return this;
     }
 
-
     /** -------------------------join -------------------------------------------*/
 
 
-
-
     /** --------------------------ordeBy ---------------------------------------- */
-
 
     public HistorySelectQueryBuilder orderByHistoryIdDesc() {
         this.query.orderBy(qHistory.historyId.desc()); // JOIN 조건 추가
@@ -50,7 +44,6 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
         this.query.orderBy(qHistory.historyId.asc()); // JOIN 조건 추가
         return this;
     }
-
 
     /**-------------------------fetch -------------------------------------------*/
 
@@ -70,7 +63,4 @@ public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySel
                 )
         ).fetch();
     }
-
-
-
 }

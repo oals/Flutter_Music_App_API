@@ -7,44 +7,36 @@ import com.skrrskrr.project.entity.TrackLike;
 import java.util.List;
 import java.util.Map;
 
-
 public interface TrackService {
 
+    TrackResponseDto getSearchTrack(SearchRequestDto searchRequestDto);
 
-    Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto);
+    TrackResponseDto getPlayListTrackList(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> getPlayListTrackList(PlayListRequestDto playListRequestDto);
+    TrackResponseDto getMemberPageTrack(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> getMemberPageTrack(MemberRequestDto memberRequestDto);
+    TrackResponseDto getMemberPagePopularTrack(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> getMemberPagePopularTrack(MemberRequestDto memberRequestDto);
+    TrackResponseDto getTrackInfo(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> updateTrackImage(UploadDto uploadDto);
+    TrackResponseDto getAudioPlayerTrackList(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> setTrackinfo(TrackRequestDto trackRequestDto);
+    TrackResponseDto getUploadTrack(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> setLockTrack(TrackRequestDto trackRequestDto);
+    TrackResponseDto getRecommendTrack(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> getTrackInfo(TrackRequestDto trackRequestDto);
+    TrackResponseDto getLastListenTrackList(TrackRequestDto trackRequestDto);
 
-    Map<String,Object> getAudioPlayerTrackList(TrackRequestDto trackRequestDto);
-
-    Map<String,Object> getUploadTrack(TrackRequestDto trackRequestDto);
-
-    Map<String, Object> getRecommendTrack(TrackRequestDto trackRequestDto);
-
-    List<TrackDto> getPopularMemberTrackList(MemberRequestDto memberRequestDto);
-
-    List<TrackDto> getAllMemberTrackList(MemberRequestDto memberRequestDto);
+    Boolean updateTrackImage(UploadDto uploadDto);
 
     Long getMemberTrackListCnt(MemberRequestDto memberRequestDto);
-
-    List<TrackDto> getPlayListTracks(PlayListRequestDto playListRequestDto);
 
     Long getTrackLastId();
 
     void saveTrack(UploadDto uploadDto);
 
-    Map<String, Object> getLastListenTrackList(TrackRequestDto trackRequestDto);
+    void setTrackInfo(TrackRequestDto trackRequestDto);
+
+    void setLockTrack(TrackRequestDto trackRequestDto);
 
 }

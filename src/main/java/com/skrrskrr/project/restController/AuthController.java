@@ -1,9 +1,13 @@
 package com.skrrskrr.project.restController;
 
+import com.skrrskrr.project.dto.AuthResponseDto;
+import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.service.AuthService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -22,30 +26,26 @@ public class AuthController {
      * @return
      */
     @PostMapping("/auth/createJwtToken")
-    public Map<String,Object> createJwtToken(@RequestBody Map<String,Object> hashMap) {
-        Map<String,Object> returnMap = new HashMap<>();
+    public ResponseEntity<AuthResponseDto> createJwtToken(@RequestBody Map<String,Object> hashMap) {
+
         String uid = hashMap.get("uid").toString();
         String email = hashMap.get("email").toString();
-        try{
-            String jwtToken = authService.generateJwtToken(uid, email,new Date(System.currentTimeMillis() + 1000 * 60 * 10),"access");
-            String refreshToken = authService.generateJwtToken(uid, email,new Date(System.currentTimeMillis() + 1000 * 60 * 30),"refresh");
 
-            returnMap.put("status","200");
-            returnMap.put("jwtToken",jwtToken);
-            returnMap.put("refreshToken",refreshToken);
+        String jwtToken = authService.generateJwtToken(uid, email,new Date(System.currentTimeMillis() + 1000 * 60 * 10),"access");
+        String refreshToken = authService.generateJwtToken(uid, email,new Date(System.currentTimeMillis() + 1000 * 60 * 30),"refresh");
 
-        } catch(JwtException ignored){
-            ignored.printStackTrace();
-            returnMap.put("status","500");
-        }
-        return returnMap;
-
+        return ResponseEntity.ok(
+                AuthResponseDto.builder()
+                .jwtToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build());
     }
 
 
     @PostMapping("/auth/refreshToken")
-    public Map<String,Object> refreshToken(@RequestHeader("Refresh-Token") String clientRefreshToken) {
-        return authService.refreshAccessToken(clientRefreshToken);
+    public ResponseEntity<AuthResponseDto> refreshToken(@RequestHeader("Refresh-Token") String clientRefreshToken) {
+        AuthResponseDto authResponseDto = authService.refreshAccessToken(clientRefreshToken);
+        return ResponseEntity.ok(authResponseDto);
     }
 
     /**
@@ -54,21 +54,12 @@ public class AuthController {
      * @return
      */
     @PostMapping("/auth/jwtAuthing")
-    public Map<String,Object> jwtAuthing(@RequestHeader("Authorization") String clientJwtToken) {
-        Map<String,Object> hashMap = new HashMap<>();
-        try{
-            String jwtToken = clientJwtToken.replace("Bearer ", "");
+    public ResponseEntity<Void> jwtAuthing(@RequestHeader("Authorization") String clientJwtToken) {
 
-            authService.validateJwtToken(jwtToken); // JWT 토큰 검증
+        String jwtToken = clientJwtToken.replace("Bearer ", "");
 
-            hashMap.put("status", "200");
+        authService.validateJwtToken(jwtToken); // JWT 토큰 검증
 
-        } catch(JwtException ignored){
-            hashMap.put("status", "500");
-        }
-
-        return hashMap;
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
-
-
 }

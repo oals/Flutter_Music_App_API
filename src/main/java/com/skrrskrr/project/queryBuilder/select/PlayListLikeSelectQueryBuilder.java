@@ -25,9 +25,7 @@ public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<Play
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public PlayListLikeSelectQueryBuilder findPlayListByPlayListId(Long playListId) {
         throwIfConditionNotMet(playListId != null);
@@ -63,12 +61,7 @@ public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<Play
         return this;
     }
 
-
-
-
-
     /** -------------------------join -------------------------------------------*/
-
 
 
     /** --------------------------ordeBy ---------------------------------------- */
@@ -77,7 +70,6 @@ public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<Play
         this.query.orderBy(qPlayListLike.playListLikeDate.desc());
         return this;
     }
-
 
     /**-------------------------fetch -------------------------------------------*/
 

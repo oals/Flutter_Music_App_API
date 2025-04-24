@@ -3,6 +3,7 @@ package com.skrrskrr.project.service;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.PlayListDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
+import com.skrrskrr.project.dto.PlayListResponseDto;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.PlayListLikeSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
@@ -17,6 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,31 +37,18 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Map<String,Object> setPlayListLike(PlayListRequestDto playListRequestDto) {
+    public void setPlayListLike(PlayListRequestDto playListRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
+        PlayListLike playListLike = selectPlayListLikeEntity(playListRequestDto);
 
-        try {
-            /// 해당 플리에 좋아요 기록이 있는지 조회
-            PlayListLike playListLike = selectPlayListLikeEntity(playListRequestDto);
-
-            /// 없므면 insert 추가'
-            if (playListLike == null) {
-                insertPlayListLike(playListRequestDto);
-            } else {
-                updatePlayListLike(playListRequestDto, playListLike);
-            }
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
+        if (playListLike == null) {
+            insertPlayListLike(playListRequestDto);
+        } else {
+            updatePlayListLike(playListRequestDto, playListLike);
         }
-        return hashMap;
     }
 
-    @Override
-    public PlayListLike selectPlayListLikeEntity(PlayListRequestDto playListRequestDto){
+    private PlayListLike selectPlayListLikeEntity(PlayListRequestDto playListRequestDto){
 
         PlayListLikeSelectQueryBuilder playListLikeSelectQueryBuilder = new PlayListLikeSelectQueryBuilder(jpaQueryFactory);
 
@@ -72,15 +61,22 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
     }
 
     @Override
-    public Map<String, Object> getLikePlayList(PlayListRequestDto playListRequestDto) {
+    public PlayListResponseDto getLikePlayList(PlayListRequestDto playListRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
         PlayListLikeSelectQueryBuilder playListLikeSelectQueryBuilder = new PlayListLikeSelectQueryBuilder(jpaQueryFactory);
+        List<PlayListDto> likePlayListDtoList = new ArrayList<>();
 
-        try {
+        Long totalCount = playListLikeSelectQueryBuilder
+                .resetQuery()
+                .from(QPlayListLike.playListLike)
+                .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
+                .findIsPlayListLikeStatusTrue()
+                .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .fetchCount();
 
-
-            List<PlayListDto> likePlayListDtoList = (List<PlayListDto>) playListLikeSelectQueryBuilder
+        if (totalCount != 0L) {
+            likePlayListDtoList = (List<PlayListDto>) playListLikeSelectQueryBuilder
                     .selectFrom(QPlayListLike.playListLike)
                     .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
                     .findIsPlayListLikeStatusTrue()
@@ -90,26 +86,12 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
                     .offset(playListRequestDto.getOffset())
                     .limit(playListRequestDto.getLimit())
                     .fetchLikePlayListDto(PlayListDto.class);
-
-
-            Long totalCount = playListLikeSelectQueryBuilder
-                    .resetQuery()
-                    .from(QPlayListLike.playListLike)
-                    .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
-                    .findIsPlayListLikeStatusTrue()
-                    .findIsPlayListPrivacyFalseOrLoginMemberIdEqual(playListRequestDto.getLoginMemberId())
-                    .findIsAlbum(playListRequestDto.getIsAlbum())
-                    .fetchCount();
-
-
-            hashMap.put("playList",likePlayListDtoList);
-            hashMap.put("totalCount",totalCount);
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
         }
-        return hashMap;
+
+        return PlayListResponseDto.builder()
+                .playLists(likePlayListDtoList)
+                .totalCount(totalCount)
+                .build();
     }
 
     private void insertPlayListLike(PlayListRequestDto playListRequestDto) {

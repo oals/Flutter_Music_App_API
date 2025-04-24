@@ -28,38 +28,25 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final JPAQueryFactory jpaQueryFactory;
-    private final PlayListService playListService;
-    private final TrackService trackService;
     private final ModelMapper modelMapper;
 
     @Override
-    public Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto) {
+    public MemberResponseDto getMemberInfo(MemberRequestDto memberRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
+        MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
 
-        try {
-            MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
+        MemberDto memberDto = memberSelectQueryBuilder.selectFrom(QMember.member)
+                .findMemberByMemberEmail(memberRequestDto.getMemberEmail())
+                .fetchPreviewMemberDto(MemberDto.class);
 
-            MemberDto memberDto = memberSelectQueryBuilder.selectFrom(QMember.member)
-                    .findMemberByMemberEmail(memberRequestDto.getMemberEmail())
-                    .fetchPreviewMemberDto(MemberDto.class);
-
-            hashMap.put("status","200");
-            hashMap.put("member", memberDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-
-        return hashMap;
-
+        return MemberResponseDto.builder()
+                .member(memberDto)
+                .build();
     }
 
 
     @Override
-    public Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto) {
-
-        Map<String,Object> hashMap = new HashMap<>();
+    public Boolean setMemberDeviceToken(MemberRequestDto memberRequestDto) {
 
         try {
             MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
@@ -70,18 +57,16 @@ public class MemberServiceImpl implements MemberService {
                     .findMemberByMemberId(memberRequestDto.getLoginMemberId())
                     .execute();
 
-            hashMap.put("status","200");
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
+            return false;
         }
-
-        return hashMap;
     }
 
     @Override
-    public Map<String,Object> setMemberImage(UploadDto uploadDto) {
-        Map<String,Object> hashMap = new HashMap<>();
+    public Boolean setMemberImage(UploadDto uploadDto) {
+
         try {
 
             MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
@@ -92,124 +77,84 @@ public class MemberServiceImpl implements MemberService {
                     .findMemberByMemberId(uploadDto.getLoginMemberId())
                     .execute();
 
-            hashMap.put("status","200");
-            return hashMap;
+
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
-            hashMap.put("status","500");
-            return hashMap;
+            return false;
         }
     }
 
     @Override
-    public Map<String,Object> setMemberInfoUpdate(MemberRequestDto memberRequestDto) {
+    public void setMemberInfoUpdate(MemberRequestDto memberRequestDto) {
 
-        
         QMember qMember = QMember.member;
-        Map<String,Object> hashMap = new HashMap<>();
 
-        try {
+        MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
 
-            MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
-
-            memberUpdateQueryBuilder
-                    .setEntity(QMember.member)
-                    .set(QMember.member.memberNickName, memberRequestDto.getMemberNickName())
-                    .set(qMember.memberInfo,memberRequestDto.getMemberInfo())
-                    .findMemberByMemberId(memberRequestDto.getLoginMemberId())
-                    .execute();
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-
-        return hashMap;
+        memberUpdateQueryBuilder
+                .setEntity(QMember.member)
+                .set(QMember.member.memberNickName, memberRequestDto.getMemberNickName())
+                .set(qMember.memberInfo,memberRequestDto.getMemberInfo())
+                .findMemberByMemberId(memberRequestDto.getLoginMemberId())
+                .execute();
     }
 
     @Override
-    public Map<String,Object> setMemberInfo(MemberRequestDto memberRequestDto) {
+    public MemberResponseDto setMemberInfo(MemberRequestDto memberRequestDto) {
 
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
         StringBuilder sb = new StringBuilder(6);
-        Map<String,Object> hashMap = new HashMap<>();
 
-        try {
-            for (int i = 0; i < 6; i++) {
-                sb.append(characters.charAt(random.nextInt(characters.length())));
-            }
-
-            MemberDto memberDto = MemberDto.builder()
-                    .memberNickName(memberRequestDto.getMemberEmail().split("@")[0] + "_" + sb)
-                    .memberEmail(memberRequestDto.getMemberEmail())
-                    .memberDeviceToken(memberRequestDto.getDeviceToken())
-                    .build();
-
-            Member member = Member.createMember(memberDto);
-            Member member1 = memberRepository.save(member);
-
-            memberDto.setMemberId(member1.getMemberId());
-            hashMap.put("member", memberDto);
-            hashMap.put("status","200");
-        } catch (Exception e ){
-            e.printStackTrace();
-            hashMap.put("status","500");
+        for (int i = 0; i < 6; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
         }
 
-        return hashMap;
+        MemberDto memberDto = MemberDto.builder()
+                .memberNickName(memberRequestDto.getMemberEmail().split("@")[0] + "_" + sb)
+                .memberEmail(memberRequestDto.getMemberEmail())
+                .memberDeviceToken(memberRequestDto.getDeviceToken())
+                .build();
+
+        Member member = Member.createMember(memberDto);
+        Member member1 = memberRepository.save(member);
+
+        memberDto.setMemberId(member1.getMemberId());
+
+        return MemberResponseDto.builder()
+                .member(memberDto)
+                .build();
     }
 
 
     @Override
-    public Map<String, Object> getRecommendMember(MemberRequestDto memberRequestDto) {
+    public MemberResponseDto getRecommendMember(MemberRequestDto memberRequestDto) {
 
-        Map<String, Object> hashMap = new HashMap<>();
+        memberRequestDto.setLimit(4L);
+        List<MemberDto> randomMemberList = getRandomMemberList(memberRequestDto);
 
-        try{
-            /// 인기 유저 추천 -  곡 한개 이상 업로드 ~ / 선택된 카테고리 (카테고리는 폰에 캐시로 저장 )
-            memberRequestDto.setLimit(4L);
-            List<MemberDto> randomMemberList = getRandomMemberList(memberRequestDto);
-            hashMap.put("randomMemberList", randomMemberList);
-            hashMap.put("status","200");
-        }catch(Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-
-        }
-
-
-
-        return hashMap;
+        return MemberResponseDto.builder()
+                .memberList(randomMemberList)
+                .build();
     }
 
     @Override
-    public Map<String, Object> getSearchMember(SearchRequestDto searchRequestDto) {
+    public MemberResponseDto getSearchMember(SearchRequestDto searchRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
-        List<FollowDto> memberList = new ArrayList<>();
+        List<FollowDto> followMemberList = new ArrayList<>();
 
-        try {
-            Long memberListCnt = getSearchMemberListCnt(searchRequestDto);
-            /* 검색된 멤버 정보*/
+        Long totalCount = getSearchMemberListCnt(searchRequestDto);
+        /* 검색된 멤버 정보*/
 
-            if (memberListCnt != 0L) {
-                memberList = getSearchMemberList(searchRequestDto);
-            }
-
-
-            hashMap.put("memberList", memberList);   // 검색된 멤버 리스트
-            hashMap.put("memberListCnt", memberListCnt);   // 전체 멤버 수
-            hashMap.put("status","200");
-
-        }catch(Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-
+        if (totalCount != 0L) {
+            followMemberList = getSearchMemberList(searchRequestDto);
         }
 
-        return hashMap;
+        return MemberResponseDto.builder()
+                .followMemberList(followMemberList)
+                .totalCount(totalCount)
+                .build();
     }
 
     @Override
@@ -225,23 +170,14 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public Map<String, Object> getMemberPageInfo(MemberRequestDto memberRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
+    public MemberResponseDto getMemberPageInfo(MemberRequestDto memberRequestDto) {
 
-        try {
+        Member member = getMemberEntity(memberRequestDto.getMemberId());
+        MemberDto memberDto = EntityToDto(member);
 
-            Member member = getMemberEntity(memberRequestDto.getMemberId());
-            MemberDto memberDto = EntityToDto(member);
-
-
-            hashMap.put("memberDTO", memberDto);
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-
-        return hashMap;
+        return MemberResponseDto.builder()
+                .member(memberDto)
+                .build();
     }
 
 
@@ -348,7 +284,7 @@ public class MemberServiceImpl implements MemberService {
 
             for (int i = 0; i < randomItem.getFollowing().size(); i++) {
                 if (randomItem.getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
-                    if(isFollowedCd == 1){
+                    if (isFollowedCd == 1) {
                         isFollowedCd = 3; //맞팔
                     } else {
                         isFollowedCd = 2; //내 팔로워

@@ -1,10 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.FcmSendDto;
-import com.skrrskrr.project.dto.MemberDto;
-import com.skrrskrr.project.dto.TrackDto;
-import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.MemberSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.TrackLikeSelectQueryBuilder;
@@ -14,12 +11,14 @@ import com.skrrskrr.project.queryBuilder.update.TrackUpdateQueryBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.poi.ss.formula.functions.T;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,20 +67,17 @@ public class trackLikeServiceImpl implements TrackLikeService{
     }
 
     @Override
-    public Map<String, String> setTrackLike(TrackRequestDto trackRequestDto) {
-        Map<String, String> hashMap = new HashMap<>();
+    public void setTrackLike(TrackRequestDto trackRequestDto) {
 
-        try {
-            /* 해당 곡에 좋아요 엔티티 여부 */
-            TrackLike trackLike = getTrackLikeEntity(trackRequestDto);
+        TrackLike trackLike = getTrackLikeEntity(trackRequestDto);
 
-            if(trackLike == null) {
-                Member member = getMemberEntity(trackRequestDto.getLoginMemberId());
+        if (trackLike == null) {
+            Member member = getMemberEntity(trackRequestDto.getLoginMemberId());
 
-                if (member != null ) {
+            if (member != null ) {
+                Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
 
-                    Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
-
+                try {
                     FcmSendDto fcmSendDto = FcmSendDto.builder()
                             .title("알림")
                             .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
@@ -91,19 +87,13 @@ public class trackLikeServiceImpl implements TrackLikeService{
                             .build();
 
                     fireBaseService.sendPushNotification(fcmSendDto);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-            } else {
-                updateTrackLike(trackRequestDto, trackLike);
             }
-
-            hashMap.put("status", "200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
+        } else {
+            updateTrackLike(trackRequestDto, trackLike);
         }
-
-        return hashMap;
     }
 
     @Override
@@ -116,6 +106,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
                 .findIsTrackPrivacyFalse()
                 .findIsTrackLikeStatusTrue()
                 .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
+                .findTrackByNotEqualMemberId(trackRequestDto.getLoginMemberId())
                 .orderByTrackLikeDateDesc()
                 .distinct()
                 .limit(5L)
@@ -124,14 +115,21 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
 
     @Override
-    public Map<String, Object> getLikeTrackList(TrackRequestDto trackRequestDto) {
+    public TrackResponseDto getLikeTrackList(TrackRequestDto trackRequestDto) {
 
-        Map<String, Object> hashMap = new HashMap<>();
+        TrackLikeSelectQueryBuilder trackLikeSelectQueryBuilder = new TrackLikeSelectQueryBuilder(jpaQueryFactory);
+        List<TrackDto> likeTrackList = new ArrayList<>();
 
-        try {
-            TrackLikeSelectQueryBuilder trackLikeSelectQueryBuilder = new TrackLikeSelectQueryBuilder(jpaQueryFactory);
+        Long totalCount = trackLikeSelectQueryBuilder
+                .resetQuery()
+                .from(QTrackLike.trackLike)
+                .findIsTrackPrivacyFalseOrLoginMemberIdEqual(trackRequestDto.getLoginMemberId())
+                .findIsTrackLikeStatusTrue()
+                .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
+                .fetchCount();
 
-            List<TrackDto> likeTrackList = (List<TrackDto>) trackLikeSelectQueryBuilder
+        if (totalCount != 0L) {
+            likeTrackList = (List<TrackDto>) trackLikeSelectQueryBuilder
                     .selectFrom(QTrackLike.trackLike)
                     .findIsTrackPrivacyFalseOrLoginMemberIdEqual(trackRequestDto.getLoginMemberId())
                     .findIsTrackLikeStatusTrue()
@@ -140,23 +138,12 @@ public class trackLikeServiceImpl implements TrackLikeService{
                     .offset(trackRequestDto.getOffset())
                     .limit(trackRequestDto.getLimit())
                     .fetchTrackLikeListDto(TrackDto.class);
-
-            Long totalCount = trackLikeSelectQueryBuilder
-                    .resetQuery()
-                    .from(QTrackLike.trackLike)
-                    .findIsTrackPrivacyFalseOrLoginMemberIdEqual(trackRequestDto.getLoginMemberId())
-                    .findIsTrackLikeStatusTrue()
-                    .findTrackLikesByMemberId(trackRequestDto.getLoginMemberId())
-                    .fetchCount();
-
-            hashMap.put("likeTrackList", likeTrackList);
-            hashMap.put("totalCount",totalCount);
-            hashMap.put("status","200");
-        } catch(Exception e) {
-            hashMap.put("status","500");
         }
 
-        return hashMap;
+        return TrackResponseDto.builder()
+                .trackList(likeTrackList)
+                .totalCount(totalCount)
+                .build();
     }
 
 

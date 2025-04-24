@@ -1,10 +1,12 @@
 package com.skrrskrr.project.restController;
 
-import com.skrrskrr.project.dto.NotificationsRequestDto;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.service.NotificationsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap; import java.util.Map;
@@ -16,31 +18,32 @@ public class NotificationsController {
 
     final private NotificationsService notificationsService;
 
-
-
     @GetMapping("/api/getNotifications")
-    public Map<String,Object> getNotifications(NotificationsRequestDto notificationsRequestDto){
+    public ResponseEntity<NotificationResponseDto> getNotifications(NotificationsRequestDto notificationsRequestDto){
         log.info("getNotifications");
-        return notificationsService.getNotifications(notificationsRequestDto);
+        NotificationResponseDto notificationResponseDto = notificationsService.getNotifications(notificationsRequestDto);
+        return ResponseEntity.ok(notificationResponseDto);
     }
-
 
     @PostMapping("/api/setNotificationIsView")
-    public Map<String,Object> setNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
+    public ResponseEntity<NotificationResponseDto> setNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
         log.info("setNotificationIsView");
-        return notificationsService.setNotificationIsView(notificationsRequestDto);
+        NotificationResponseDto notificationResponseDto = notificationsService.setNotificationIsView(notificationsRequestDto);
+        return ResponseEntity.ok(notificationResponseDto);
     }
 
-    @PostMapping("/api/setAllNotificationisView")
-    public Map<String,Object> setAllNotificationisView(@RequestBody NotificationsRequestDto notificationsRequestDto){
-        log.info("setAllNotificationisView");
-        return notificationsService.setAllNotificationisView(notificationsRequestDto);
-
-
+    @PostMapping("/api/setAllNotificationIsView")
+    public ResponseEntity<Void> setAllNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
+        log.info("setAllNotificationIsView");
+        notificationsService.setAllNotificationIsView(notificationsRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
+
     @PostMapping("/api/setDelNotificationIsView")
-    public Map<String,Object> setDelNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
+    public ResponseEntity<Void> setDelNotificationIsView(@RequestBody NotificationsRequestDto notificationsRequestDto){
         log.info("setDelNotificationIsView");
-        return notificationsService.setDelNotificationIsView(notificationsRequestDto);
+        notificationsService.setDelNotificationIsView(notificationsRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
+
 }

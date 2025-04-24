@@ -1,13 +1,14 @@
 package com.skrrskrr.project.restController;
 
+import com.skrrskrr.project.dto.MemberRequestDto;
 import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.dto.TrackResponseDto;
 import com.skrrskrr.project.redisService.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -19,22 +20,24 @@ public class RedisController {
     private final RedisService redisService;
 
     @PostMapping("/api/setLastListenTrackId")
-    public Map<String,Object> setLastTrack(@RequestBody TrackRequestDto trackRequestDto){
+    public ResponseEntity<Void> setLastTrack(@RequestBody TrackRequestDto trackRequestDto){
         log.info("setLastListenTrack");
-        return redisService.setLastListenTrackId(trackRequestDto);
+        redisService.setLastListenTrackId(trackRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/api/setAudioPlayerTrackIdList")
-    public Map<String,Object> setAudioPlayerTrackIdList(@RequestBody TrackRequestDto trackRequestDto){
+    public ResponseEntity<Void> setAudioPlayerTrackIdList(@RequestBody TrackRequestDto trackRequestDto){
         log.info("setAudioPlayerTrackIdList");
-        return redisService.setAudioPlayerTrackIdList(trackRequestDto);
+        redisService.setAudioPlayerTrackIdList(trackRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/api/getLastListenTrackId")
-    public Map<String,Object> getLastListenTrack(TrackRequestDto trackRequestDto){
+    public ResponseEntity<TrackResponseDto> getLastListenTrack(TrackRequestDto trackRequestDto){
         log.info("getLastListenTrackId");
-        return redisService.getLastListenTrackId(trackRequestDto);
+        TrackResponseDto trackResponseDto = redisService.getLastListenTrackId(trackRequestDto);
+        return ResponseEntity.ok(trackResponseDto);
     }
-
 
 }

@@ -1,6 +1,7 @@
 package com.skrrskrr.project.redisService;
 
 import com.skrrskrr.project.dto.TrackRequestDto;
+import com.skrrskrr.project.dto.TrackResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -19,38 +20,23 @@ public class RedisServiceImpl implements RedisService{
     private final RedisTemplate<String,String> redisTemplate;
 
     @Override
-    public Map<String, Object> setLastListenTrackId(TrackRequestDto trackRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
+    public void setLastListenTrackId(TrackRequestDto trackRequestDto) {
 
-        try {
-            saveLastListenTrackId(trackRequestDto);
-            saveLastListenTrackIdList(trackRequestDto);
-            hashMap.put("status", "200");
-        }  catch (Exception e) {
-            // 그 외 모든 예외 처리
-            hashMap.put("status", "500");
-            log.error("Unexpected error: ", e);
-        }
+        saveLastListenTrackId(trackRequestDto);
 
-        return hashMap;
+        saveLastListenTrackIdList(trackRequestDto);
+
     }
 
     @Override
-    public Map<String, Object> setAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
-        try {
+    public void setAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
 
-            String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
-            List<Long> trackIdList = trackRequestDto.getTrackIdList();
-            redisTemplate.opsForValue().set(key, trackIdList.toString());
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
+        String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
 
-        }
+        List<Long> trackIdList = trackRequestDto.getTrackIdList();
 
-        return hashMap;
+        redisTemplate.opsForValue().set(key, trackIdList.toString());
+
     }
 
     @Override
@@ -90,11 +76,10 @@ public class RedisServiceImpl implements RedisService{
 
 
     private void saveLastListenTrackIdList(TrackRequestDto trackRequestDto) {
-        try {
 
+        try {
             String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
             String trackId = trackRequestDto.getTrackId().toString();
-
 
             redisTemplate.opsForList().remove(key, 1, trackId);
 
@@ -128,25 +113,14 @@ public class RedisServiceImpl implements RedisService{
 
 
     @Override
-    public Map<String,Object> getLastListenTrackId(TrackRequestDto trackRequestDto){
-
-        Map<String,Object> hashMap = new HashMap<>();
+    public TrackResponseDto getLastListenTrackId(TrackRequestDto trackRequestDto){
 
         String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
 
-        try{
-            String lastListenTrackId = redisTemplate.opsForValue().get(key);
-            hashMap.put("lastListenTrackId",lastListenTrackId);
-            hashMap.put("status","200");
-        } catch(Exception e) {
-            hashMap.put("status","500");
-        }
+        Long lastListenTrackId = Long.valueOf(Objects.requireNonNull(redisTemplate.opsForValue().get(key)));
 
-
-        return hashMap;
+        return TrackResponseDto.builder()
+                .trackId(lastListenTrackId)
+                .build();
     }
-
-
-
-
 }

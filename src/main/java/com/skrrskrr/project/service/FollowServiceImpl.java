@@ -1,9 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.dto.FollowDto;
-import com.skrrskrr.project.dto.FcmSendDto;
-import com.skrrskrr.project.dto.FollowRequestDto;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.Follow;
 import com.skrrskrr.project.entity.Member;
 import com.skrrskrr.project.entity.QFollow;
@@ -33,49 +31,36 @@ public class FollowServiceImpl implements FollowService{
     private final FireBaseService fireBaseService;
 
     @Override
-    public Map<String, Object> setFollow(FollowRequestDto followRequestDto) {
+    public void setFollow(FollowRequestDto followRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
+        Member follower = getFollowMember(followRequestDto.getFollowerId());
+        Member following = getFollowMember(followRequestDto.getFollowingId());
 
-        try {
+        Boolean isFollow = isFollowCheck(follower.getMemberId(), following.getMemberId());
 
-            Member follower = getFollowMember(followRequestDto.getFollowerId());
-            Member following = getFollowMember(followRequestDto.getFollowingId());
+        if (isFollow) {
+            // 팔로우, 팔로워 삭제
+            deleteFollow(followRequestDto);
+            updateFollowCounts(follower, following, -1L);
+        } else {
+            // 팔로우, 팔로워 등록
+            insertFollow(follower,following);
+            updateFollowCounts(follower, following, 1L);
 
-            Boolean isFollow = isFollowCheck(follower.getMemberId(), following.getMemberId());
+            try{
+                FcmSendDto fcmSendDTO = FcmSendDto.builder()
+                        .title("알림")
+                        .body(follower.getMemberNickName() + "님이 회원님을 팔로우 했습니다.")
+                        .notificationType(3L)
+                        .notificationMemberId(followRequestDto.getFollowingId())
+                        .memberId(followRequestDto.getFollowerId())
+                        .build();
 
-            if (isFollow) {
-                // 팔로우, 팔로워 삭제
-                deleteFollow(followRequestDto);
-                updateFollowCounts(follower, following, -1L);
-            } else {
-                // 팔로우, 팔로워 등록
-                insertFollow(follower,following);
-                updateFollowCounts(follower, following, 1L);
-
-                try{
-                    FcmSendDto fcmSendDTO = FcmSendDto.builder()
-                            .title("알림")
-                            .body(follower.getMemberNickName() + "님이 회원님을 팔로우 했습니다.")
-                            .notificationType(3L)
-                            .notificationMemberId(followRequestDto.getFollowingId())
-                            .memberId(followRequestDto.getFollowerId())
-                            .build();
-
-                    fireBaseService.sendPushNotification(fcmSendDTO);
-                } catch(Exception e) {
-                    hashMap.put("status","500");
-                    e.printStackTrace();
-                }
+                fireBaseService.sendPushNotification(fcmSendDTO);
+            } catch(Exception e) {
+                e.printStackTrace();
             }
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
         }
-
-        return hashMap;
     }
 
 
@@ -120,51 +105,43 @@ public class FollowServiceImpl implements FollowService{
 
     // 4. 메인 getFollow 메서드
     @Override
-    public Map<String, Object> getFollow(FollowRequestDto followRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
+    public FollowResponseDto getFollow(FollowRequestDto followRequestDto) {
 
-        try {
-            List<Follow> followingList = getFollowingList(followRequestDto.getLoginMemberId());
-            List<Follow> followerList = getFollowerList(followRequestDto.getLoginMemberId());
+        List<Follow> followingList = getFollowingList(followRequestDto.getLoginMemberId());
+        List<Follow> followerList = getFollowerList(followRequestDto.getLoginMemberId());
 
-            List<FollowDto> followingDtoList = new ArrayList<>();
-            List<FollowDto> followerDtoList = new ArrayList<>();
+        List<FollowDto> followingDtoList = new ArrayList<>();
+        List<FollowDto> followerDtoList = new ArrayList<>();
 
-            // followingList에 대한 DTO 생성
-            for (Follow following : followingList) {
-                FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 2L);
+        // followingList에 대한 DTO 생성
+        for (Follow following : followingList) {
+            FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 2L);
 
-
-                Boolean isMutualFollow = isMutualFollow(following, followerList);
-                followingDTO.setIsMutualFollow(isMutualFollow);
-                if (isMutualFollow) {
-                    followingDTO.setIsFollowedCd(3L);
-                }
-                followingDtoList.add(followingDTO);
+            Boolean isMutualFollow = isMutualFollow(following, followerList);
+            followingDTO.setIsMutualFollow(isMutualFollow);
+            if (isMutualFollow) {
+                followingDTO.setIsFollowedCd(3L);
             }
-
-            // followerList에 대한 DTO 생성
-            for (Follow follower : followerList) {
-                FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 1L);
-
-
-                Boolean isMutualFollow = isMutualFollow(follower, followingList);
-                followerDTO.setIsMutualFollow(isMutualFollow);
-                if (isMutualFollow) {
-                    followerDTO.setIsFollowedCd(3L);
-                }
-                followerDtoList.add(followerDTO);
-            }
-
-            hashMap.put("followingList", followingDtoList);
-            hashMap.put("followerList", followerDtoList);
-            hashMap.put("status", "200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
+            followingDtoList.add(followingDTO);
         }
 
-        return hashMap;
+        // followerList에 대한 DTO 생성
+        for (Follow follower : followerList) {
+            FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 1L);
+
+            Boolean isMutualFollow = isMutualFollow(follower, followingList);
+            followerDTO.setIsMutualFollow(isMutualFollow);
+            if (isMutualFollow) {
+                followerDTO.setIsFollowedCd(3L);
+            }
+            followerDtoList.add(followerDTO);
+        }
+
+
+        return FollowResponseDto.builder()
+                .followingList(followingDtoList)
+                .followerList(followerDtoList)
+                .build();
     }
 
 

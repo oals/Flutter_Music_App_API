@@ -1,5 +1,6 @@
 package com.skrrskrr.project.service;
 
+import com.skrrskrr.project.dto.AuthResponseDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import org.springframework.security.core.Authentication;
@@ -15,5 +16,5 @@ public interface AuthService {
 
     Authentication getAuthentication(String token);
 
-    Map<String,Object> refreshAccessToken(String refreshToken);
+    AuthResponseDto refreshAccessToken(String refreshToken);
 }

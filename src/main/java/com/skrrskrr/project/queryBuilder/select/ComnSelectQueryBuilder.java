@@ -24,7 +24,7 @@ public class ComnSelectQueryBuilder<T extends ComnSelectQueryBuilder<T>> {
 
     public void throwIfConditionNotMet(boolean condition) {
         if (!condition) {
-            throw new IllegalStateException("NULL 값이 전달되었음.");
+            throw new IllegalArgumentException("NULL 값이 전달되었음.");
         }
     }
 

@@ -28,23 +28,23 @@ public interface MemberService {
         return memberDto;
     }
 
-    Map<String,Object> getRecommendMember(MemberRequestDto memberRequestDto);
+    MemberResponseDto getRecommendMember(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> getSearchMember(SearchRequestDto searchRequestDto);
+    MemberResponseDto getSearchMember(SearchRequestDto searchRequestDto);
 
     Member getMemberEntity(Long memberId);
 
-    Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto);
+    MemberResponseDto getMemberInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberDeviceToken(MemberRequestDto memberRequestDto);
+    Boolean setMemberDeviceToken(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberInfoUpdate(MemberRequestDto memberRequestDto);
+    void setMemberInfoUpdate(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberInfo(MemberRequestDto memberRequestDto);
+    MemberResponseDto setMemberInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto);
+    MemberResponseDto getMemberPageInfo(MemberRequestDto memberRequestDto);
 
-    Map<String,Object> setMemberImage(UploadDto uploadDto);
+    Boolean setMemberImage(UploadDto uploadDto);
 
     List<FollowDto> getSearchMemberList(SearchRequestDto searchRequestDto);
 

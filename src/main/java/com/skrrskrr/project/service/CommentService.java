@@ -1,6 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.skrrskrr.project.dto.CommentRequestDto;
+import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.dto.TrackRequestDto;
 
 import java.util.HashMap; import java.util.Map;
@@ -8,13 +9,13 @@ import java.util.HashMap; import java.util.Map;
 public interface CommentService {
 
 
-    Map<String,Object> setComment(CommentRequestDto commentRequestDto);
+    void setComment(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> setCommentLike(CommentRequestDto commentRequestDto);
+    void setCommentLike(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> getComment(CommentRequestDto commentRequestDto);
+    CommentResponseDto getComment(CommentRequestDto commentRequestDto);
 
-    Map<String,Object> getChildComment(CommentRequestDto commentRequestDto);
+    CommentResponseDto getChildComment(CommentRequestDto commentRequestDto);
 
 
 }

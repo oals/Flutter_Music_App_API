@@ -1,6 +1,7 @@
 package com.skrrskrr.project.service;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.skrrskrr.project.dto.NotificationResponseDto;
 import com.skrrskrr.project.dto.NotificationsDto;
 import com.skrrskrr.project.dto.NotificationsRequestDto;
 import com.skrrskrr.project.entity.Notifications;
@@ -31,25 +32,13 @@ public class NotificationsServiceImpl implements NotificationsService{
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Map<String, Object> getNotifications(NotificationsRequestDto notificationsRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
+    public NotificationResponseDto getNotifications(NotificationsRequestDto notificationsRequestDto) {
 
-        try {
-            List<NotificationsDto> queryResult = fetchNotifications(notificationsRequestDto);
+        List<NotificationsDto> queryResult = fetchNotifications(notificationsRequestDto);
 
-            // 알림 목록 날짜별 분류
-            Map<String, List<NotificationsDto>> classifiedNotifications = classifyNotificationsByDate(queryResult);
+        // 알림 목록 날짜별 분류
+        return classifyNotificationsByDate(queryResult);
 
-            // 결과 맵에 알림 목록 추가
-            hashMap.putAll(classifiedNotifications);
-            hashMap.put("status", "200");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
-        }
-
-        return hashMap;
     }
 
     private List<NotificationsDto> fetchNotifications(NotificationsRequestDto notificationsRequestDto) {
@@ -65,7 +54,8 @@ public class NotificationsServiceImpl implements NotificationsService{
                 .fetchNotificationDetailDto(NotificationsDto.class);
     }
 
-    private Map<String, List<NotificationsDto>> classifyNotificationsByDate(List<NotificationsDto> NotificationsDtoList) {
+    private NotificationResponseDto classifyNotificationsByDate(List<NotificationsDto> NotificationsDtoList) {
+
         List<NotificationsDto> todayNotificationList = new ArrayList<>();
         List<NotificationsDto> monthNotificationList = new ArrayList<>();
         List<NotificationsDto> yearNotificationList = new ArrayList<>();
@@ -92,80 +82,58 @@ public class NotificationsServiceImpl implements NotificationsService{
             }
         }
 
-        Map<String, List<NotificationsDto>> result = new HashMap<>();
-        result.put("todayNotificationsList", todayNotificationList);
-        result.put("monthNotificationsList", monthNotificationList);
-        result.put("yearNotificationsList", yearNotificationList);
-
-        return result;
+        return NotificationResponseDto.builder()
+                .todayNotificationList(todayNotificationList)
+                .monthNotificationList(monthNotificationList)
+                .yearNotificationList(yearNotificationList)
+                .build();
     }
 
 
     @Override
-    public Map<String,Object> setNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
-
-        Map<String,Object> hashMap = new HashMap<>();
+    public NotificationResponseDto setNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
 
         NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
 
-        try {
-            Notifications notifications = (Notifications) notificationSelectQueryBuilder
-                    .selectFrom(QNotifications.notifications)
-                    .findNotificationByNotificationId(notificationsRequestDto.getNotificationId())
-                    .fetchFirst(Notifications.class);
+        Notifications notifications = (Notifications) notificationSelectQueryBuilder
+                .selectFrom(QNotifications.notifications)
+                .findNotificationByNotificationId(notificationsRequestDto.getNotificationId())
+                .fetchFirst(Notifications.class);
 
-            if (notifications == null) {
-                throw new IllegalStateException("notifications cannot be null.");
-            }
-
-            updateIsNotificationViewStatus(notifications);
-
-            Boolean notificationIsView = Boolean.FALSE.equals(
-                    notificationSelectQueryBuilder
-                            .selectFrom(QNotifications.notifications)
-                            .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
-                            .findIsNotificationViewFalse()
-                            .fetchNotificationListViewStatus()
-            );
-
-            hashMap.put("notificationIsView",notificationIsView);
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
+        if (notifications == null) {
+            throw new IllegalStateException("notifications cannot be null.");
         }
-        return hashMap;
+
+        updateIsNotificationViewStatus(notifications);
+
+        Boolean notificationIsView = Boolean.FALSE.equals(
+                notificationSelectQueryBuilder
+                        .selectFrom(QNotifications.notifications)
+                        .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
+                        .findIsNotificationViewFalse()
+                        .fetchNotificationListViewStatus()
+        );
+
+        return NotificationResponseDto.builder()
+                .notificationIsView(notificationIsView)
+                .build();
     }
 
 
     @Override
-    public Map<String,Object> setAllNotificationisView(NotificationsRequestDto notificationsRequestDto) {
+    public void setAllNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
 
+        NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
 
-        Map<String,Object> hashMap = new HashMap<>();
+        List<Notifications> notificationsList = notificationSelectQueryBuilder
+                .selectFrom(QNotifications.notifications)
+                .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
+                .findIsNotificationViewFalse()
+                .fetch(Notifications.class);
 
-        try {
-
-            NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
-
-            List<Notifications> notificationsList = notificationSelectQueryBuilder
-                    .selectFrom(QNotifications.notifications)
-                    .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
-                    .findIsNotificationViewFalse()
-                    .fetch(Notifications.class);
-
-
-            for (Notifications notifications : notificationsList) {
-                updateIsNotificationViewStatus(notifications);
-            }
-
-            hashMap.put("status","200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
+        for (Notifications notifications : notificationsList) {
+            updateIsNotificationViewStatus(notifications);
         }
-
-        return hashMap;
     }
 
 
@@ -178,24 +146,12 @@ public class NotificationsServiceImpl implements NotificationsService{
 
 
     @Override
-    public Map<String,Object> setDelNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
+    public void setDelNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
         
         QNotifications qNotifications = QNotifications.notifications;
-        Map<String,Object> hashMap = new HashMap<>();
 
-        try {
-
-            jpaQueryFactory.delete(qNotifications)
-                    .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
-                    .execute();
-
-            hashMap.put("status","200");
-        } catch(Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-        return hashMap;
+        jpaQueryFactory.delete(qNotifications)
+                .where(qNotifications.member.memberId.eq(notificationsRequestDto.getLoginMemberId()))
+                .execute();
     }
-
-
 }

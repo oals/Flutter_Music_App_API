@@ -5,6 +5,8 @@ import com.skrrskrr.project.service.PlayListLikeService;
 import com.skrrskrr.project.service.PlayListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,93 +19,87 @@ public class PlayListController {
     final private PlayListService playListService;
     final private PlayListLikeService playListLikeService;
 
-
     @PostMapping("/api/setPlayListLike")
-    public Map<String,Object> setPlayListLike(@RequestBody PlayListRequestDto playListRequestDto){
+    public ResponseEntity<Void> setPlayListLike(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListLike");
-        return playListLikeService.setPlayListLike(playListRequestDto);
+        playListLikeService.setPlayListLike(playListRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/api/newPlayList")
-    public Map<String, Object> newPlayList(@RequestBody PlayListRequestDto playListRequestDto){
-
+    public ResponseEntity<Void> newPlayList(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("newPlayList");
-        return playListService.newPlayList(playListRequestDto);
+        playListService.newPlayList(playListRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
-
-
 
     @PostMapping("/api/setPlayListTrack")
-    public Map<String,Object> setPlayListTrack(@RequestBody PlayListRequestDto playListRequestDto){
+    public ResponseEntity<Void> setPlayListTrack(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListTrack");
-        return playListService.setPlayListTrack(playListRequestDto);
+        playListService.setPlayListTrack(playListRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
-
 
     @PostMapping("/api/setPlayListInfo")
-    public Map<String,Object> setPlayListInfo(@RequestBody PlayListRequestDto playListRequestDto){
+    public ResponseEntity<Void> setPlayListInfo(@RequestBody PlayListRequestDto playListRequestDto){
         log.info("setPlayListInfo");
-        return playListService.setPlayListInfo(playListRequestDto);
+        playListService.setPlayListInfo(playListRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-
     @GetMapping("/api/getPlayList")
-    public Map<String,Object> getPlayList(PlayListRequestDto playListRequestDto) {
-
+    public ResponseEntity<PlayListResponseDto> getPlayList(PlayListRequestDto playListRequestDto) {
         log.info("getPlayList");
-        return playListService.getPlayList(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getPlayList(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
     @GetMapping("/api/getLikePlayList")
-    public Map<String,Object> getLikePlayList(PlayListRequestDto playListRequestDto) {
-
+    public ResponseEntity<PlayListResponseDto> getLikePlayList(PlayListRequestDto playListRequestDto) {
         log.info("getLikePlayList");
-        return playListLikeService.getLikePlayList(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListLikeService.getLikePlayList(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
     @GetMapping("/api/getPlayListInfo")
-    public Map<String,Object> getPlayListInfo(PlayListRequestDto playListRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getPlayListInfo(PlayListRequestDto playListRequestDto) {
         log.info("getPlayListInfo");
-
-        return playListService.getPlayListInfo(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getPlayListInfo(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
     @GetMapping("/api/getMemberPagePlayList")
-    public Map<String,Object> getMemberPagePlayList(PlayListRequestDto playListRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getMemberPagePlayList(PlayListRequestDto playListRequestDto) {
         log.info("getMemberPagePlayList");
-
-        return playListService.getMemberPagePlayList(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getMemberPagePlayList(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
     @GetMapping("/api/getMemberPageAlbums")
-    public Map<String,Object> getMemberPageAlbums(PlayListRequestDto playListRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getMemberPageAlbums(PlayListRequestDto playListRequestDto) {
         log.info("getMemberPageAlbums");
-
-        return playListService.getMemberPageAlbums(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getMemberPageAlbums(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
-
-
     @GetMapping("/api/getRecommendPlayList")
-    public Map<String,Object> getRecommendPlayList(PlayListRequestDto playListRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getRecommendPlayList(PlayListRequestDto playListRequestDto) {
         log.info("getRecommendPlayList");
-
-        return playListService.getRecommendPlayList(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getRecommendPlayList(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
 
     @GetMapping("/api/getRecommendAlbum")
-    public Map<String,Object> getRecommendAlbum(PlayListRequestDto playListRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getRecommendAlbum(PlayListRequestDto playListRequestDto) {
         log.info("getRecommendAlbum");
-
-        return playListService.getRecommendAlbum(playListRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getRecommendAlbum(playListRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
-
 
     @GetMapping("/api/getSearchPlayList")
-    public Map<String,Object> getSearchTrack(SearchRequestDto searchRequestDto) {
+    public ResponseEntity<PlayListResponseDto> getSearchTrack(SearchRequestDto searchRequestDto) {
         log.info("getSearchTrack");
-        return playListService.getSearchPlayList(searchRequestDto);
+        PlayListResponseDto playListResponseDto = playListService.getSearchPlayList(searchRequestDto);
+        return ResponseEntity.ok(playListResponseDto);
     }
-
-
 }

@@ -26,29 +26,20 @@ public class SearchServiceImpl implements SearchService{
     private final HistoryRepository historyRepository;
 
     @Override
-    public Map<String,Object> setSearchHistory(SearchRequestDto searchRequestDto) {
+    public void setSearchHistory(SearchRequestDto searchRequestDto) {
 
-        Map<String, Object> hashMap = new HashMap<>();
+        HistorySelectQueryBuilder historySelectQueryBuilder = new HistorySelectQueryBuilder(jpaQueryFactory);
 
-        try {
-            HistorySelectQueryBuilder historySelectQueryBuilder = new HistorySelectQueryBuilder(jpaQueryFactory);
+        List<History> historyList = historySelectQueryBuilder.selectFrom(QHistory.history)
+                .findHistoryByMemberId(searchRequestDto.getLoginMemberId())
+                .fetch(History.class);
 
-            List<History> historyList = historySelectQueryBuilder.selectFrom(QHistory.history)
-                    .findHistoryByMemberId(searchRequestDto.getLoginMemberId())
-                    .fetch(History.class);
+        Boolean isNewHistory = saveNewSearchHistory(searchRequestDto, historyList );
 
-            Boolean isNewHistory = saveNewSearchHistory(searchRequestDto, historyList );
-
-            if (isNewHistory) {
-                deleteLastSearchHistory(searchRequestDto, historyList);
-            }
-
-
-        } catch(Exception e) {
-            e.printStackTrace();;
-            hashMap.put("status", "500");   // 트랙의 전체 개수
+        if (isNewHistory) {
+            deleteLastSearchHistory(searchRequestDto, historyList);
         }
-        return hashMap;
+
     }
 
 
@@ -92,8 +83,8 @@ public class SearchServiceImpl implements SearchService{
         HistorySelectQueryBuilder historySelectQueryBuilder = new HistorySelectQueryBuilder(jpaQueryFactory);
         QHistory qHistory = QHistory.history;
 
-        if(!historyList.isEmpty()){
-            if(historyList.size() >= 15){
+        if (!historyList.isEmpty()) {
+            if (historyList.size() >= 15) {
                 List<Long> idsToDeleteList = historySelectQueryBuilder
                         .selectFrom(QHistory.history)
                         .findHistoryByMemberId(searchRequestDto.getLoginMemberId())
@@ -109,36 +100,23 @@ public class SearchServiceImpl implements SearchService{
         }
     }
 
-
-
     @Override
-    public Map<String, Object> getSearchTextHistory(SearchRequestDto searchRequestDto) {
+    public SearchResponseDto getSearchTextHistory(SearchRequestDto searchRequestDto) {
 
-        Map<String,Object> hashMap = new HashMap<>();
+        List<HistoryDto> searchHistoryDtoList = getSearchHistory(searchRequestDto);
 
-        try {
-            List<HistoryDto> searchHistoryDtoList = getSearchHistory(searchRequestDto);
-
-            hashMap.put("status","200");
-            hashMap.put("searchHistory",searchHistoryDtoList);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status","500");
-        }
-
-        return hashMap;
+        return SearchResponseDto.builder()
+                .searchHistoryList(searchHistoryDtoList)
+                .build();
     }
 
     @Override
     public List<String> processSearchKeywords(SearchRequestDto searchRequestDto) {
         List<String> keywordList = new ArrayList<>();
 
-
         List<HistoryDto> searchHistoryDtoList = getSearchHistory(searchRequestDto);
 
-
-        for(HistoryDto historyDto : searchHistoryDtoList){
+        for (HistoryDto historyDto : searchHistoryDtoList) {
 
             String keyword = historyDto.getHistoryText();
 

@@ -7,33 +7,24 @@ import java.util.Map;
 
 public interface PlayListService {
 
-    Map<String,Object> getRecommendPlayList(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getRecommendPlayList(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> getRecommendAlbum(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getRecommendAlbum(PlayListRequestDto playListRequestDto);
 
-    Map<String, Object> getSearchPlayList(SearchRequestDto searchRequestDto);
+    PlayListResponseDto getSearchPlayList(SearchRequestDto searchRequestDto);
 
-    Map<String, Object> getMemberPagePlayList(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getMemberPagePlayList(PlayListRequestDto playListRequestDto);
 
-    Map<String, Object> getMemberPageAlbums(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getMemberPageAlbums(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> getPlayList(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getPlayList(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> getPlayListInfo(PlayListRequestDto playListRequestDto);
+    PlayListResponseDto getPlayListInfo(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> setPlayListTrack(PlayListRequestDto playListRequestDto);
+    void setPlayListTrack(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> setPlayListInfo(PlayListRequestDto playListRequestDto);
+    void setPlayListInfo(PlayListRequestDto playListRequestDto);
 
-    Map<String,Object> newPlayList(PlayListRequestDto playListRequestDto);
+    Long newPlayList(PlayListRequestDto playListRequestDto);
 
-    List<PlayListDto> getMemberPlayList(PlayListRequestDto playListRequestDto);
-
-    Long getMemberPlayListCnt(PlayListRequestDto playListRequestDto);
-
-    List<PlayListDto> getSearchPlayLists(SearchRequestDto searchRequestDto);
-
-    Long getSearchPlayListCnt(SearchRequestDto searchRequestDto);
-
-    List<PlayListDto> getRecommendPlayLists(PlayListRequestDto playListRequestDto);
 }

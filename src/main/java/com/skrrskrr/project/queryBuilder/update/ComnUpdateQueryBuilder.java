@@ -23,7 +23,6 @@ public class ComnUpdateQueryBuilder <T extends ComnUpdateQueryBuilder<T>> {
         return this;
     }
 
-
     // 업데이트 필드 설정
     public <V> T set(Path<V> field, V value) {
         if (this.updateClause == null) {

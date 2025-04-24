@@ -14,7 +14,6 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
 
     QTrackLike qTrackLike = QTrackLike.trackLike;
 
-
     // 생성자: JPAQueryFactory 주입
     public TrackLikeSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);  // 상위 클래스의 생성자 호출
@@ -26,7 +25,6 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
     }
 
     /** --------------------------where ---------------------------------------- */
-
 
     public TrackLikeSelectQueryBuilder findIsTrackPrivacyFalse() {
 
@@ -49,7 +47,6 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         return this;
     }
 
-
     public TrackLikeSelectQueryBuilder findTrackLikesByTrackId(Long trackId) {
         throwIfConditionNotMet(trackId != null);
 
@@ -64,15 +61,18 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         return this;
     }
 
+    public TrackLikeSelectQueryBuilder findTrackByNotEqualMemberId(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
 
+        this.query.where(qTrackLike.memberTrack.member.memberId.ne(loginMemberId));
+        return this;
+    }
 
     /** --------------------------join -------------------------------------------*/
 
 
 
     /** --------------------------ordeBy ---------------------------------------- */
-
-
 
     public TrackLikeSelectQueryBuilder orderByTrackLikeDateDesc() {
         this.query.orderBy(qTrackLike.trackLikeDate.desc());
@@ -81,14 +81,11 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
 
     /** -------------------------fetch ------------------------------------------- */
 
-
-
     public List<Long> fetchTrackByMemberIdList() {
         return this.query.select(
                 qTrackLike.memberTrack.member.memberId
         ).fetch();
     }
-
 
     public <T> List<?> fetchTrackLikeListDto(Class<T> clazz) {
         return this.query.select(
@@ -111,7 +108,6 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
                 )
         ).fetch();
     }
-
 
     public <T> T fetchTrackLike(Class<T> clazz) {
         return this.query.select(

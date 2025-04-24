@@ -3,6 +3,7 @@ package com.skrrskrr.project.service;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.CommentDto;
 import com.skrrskrr.project.dto.CommentRequestDto;
+import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.dto.FcmSendDto;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.CommentSelectQueryBuilder;
@@ -36,8 +37,8 @@ public class CommentServiceImpl implements CommentService {
     private final MemberService memberService;
 
     @Override
-    public Map<String, Object> setComment(CommentRequestDto commentRequestDto) {
-        Map<String, Object> hashMap = new HashMap<>();
+    public void setComment(CommentRequestDto commentRequestDto) {
+
         CommentSelectQueryBuilder commentSelectQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
         QTrack qTrack = QTrack.track;
 
@@ -46,218 +47,178 @@ public class CommentServiceImpl implements CommentService {
         String formattedDate = today.format(formatter);
         Long fcmMsgRecvMemberId = null;
 
-        try {
-            Member member = memberService.getMemberEntity(commentRequestDto.getLoginMemberId());
+        Member member = memberService.getMemberEntity(commentRequestDto.getLoginMemberId());
 
-            Track track = jpaQueryFactory.selectFrom(qTrack)
-                    .where(qTrack.trackId.eq(commentRequestDto.getTrackId()))
-                    .fetchOne();
+        Track track = jpaQueryFactory.selectFrom(qTrack)
+                .where(qTrack.trackId.eq(commentRequestDto.getTrackId()))
+                .fetchOne();
 
-            if (track == null) {
-                throw new IllegalStateException("track cannot be null.");
-            }
-
-            fcmMsgRecvMemberId = track.getMemberTrackList().get(0).getMember().getMemberId();
-
-            Comment insertComment = new Comment();
-            insertComment.setTrack(track);
-            insertComment.setMember(member);
-            insertComment.setCommentText(commentRequestDto.getCommentText());
-            insertComment.setCommentDate(formattedDate);
-            insertComment.setCommentLikeCnt(0L);
-            insertComment.setChildComments(new ArrayList<>());
-
-            /// 자식 댓글 저장하는 쿼리 였을 시
-            if (commentRequestDto.getCommentId() != null) {
-
-                Comment parentComment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
-                        .findCommentByCommentId(commentRequestDto.getCommentId())
-                        .fetchOne(Comment.class);
-
-                /// 부모댓글 작성자
-                fcmMsgRecvMemberId = parentComment.getMember().getMemberId();
-
-                parentComment.getChildComments().add(insertComment);
-
-                insertComment.setParentComment(parentComment);
-            }
-
-            entityManager.persist(insertComment);
-
-            try {
-                if (Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
-
-                    FcmSendDto fcmSendDTO = FcmSendDto.builder()
-                            .title("알림")
-                            .body(member.getMemberNickName() + "님이 회원님의 곡에 댓글을 작성했습니다.")
-                            .notificationType(2L)
-                            .notificationTrackId(commentRequestDto.getTrackId())
-                            .memberId(fcmMsgRecvMemberId)
-                            .build();
-
-
-                    fireBaseService.sendPushNotification(fcmSendDTO);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // 성공 시
-            hashMap.put("status", "200");
-        } catch (Exception e) {
-            // 실패 시
-            e.printStackTrace();
-            hashMap.put("status", "500");
+        if (track == null) {
+            throw new IllegalStateException("track cannot be null.");
         }
 
-        return hashMap; // 최종 결과 반환
+        fcmMsgRecvMemberId = track.getMemberTrackList().get(0).getMember().getMemberId();
+
+        Comment insertComment = new Comment();
+        insertComment.setTrack(track);
+        insertComment.setMember(member);
+        insertComment.setCommentText(commentRequestDto.getCommentText());
+        insertComment.setCommentDate(formattedDate);
+        insertComment.setCommentLikeCnt(0L);
+        insertComment.setChildComments(new ArrayList<>());
+
+        /// 자식 댓글 저장하는 쿼리 였을 시
+        if (commentRequestDto.getCommentId() != null) {
+
+            Comment parentComment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
+                    .findCommentByCommentId(commentRequestDto.getCommentId())
+                    .fetchOne(Comment.class);
+
+            /// 부모댓글 작성자
+            fcmMsgRecvMemberId = parentComment.getMember().getMemberId();
+
+            parentComment.getChildComments().add(insertComment);
+
+            insertComment.setParentComment(parentComment);
+        }
+
+        entityManager.persist(insertComment);
+
+        try {
+            if (Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
+
+                FcmSendDto fcmSendDTO = FcmSendDto.builder()
+                        .title("알림")
+                        .body(member.getMemberNickName() + "님이 회원님의 곡에 댓글을 작성했습니다.")
+                        .notificationType(2L)
+                        .notificationTrackId(commentRequestDto.getTrackId())
+                        .memberId(fcmMsgRecvMemberId)
+                        .build();
+
+
+                fireBaseService.sendPushNotification(fcmSendDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     @Override
-    public Map<String, Object> setCommentLike(CommentRequestDto commentRequestDto) {
+    public void setCommentLike(CommentRequestDto commentRequestDto) {
 
         CommentSelectQueryBuilder commentSelectQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
 
         QCommentLike qCommentLike = QCommentLike.commentLike;
-        Map<String, Object> hashMap = new HashMap<>();
 
-        try {
-            CommentLike commentLike = jpaQueryFactory.selectFrom(qCommentLike)
-                    .where(qCommentLike.comment.commentId.eq(commentRequestDto.getCommentId())
-                            .and(qCommentLike.member.memberId.eq(commentRequestDto.getLoginMemberId())))
-                    .fetchFirst();
+        CommentLike commentLike = jpaQueryFactory.selectFrom(qCommentLike)
+                .where(qCommentLike.comment.commentId.eq(commentRequestDto.getCommentId())
+                        .and(qCommentLike.member.memberId.eq(commentRequestDto.getLoginMemberId())))
+                .fetchFirst();
 
-            Member member = Member.builder()
-                    .memberId(commentRequestDto.getLoginMemberId())
-                    .build();
+        Member member = Member.builder()
+                .memberId(commentRequestDto.getLoginMemberId())
+                .build();
 
-            Comment comment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
-                    .findCommentByCommentId(commentRequestDto.getCommentId())
-                    .fetchOne(Comment.class);
+        Comment comment = (Comment) commentSelectQueryBuilder.selectFrom(QComment.comment)
+                .findCommentByCommentId(commentRequestDto.getCommentId())
+                .fetchOne(Comment.class);
 
             /// update
-            if (commentLike != null) {
+        if (commentLike != null) {
 
-                Boolean commentLikeStatus = commentLike.getCommentLikeStatus();
+            Boolean commentLikeStatus = commentLike.getCommentLikeStatus();
 
-                jpaQueryFactory.update(qCommentLike)
-                        .set(qCommentLike.commentLikeStatus, !commentLikeStatus)
-                        .where(qCommentLike.comment.commentId.eq(commentRequestDto.getCommentId())
-                                .and(qCommentLike.member.memberId.eq(commentRequestDto.getLoginMemberId())))
-                        .execute();
+            jpaQueryFactory.update(qCommentLike)
+                    .set(qCommentLike.commentLikeStatus, !commentLikeStatus)
+                    .where(qCommentLike.comment.commentId.eq(commentRequestDto.getCommentId())
+                            .and(qCommentLike.member.memberId.eq(commentRequestDto.getLoginMemberId())))
+                    .execute();
 
-                Comment comment1 = commentLike.getComment();
-                if (commentLikeStatus) {
-                    comment.setCommentLikeCnt(comment.getCommentLikeCnt() - 1);
-                } else {
-                    comment.setCommentLikeCnt(comment.getCommentLikeCnt() + 1);
-                }
+            Comment comment1 = commentLike.getComment();
 
-                entityManager.merge(comment1);
-
+            if (commentLikeStatus) {
+                comment.setCommentLikeCnt(comment.getCommentLikeCnt() - 1);
             } else {
-                /// insert
-
-                CommentLike insertCommentLike = new CommentLike();
-                insertCommentLike.setComment(comment);
-                insertCommentLike.setCommentLikeStatus(true);
-                insertCommentLike.setMember(member);
-                entityManager.persist(insertCommentLike);
-
                 comment.setCommentLikeCnt(comment.getCommentLikeCnt() + 1);
-                entityManager.merge(comment);
             }
 
-            hashMap.put("status", "200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
+            entityManager.merge(comment1);
+
+        } else {
+
+            /// insert
+            CommentLike insertCommentLike = new CommentLike();
+            insertCommentLike.setComment(comment);
+            insertCommentLike.setCommentLikeStatus(true);
+            insertCommentLike.setMember(member);
+            entityManager.persist(insertCommentLike);
+
+            comment.setCommentLikeCnt(comment.getCommentLikeCnt() + 1);
+            entityManager.merge(comment);
         }
 
-
-        return hashMap;
     }
 
     @Override
-    public Map<String, Object> getComment(CommentRequestDto commentRequestDto) {
+    public CommentResponseDto getComment(CommentRequestDto commentRequestDto) {
 
+        CommentSelectQueryBuilder commentQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
 
-        Map<String, Object> hashMap = new HashMap<>();
-        try {
+        List<Comment> commentList = commentQueryBuilder.selectFrom(QComment.comment)
+                .findCommentByTrackId(commentRequestDto.getTrackId())
+                .fetch(Comment.class);
 
-            CommentSelectQueryBuilder commentQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
+        List<CommentDto> commentDtoList = new ArrayList<>();
 
-            List<Comment> commentList = commentQueryBuilder.selectFrom(QComment.comment)
-                    .findCommentByTrackId(commentRequestDto.getTrackId())
-                    .fetch(Comment.class);
+        for (Comment comment : commentList) {
 
-
-            List<CommentDto> commentDtoList = new ArrayList<>();
-
-            for (Comment comment : commentList) {
-
-                if (comment.getParentComment() == null) {
-                    Boolean isLikeComment = false;
-                    if (!comment.getCommentLikeList().isEmpty()) {
-                        isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
-                    }
-
-                    CommentDto commentDto = commentModelMapper(comment, isLikeComment);
-
-                    if (!comment.getChildComments().isEmpty()) {
-                        commentDto.setIsChildCommentActive(true);
-                    } else {
-                        commentDto.setIsChildCommentActive(false);
-                    }
-
-                    commentDtoList.add(commentDto);
+            if (comment.getParentComment() == null) {
+                Boolean isLikeComment = false;
+                if (!comment.getCommentLikeList().isEmpty()) {
+                    isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
                 }
 
+                CommentDto commentDto = commentModelMapper(comment, isLikeComment);
+
+                if (!comment.getChildComments().isEmpty()) {
+                    commentDto.setIsChildCommentActive(true);
+                } else {
+                    commentDto.setIsChildCommentActive(false);
+                }
+
+                commentDtoList.add(commentDto);
             }
-
-            hashMap.put("commentList", commentDtoList);
-            hashMap.put("status", "200");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
         }
-        return hashMap;
+
+        return CommentResponseDto.builder()
+                .commentList(commentDtoList)
+                .build();
     }
 
     @Override
-    public Map<String, Object> getChildComment(CommentRequestDto commentRequestDto) {
+    public CommentResponseDto getChildComment(CommentRequestDto commentRequestDto) {
 
+        CommentSelectQueryBuilder commentQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
 
-        Map<String, Object> hashMap = new HashMap<>();
+        Comment comment = (Comment) commentQueryBuilder.selectFrom(QComment.comment)
+                .findCommentByCommentId(commentRequestDto.getCommentId())
+                .fetchOne(Comment.class);
 
-        try {
-            CommentSelectQueryBuilder commentQueryBuilder = new CommentSelectQueryBuilder(jpaQueryFactory);
+        Boolean isLikeComment = false;
 
-            Comment comment = (Comment) commentQueryBuilder.selectFrom(QComment.comment)
-                    .findCommentByCommentId(commentRequestDto.getCommentId())
-                    .fetchOne(Comment.class);
-
-            Boolean isLikeComment = false;
-            if (!comment.getCommentLikeList().isEmpty()) {
-                isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
-            }
-
-            CommentDto commentDto = commentModelMapper(comment, isLikeComment);
-
-            List<CommentDto> childCommentList = addAllChildComments(new ArrayList<>(), comment, commentRequestDto.getLoginMemberId());
-
-
-            hashMap.put("comment", commentDto);
-            hashMap.put("childComment", childCommentList);
-            hashMap.put("status", "200");
-        } catch (Exception e) {
-            e.printStackTrace();
-            hashMap.put("status", "500");
+        if (!comment.getCommentLikeList().isEmpty()) {
+            isLikeComment = isCommentLike(comment, commentRequestDto.getLoginMemberId());
         }
 
-        return hashMap;
+        CommentDto commentDto = commentModelMapper(comment, isLikeComment);
+
+        List<CommentDto> childCommentList = addAllChildComments(new ArrayList<>(), comment, commentRequestDto.getLoginMemberId());
+
+        return CommentResponseDto.builder()
+                .comment(commentDto)
+                .commentList(childCommentList)
+                .build();
     }
 
 

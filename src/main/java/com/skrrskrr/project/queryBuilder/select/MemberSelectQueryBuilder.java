@@ -8,7 +8,6 @@ import com.skrrskrr.project.entity.QMember;
 
 public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelectQueryBuilder> {
 
-
     QMember qMember = QMember.member;
 
     public MemberSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
@@ -21,9 +20,7 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public MemberSelectQueryBuilder findMemberByMemberEmail(String memberEmail) {
         throwIfConditionNotMet(memberEmail != null);
@@ -52,9 +49,6 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
         return this;
     }
 
-
-
-
     public MemberSelectQueryBuilder findIsNotEmptyMemberTrackList() {
         this.query.where(qMember.memberTrackList.isNotEmpty());
         return this;
@@ -65,10 +59,7 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
         return this;
     }
 
-
     /** -------------------------join -------------------------------------------*/
-
-
 
 
     /** --------------------------ordeBy ---------------------------------------- */
@@ -80,9 +71,7 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
         return this;
     }
 
-
     /** --------------------------fetch ------------------------------------------*/
-
 
     public <T> T fetchPreviewMemberDto(Class<T> clazz) {
         return this.query.select(
@@ -96,7 +85,4 @@ public class MemberSelectQueryBuilder extends ComnSelectQueryBuilder<MemberSelec
                 )
         ).fetchOne();
     }
-
-
-
 }

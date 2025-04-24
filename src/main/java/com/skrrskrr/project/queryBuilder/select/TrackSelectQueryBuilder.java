@@ -17,11 +17,9 @@ import java.util.List;
 
 public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQueryBuilder> {
 
-
     QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
     QMember qMember = QMember.member;
     QTrackLike qTrackLike = QTrackLike.trackLike;
-    QPlayList qPlayList = QPlayList.playList;
 
     // 생성자: JPAQueryFactory 주입
     public TrackSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
@@ -46,7 +44,6 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         this.query.where(qMemberTrack.member.memberId.ne(memberId));
         return this;
     }
-
     public TrackSelectQueryBuilder findTrackByTrackId(Long trackId) {
         throwIfConditionNotMet(trackId != null);
         this.query.where(qMemberTrack.track.trackId.eq(trackId));
@@ -68,9 +65,7 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         this.query.where(qMemberTrack.track.trackCategoryId.eq(trackCategoryId));
 
         return this;
-
     }
-
 
     public TrackSelectQueryBuilder findTrackNotInList(List<Long> excludedTrackIds) {
         if (excludedTrackIds != null) {
@@ -104,7 +99,7 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
     }
 
     public TrackSelectQueryBuilder findTrackBySearchText(String searchText) {
-        if(searchText != null) {
+        if (searchText != null) {
             this.query.where(qMemberTrack.track.trackNm.contains(searchText));
         }
         return this;
@@ -124,7 +119,6 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this;
     }
 
-
     /** --------------------------join -------------------------------------------*/
 
     public TrackSelectQueryBuilder joinMemberTrackWithMember() {
@@ -142,17 +136,14 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         this.query.leftJoin(QTrackLike.trackLike)
                 .on(QTrackLike.trackLike.member.memberId.eq(loginMemberId)
                         .and(QTrackLike.trackLike.memberTrack.eq(qMemberTrack)));
-
         return this;
     }
-
 
     public TrackSelectQueryBuilder joinMemberFollowersAndFollow() {
         FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
         followSelectQueryBuilder.setQuery(this.query).joinMemberFollowersAndFollow();
         return this;
     }
-
 
     /** --------------------------groupBy ----------------------------------------*/
 
@@ -162,8 +153,6 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         );
         return this;
     }
-
-
 
     /** --------------------------ordeBy ---------------------------------------- */
 
@@ -186,7 +175,6 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         this.query.orderBy(qMemberTrack.track.trackLikeCnt.desc());
         return this;
     }
-
 
     /** -------------------------fetch ------------------------------------------- */
 

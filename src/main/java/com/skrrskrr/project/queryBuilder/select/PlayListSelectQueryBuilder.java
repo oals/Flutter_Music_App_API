@@ -12,9 +12,7 @@ import java.util.List;
 
 public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListSelectQueryBuilder> {
 
-
     QMemberPlayList qMemberPlayList = QMemberPlayList.memberPlayList;
-    QMemberTrack qMemberTrack = QMemberTrack.memberTrack;
     QPlayListLike qPlayListLike = QPlayListLike.playListLike;
 
     public PlayListSelectQueryBuilder(JPAQueryFactory jpaQueryFactory) {
@@ -27,7 +25,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
     }
 
     /** --------------------------where ---------------------------------------- */
-
 
     public PlayListSelectQueryBuilder findPlayListsByMemberId (Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
@@ -64,6 +61,13 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
+    public PlayListSelectQueryBuilder findIsPlayListNotEmptyOrEqualLoginMemberId (Long loginMemberId) {
+        this.query.where(qMemberPlayList.playList.playListTrackList.isNotEmpty()
+                .or(qMemberPlayList.member.memberId.eq(loginMemberId))
+        );
+        return this;
+    }
+
     public PlayListSelectQueryBuilder findPlayListBySearchText (String searchText) {
 
         if (searchText != null) {
@@ -85,7 +89,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         }
         return this;
     }
-
 
     public PlayListSelectQueryBuilder findPlayListByPlayListIdList(List<Long> playListId) {
         if (playListId != null) {
@@ -115,8 +118,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
-
-
     public PlayListSelectQueryBuilder findIsPlayListPrivacyFalse () {
         this.query.where(qMemberPlayList.playList.isPlayListPrivacy.isFalse());
         return this;
@@ -128,8 +129,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
                 .or(qMemberPlayList.playList.member.memberId.eq(loginMemberId)));
         return this;
     }
-
-
 
     /** --------------------------join -------------------------------------------*/
 
@@ -164,7 +163,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
-
     /** --------------------------ordeBy ---------------------------------------- */
 
     public PlayListSelectQueryBuilder orderByPlayListIdDesc() {
@@ -176,7 +174,6 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         this.query.orderBy(qMemberPlayList.playList.playListLikeCnt.desc());
         return this;
     }
-
 
     /** -------------------------fetch ------------------------------------------- */
 
@@ -242,7 +239,4 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
                 )
         ).fetch();
     }
-
-
-
 }

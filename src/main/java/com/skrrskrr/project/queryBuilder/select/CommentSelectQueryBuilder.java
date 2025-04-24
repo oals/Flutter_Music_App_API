@@ -19,9 +19,7 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public CommentSelectQueryBuilder findCommentByCommentId(Long commentId) {
         throwIfConditionNotMet(commentId != null);
@@ -37,15 +35,9 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
         return this;
     }
 
-
-
     /** -------------------------join -------------------------------------------*/
 
 
-
-
     /** --------------------------ordeBy ---------------------------------------- */
-
-
 
 }

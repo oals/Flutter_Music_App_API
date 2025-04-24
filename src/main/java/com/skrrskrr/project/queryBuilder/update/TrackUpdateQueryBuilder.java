@@ -26,6 +26,4 @@ public class TrackUpdateQueryBuilder extends ComnUpdateQueryBuilder<TrackUpdateQ
         return this;
     }
 
-
-
 }

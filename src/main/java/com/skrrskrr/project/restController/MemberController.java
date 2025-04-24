@@ -1,12 +1,12 @@
 package com.skrrskrr.project.restController;
 
 
-import com.skrrskrr.project.dto.MemberDto;
-import com.skrrskrr.project.dto.MemberRequestDto;
-import com.skrrskrr.project.dto.SearchRequestDto;
+import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap; import java.util.Map;
@@ -23,63 +23,58 @@ public class MemberController {
 
 
     @GetMapping("/api/getMemberInfo")
-    public Map<String,Object> getMemberInfo(MemberRequestDto memberRequestDto){
+    public ResponseEntity<MemberResponseDto> getMemberInfo(MemberRequestDto memberRequestDto){
         log.info("getMemberInfo");
 
-        Map<String,Object> hashMap = memberService.getMemberInfo(memberRequestDto);
+        MemberResponseDto memberResponseDto = memberService.getMemberInfo(memberRequestDto);
 
-        if (hashMap.get("member") != null){
-            MemberDto memberDto = (MemberDto) hashMap.get("member");
+        if (memberResponseDto.getMember() != null){
+            MemberDto memberDto = memberResponseDto.getMember();
             // 회원인 경우
             if (!Objects.equals(memberDto.getMemberDeviceToken(), memberRequestDto.getDeviceToken())) {
                 // 디바이스 토큰 업데이트
                 memberRequestDto.setLoginMemberId(memberDto.getMemberId());
-                hashMap = memberService.setMemberDeviceToken(memberRequestDto);
-                if(hashMap.get("status").equals("200")){
+                Boolean isSuccess = memberService.setMemberDeviceToken(memberRequestDto);
+                if (isSuccess) {
                     memberDto.setDeviceToken(memberRequestDto.getDeviceToken());
-                    hashMap.put("member", memberDto);
+                    memberResponseDto.setMember(memberDto);
                 }
             }
         } else {
             // 비회원인 경우
-            hashMap = memberService.setMemberInfo(memberRequestDto);
+            memberResponseDto = memberService.setMemberInfo(memberRequestDto);
         }
 
-        return hashMap;
+        return ResponseEntity.ok(memberResponseDto);
     }
-
 
     @PostMapping("/api/setMemberInfoUpdate")
-    public Map<String,Object> setMemberInfoUpdate(@RequestBody MemberRequestDto memberRequestDto){
-
+    public ResponseEntity<MemberResponseDto> setMemberInfoUpdate(@RequestBody MemberRequestDto memberRequestDto){
         log.info("setMemberInfoUpdate");
-        return memberService.setMemberInfoUpdate(memberRequestDto);
-
+        memberService.setMemberInfoUpdate(memberRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
+
 
     @GetMapping("/api/getMemberPageInfo")
-    public Map<String,Object> getMemberPageInfo(MemberRequestDto memberRequestDto) {
+    public ResponseEntity<MemberResponseDto> getMemberPageInfo(MemberRequestDto memberRequestDto) {
         log.info("getMemberPageInfo");
-        return memberService.getMemberPageInfo(memberRequestDto);
+        MemberResponseDto memberResponseDto = memberService.getMemberPageInfo(memberRequestDto);
+        return ResponseEntity.ok(memberResponseDto);
     }
-
 
     @GetMapping("/api/getRecommendMember")
-    public Map<String,Object> getRecommendMember(MemberRequestDto memberRequestDto)
-    {
+    public ResponseEntity<MemberResponseDto> getRecommendMember(MemberRequestDto memberRequestDto) {
         log.info("getRecommendMember");
-        return memberService.getRecommendMember(memberRequestDto);
-
+        MemberResponseDto memberResponseDto = memberService.getRecommendMember(memberRequestDto);
+        return ResponseEntity.ok(memberResponseDto);
     }
+
 
     @GetMapping("/api/getSearchMember")
-    public Map<String,Object> getSearchMember(SearchRequestDto searchRequestDto)
-    {
+    public ResponseEntity<MemberResponseDto> getSearchMember(SearchRequestDto searchRequestDto) {
         log.info("getSearchMember");
-        return memberService.getSearchMember(searchRequestDto);
-
+        MemberResponseDto memberResponseDto = memberService.getSearchMember(searchRequestDto);
+        return ResponseEntity.ok(memberResponseDto);
     }
-
-
-
 }

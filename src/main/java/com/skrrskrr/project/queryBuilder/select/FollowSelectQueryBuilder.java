@@ -20,9 +20,7 @@ public class FollowSelectQueryBuilder extends ComnSelectQueryBuilder<FollowSelec
         return this;
     }
 
-
     /** --------------------------where ---------------------------------------- */
-
 
     public FollowSelectQueryBuilder findFollowerMember(Long loginMemberId) {
         throwIfConditionNotMet(loginMemberId != null);
@@ -40,17 +38,12 @@ public class FollowSelectQueryBuilder extends ComnSelectQueryBuilder<FollowSelec
 
     /** -------------------------join -------------------------------------------*/
 
-
     public FollowSelectQueryBuilder joinMemberFollowersAndFollow() {
         this.query.join(qMember.followers, QFollow.follow); // JOIN 조건 추가
         return this;
     }
 
-
-
     /** --------------------------ordeBy ---------------------------------------- */
-
-
 
 }
 

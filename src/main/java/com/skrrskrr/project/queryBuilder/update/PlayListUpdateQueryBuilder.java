@@ -26,9 +26,7 @@ public class PlayListUpdateQueryBuilder extends ComnUpdateQueryBuilder<PlayListU
         return this;
     }
 
-
     /** -------------------------- WHERE 조건 추가 ------------------------------ */
-
 
     public PlayListUpdateQueryBuilder findPlayListByPlayListId(Long playListId) {
         if (playListId == null) {
@@ -37,7 +35,4 @@ public class PlayListUpdateQueryBuilder extends ComnUpdateQueryBuilder<PlayListU
         this.updateClause.where(qPlayList.playListId.eq(playListId));
         return this;
     }
-
-
-
 }

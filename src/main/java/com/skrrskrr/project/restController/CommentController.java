@@ -1,9 +1,14 @@
 package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.CommentRequestDto;
+import com.skrrskrr.project.dto.CommentResponseDto;
+import com.skrrskrr.project.dto.FollowRequestDto;
+import com.skrrskrr.project.dto.FollowResponseDto;
 import com.skrrskrr.project.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap; import java.util.Map;
@@ -18,32 +23,30 @@ public class CommentController {
 
 
     @PostMapping(value = "/api/setComment")
-    public Map<String, Object> setComment(@RequestBody CommentRequestDto commentRequestDto) {
-
+    public ResponseEntity<Void> setComment(@RequestBody CommentRequestDto commentRequestDto) {
         log.info("setComment");
-        // 댓글 추가 서비스 호출
-        return commentService.setComment(commentRequestDto);
+        commentService.setComment(commentRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping(value = "/api/setCommentLike")
-    public Map<String, Object> setCommentLike(@RequestBody CommentRequestDto commentRequestDto) {
-
-        return commentService.setCommentLike(commentRequestDto);
+    public ResponseEntity<Void>setCommentLike(@RequestBody CommentRequestDto commentRequestDto) {
+        log.info("setCommentLike");
+        commentService.setCommentLike(commentRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping(value = "/api/getComment")
-    public Map<String, Object> getComment(CommentRequestDto commentRequestDto) {
-
+    public ResponseEntity<CommentResponseDto> getComment(CommentRequestDto commentRequestDto) {
         log.info("getComment");
-        return commentService.getComment(commentRequestDto);
+        CommentResponseDto commentResponseDto = commentService.getComment(commentRequestDto);
+        return ResponseEntity.ok(commentResponseDto);
     }
-
 
     @GetMapping(value = "/api/getChildComment")
-    public Map<String, Object> getChildComment(CommentRequestDto commentRequestDto) {
-
+    public ResponseEntity<CommentResponseDto> getChildComment(CommentRequestDto commentRequestDto) {
         log.info("getChildComment");
-        return commentService.getChildComment(commentRequestDto);
+        CommentResponseDto commentResponseDto = commentService.getChildComment(commentRequestDto);
+        return ResponseEntity.ok(commentResponseDto);
     }
-
 }
