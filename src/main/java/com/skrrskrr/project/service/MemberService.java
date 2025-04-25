@@ -28,19 +28,15 @@ public interface MemberService {
         return memberDto;
     }
 
-    MemberResponseDto getRecommendMember(MemberRequestDto memberRequestDto);
+    List<MemberDto> getRecommendMember(Long loginMemberId);
 
     MemberResponseDto getSearchMember(SearchRequestDto searchRequestDto);
 
     Member getMemberEntity(Long memberId);
 
-    MemberResponseDto getMemberInfo(MemberRequestDto memberRequestDto);
-
-    Boolean setMemberDeviceToken(MemberRequestDto memberRequestDto);
+    MemberDto getMemberInfo(HomeRequestDto homeRequestDto);
 
     void setMemberInfoUpdate(MemberRequestDto memberRequestDto);
-
-    MemberResponseDto setMemberInfo(MemberRequestDto memberRequestDto);
 
     MemberResponseDto getMemberPageInfo(MemberRequestDto memberRequestDto);
 

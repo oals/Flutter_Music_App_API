@@ -182,6 +182,7 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this.query.select(qMemberTrack.track.trackId).fetchFirst();
     }
 
+
     public <T> T fetchTrackDetailDto(Class<T> clazz) {
         return this.query.select(
                 Projections.bean(
@@ -234,37 +235,6 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
 
                 )
         ).fetch();
-    }
-
-
-    public TrackSelectQueryBuilder isUploadedThisWeekOrLastWeek(StringExpression trackUploadDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        // 현재 날짜 기준으로 이번 주와 저번 주의 날짜 범위를 계산
-        LocalDate today = LocalDate.now();
-
-        // 이번 주 시작일과 종료일
-        LocalDate startOfThisWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfThisWeek = startOfThisWeek.plusDays(6);
-
-        // 저번 주 시작일과 종료일
-        LocalDate startOfLastWeek = startOfThisWeek.minusWeeks(1);
-        LocalDate endOfLastWeek = startOfLastWeek.plusDays(6);
-
-        // 날짜를 문자열로 변환
-        String startOfThisWeekStr = startOfThisWeek.format(formatter);
-        String endOfThisWeekStr = endOfThisWeek.format(formatter);
-
-        String startOfLastWeekStr = startOfLastWeek.format(formatter);
-        String endOfLastWeekStr = endOfLastWeek.format(formatter);
-
-        // QueryDSL 조건 작성
-        BooleanExpression uploadThisWeek = trackUploadDate.between(startOfThisWeekStr, endOfThisWeekStr);
-        BooleanExpression uploadLastWeek = trackUploadDate.between(startOfLastWeekStr, endOfLastWeekStr);
-
-        this.query.where(uploadThisWeek.or(uploadLastWeek)); // WHERE 조건 추가
-
-        return this; // 체이닝을 위해 반환
     }
 
 }

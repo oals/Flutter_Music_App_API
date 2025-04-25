@@ -31,30 +31,42 @@ public class MemberServiceImpl implements MemberService {
     private final ModelMapper modelMapper;
 
     @Override
-    public MemberResponseDto getMemberInfo(MemberRequestDto memberRequestDto) {
+    public MemberDto getMemberInfo(HomeRequestDto homeRequestDto) {
 
         MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
 
         MemberDto memberDto = memberSelectQueryBuilder.selectFrom(QMember.member)
-                .findMemberByMemberEmail(memberRequestDto.getMemberEmail())
+                .findMemberByMemberEmail(homeRequestDto.getMemberEmail())
                 .fetchPreviewMemberDto(MemberDto.class);
 
-        return MemberResponseDto.builder()
-                .member(memberDto)
-                .build();
+        if (memberDto != null){
+            // 회원인 경우
+            if (!Objects.equals(memberDto.getMemberDeviceToken(), homeRequestDto.getDeviceToken())) {
+                // 디바이스 토큰 업데이트
+                homeRequestDto.setLoginMemberId(memberDto.getMemberId());
+                Boolean isSuccess = setMemberDeviceToken(homeRequestDto);
+                if (isSuccess) {
+                    memberDto.setDeviceToken(homeRequestDto.getDeviceToken());
+                }
+            }
+        } else {
+            // 비회원인 경우
+            memberDto = setMemberInfo(homeRequestDto);
+        }
+
+        return memberDto;
     }
 
 
-    @Override
-    public Boolean setMemberDeviceToken(MemberRequestDto memberRequestDto) {
+    private Boolean setMemberDeviceToken(HomeRequestDto homeRequestDto) {
 
         try {
             MemberUpdateQueryBuilder memberUpdateQueryBuilder = new MemberUpdateQueryBuilder(entityManager);
 
             memberUpdateQueryBuilder
                     .setEntity(QMember.member)
-                    .set(QMember.member.memberDeviceToken, memberRequestDto.getDeviceToken())
-                    .findMemberByMemberId(memberRequestDto.getLoginMemberId())
+                    .set(QMember.member.memberDeviceToken, homeRequestDto.getDeviceToken())
+                    .findMemberByMemberId(homeRequestDto.getLoginMemberId())
                     .execute();
 
             return true;
@@ -100,8 +112,7 @@ public class MemberServiceImpl implements MemberService {
                 .execute();
     }
 
-    @Override
-    public MemberResponseDto setMemberInfo(MemberRequestDto memberRequestDto) {
+    private MemberDto setMemberInfo(HomeRequestDto homeRequestDto) {
 
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
@@ -112,9 +123,9 @@ public class MemberServiceImpl implements MemberService {
         }
 
         MemberDto memberDto = MemberDto.builder()
-                .memberNickName(memberRequestDto.getMemberEmail().split("@")[0] + "_" + sb)
-                .memberEmail(memberRequestDto.getMemberEmail())
-                .memberDeviceToken(memberRequestDto.getDeviceToken())
+                .memberNickName(homeRequestDto.getMemberEmail().split("@")[0] + "_" + sb)
+                .memberEmail(homeRequestDto.getMemberEmail())
+                .memberDeviceToken(homeRequestDto.getDeviceToken())
                 .build();
 
         Member member = Member.createMember(memberDto);
@@ -122,21 +133,20 @@ public class MemberServiceImpl implements MemberService {
 
         memberDto.setMemberId(member1.getMemberId());
 
-        return MemberResponseDto.builder()
-                .member(memberDto)
-                .build();
+        return memberDto;
     }
 
 
     @Override
-    public MemberResponseDto getRecommendMember(MemberRequestDto memberRequestDto) {
+    public List<MemberDto> getRecommendMember(Long loginMemberId) {
 
+        MemberRequestDto memberRequestDto = new MemberRequestDto();
+        memberRequestDto.setLoginMemberId(loginMemberId);
         memberRequestDto.setLimit(4L);
+
         List<MemberDto> randomMemberList = getRandomMemberList(memberRequestDto);
 
-        return MemberResponseDto.builder()
-                .memberList(randomMemberList)
-                .build();
+        return randomMemberList;
     }
 
     @Override

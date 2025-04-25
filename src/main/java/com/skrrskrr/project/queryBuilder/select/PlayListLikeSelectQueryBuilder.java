@@ -47,6 +47,17 @@ public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<Play
         return this;
     }
 
+    public PlayListLikeSelectQueryBuilder findPlayListsByNotMemberId(Long loginMemberId) {
+        throwIfConditionNotMet(loginMemberId != null);
+        this.query.where(qPlayListLike.memberPlayList.member.memberId.ne(loginMemberId));
+        return this;
+    }
+
+    public PlayListLikeSelectQueryBuilder findIsPlayListPrivacyFalse() {
+        this.query.where(qPlayListLike.memberPlayList.playList.isPlayListPrivacy.isFalse());
+        return this;
+    }
+
     public PlayListLikeSelectQueryBuilder findIsPlayListPrivacyFalseOrLoginMemberIdEqual(Long loginMemberId) {
 
         this.query.where(
@@ -72,6 +83,12 @@ public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<Play
     }
 
     /**-------------------------fetch -------------------------------------------*/
+
+    public List<Long> fetchPlayListByMemberIdList() {
+        return this.query.select(
+                qPlayListLike.memberPlayList.member.memberId
+        ).fetch();
+    }
 
     public <T> List<?> fetchLikePlayListDto(Class<T> clazz) {
         return this.query.select(

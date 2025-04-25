@@ -15,7 +15,7 @@ public class SearchRequestDto extends BaseRequestDto {
 
     private String searchText;
 
-    private List<String> searchTextList;
+    private List<String> searchKeywordList;
 
     private Long playListId;
 

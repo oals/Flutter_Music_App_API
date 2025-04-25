@@ -94,6 +94,23 @@ public class PlayListLikeServiceImpl implements PlayListLikeService{
                 .build();
     }
 
+    @Override
+    public List<Long> getRecommendLikePlayListsMemberId(PlayListRequestDto playListRequestDto) {
+
+        PlayListLikeSelectQueryBuilder playListLikeSelectQueryBuilder = new PlayListLikeSelectQueryBuilder(jpaQueryFactory);
+
+        return playListLikeSelectQueryBuilder
+                .selectFrom(QPlayListLike.playListLike)
+                .findIsPlayListPrivacyFalse()
+                .findPlayListsByNotMemberId(playListRequestDto.getLoginMemberId())
+                .findPlayListLikeByMemberId(playListRequestDto.getLoginMemberId())
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .orderByPlayListLikeDateDesc()
+                .distinct()
+                .limit(10L)
+                .fetchPlayListByMemberIdList();
+    }
+
     private void insertPlayListLike(PlayListRequestDto playListRequestDto) {
 
         MemberPlayList memberPlayList = getMemberPlayList(playListRequestDto);

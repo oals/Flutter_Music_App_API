@@ -23,9 +23,9 @@ public interface TrackService {
 
     TrackResponseDto getUploadTrack(TrackRequestDto trackRequestDto);
 
-    TrackResponseDto getRecommendTrack(TrackRequestDto trackRequestDto);
+    List<TrackDto> getRecommendTrack(Long loginMemberId);
 
-    TrackResponseDto getLastListenTrackList(TrackRequestDto trackRequestDto);
+    List<TrackDto> getLastListenTrackList(Long loginMemberId);
 
     Boolean updateTrackImage(UploadDto uploadDto);
 

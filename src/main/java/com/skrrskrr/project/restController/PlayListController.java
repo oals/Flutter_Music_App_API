@@ -82,20 +82,6 @@ public class PlayListController {
         return ResponseEntity.ok(playListResponseDto);
     }
 
-    @GetMapping("/api/getRecommendPlayList")
-    public ResponseEntity<PlayListResponseDto> getRecommendPlayList(PlayListRequestDto playListRequestDto) {
-        log.info("getRecommendPlayList");
-        PlayListResponseDto playListResponseDto = playListService.getRecommendPlayList(playListRequestDto);
-        return ResponseEntity.ok(playListResponseDto);
-    }
-
-    @GetMapping("/api/getRecommendAlbum")
-    public ResponseEntity<PlayListResponseDto> getRecommendAlbum(PlayListRequestDto playListRequestDto) {
-        log.info("getRecommendAlbum");
-        PlayListResponseDto playListResponseDto = playListService.getRecommendAlbum(playListRequestDto);
-        return ResponseEntity.ok(playListResponseDto);
-    }
-
     @GetMapping("/api/getSearchPlayList")
     public ResponseEntity<PlayListResponseDto> getSearchTrack(SearchRequestDto searchRequestDto) {
         log.info("getSearchTrack");

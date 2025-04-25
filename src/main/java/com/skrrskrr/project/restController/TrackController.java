@@ -61,13 +61,6 @@ public class TrackController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("/api/getLastListenTrackList")
-    public ResponseEntity<TrackResponseDto> getLastListenTrackList(TrackRequestDto trackRequestDto) {
-        log.info("getLastListenTrackList");
-        TrackResponseDto trackResponseDto = trackService.getLastListenTrackList(trackRequestDto);
-        return ResponseEntity.ok(trackResponseDto);
-    }
-
     @GetMapping("/api/getSearchTrack")
     public ResponseEntity<TrackResponseDto> getSearchTrack(SearchRequestDto searchRequestDto) {
         log.info("getSearchTrack");
@@ -93,13 +86,6 @@ public class TrackController {
     public ResponseEntity<TrackResponseDto> getAudioPlayerTrackList(TrackRequestDto trackRequestDto){
         log.info("getAudioPlayList");
         TrackResponseDto trackResponseDto = trackService.getAudioPlayerTrackList(trackRequestDto);
-        return ResponseEntity.ok(trackResponseDto);
-    }
-
-    @GetMapping("/api/getRecommendTrack")
-    public ResponseEntity<TrackResponseDto> getRecommendTrack(TrackRequestDto trackRequestDto){
-        log.info("getRecommendTrack");
-        TrackResponseDto trackResponseDto = trackService.getRecommendTrack(trackRequestDto);
         return ResponseEntity.ok(trackResponseDto);
     }
 

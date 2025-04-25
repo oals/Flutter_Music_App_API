@@ -9,7 +9,6 @@ import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import com.skrrskrr.project.repository.PlayListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -33,33 +32,29 @@ public class PlayListServiceImpl implements PlayListService {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final PlayListRepository playListRepository;
-    private final TrackLikeService trackLikeService;
+    private final PlayListLikeService playListLikeService;
     private final SearchService searchService;
 
     @Override
-    public PlayListResponseDto getRecommendPlayList(PlayListRequestDto playListRequestDto) {
+    public List<PlayListDto> getRecommendPlayList(Long loginMemberId) {
 
-        playListRequestDto.setLimit(6L);
+        PlayListRequestDto playListRequestDto = new PlayListRequestDto();
         playListRequestDto.setIsAlbum(false);
+        playListRequestDto.setLoginMemberId(loginMemberId);
 
-        List<PlayListDto> recommendPlayList = getRecommendPlayLists(playListRequestDto);
-
-        return PlayListResponseDto.builder()
-                .playLists(recommendPlayList)
-                .build();
+        return getRecommendPlayLists(playListRequestDto);
     }
 
     @Override
-    public PlayListResponseDto getRecommendAlbum(PlayListRequestDto playListRequestDto) {
+    public List<PlayListDto> getRecommendAlbum(Long loginMemberId) {
 
-        playListRequestDto.setLimit(6L);
+        PlayListRequestDto playListRequestDto = new PlayListRequestDto();
         playListRequestDto.setIsAlbum(true);
+        playListRequestDto.setLoginMemberId(loginMemberId);
 
         List<PlayListDto> recommendAlbum = getRecommendPlayLists(playListRequestDto);
 
-        return PlayListResponseDto.builder()
-                .playLists(recommendAlbum)
-                .build();
+        return recommendAlbum;
     }
 
 
@@ -118,7 +113,7 @@ public class PlayListServiceImpl implements PlayListService {
                 .build();
     }
 
-    private List<PlayListDto> getLikeTrackMemberPlayList(PlayListRequestDto playListRequestDto) {
+    private List<PlayListDto> getLikeTrackMemberPopularPlayList(PlayListRequestDto playListRequestDto) {
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
@@ -132,7 +127,7 @@ public class PlayListServiceImpl implements PlayListService {
                 .orderByPlayListIdDesc()
                 .limit(playListRequestDto.getLimit())
                 .offset(playListRequestDto.getOffset())
-                .fetchPlayListDto(PlayListDto.class);
+                .fetchPlayListPreviewDto(PlayListDto.class);
     }
 
 
@@ -211,7 +206,7 @@ public class PlayListServiceImpl implements PlayListService {
         return (List<PlayListDto>) playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
                 .findPlayListBySearchText(searchRequestDto.getSearchText())
-                .findPlayListBySearchTextList(searchRequestDto.getSearchTextList())
+                .findPlayListBySearchTextList(searchRequestDto.getSearchKeywordList())
                 .findPlayListsByNotMemberId(searchRequestDto.getLoginMemberId())
                 .joinPlayListLikeWithMemberPlayList(searchRequestDto.getLoginMemberId())
                 .findIsPlayListPrivacyFalse()
@@ -221,7 +216,7 @@ public class PlayListServiceImpl implements PlayListService {
                 .orderByPlayListLikeCntDesc()
                 .orderByPlayListIdDesc()
                 .offset(searchRequestDto.getOffset())
-                .fetchPlayListDto(PlayListDto.class);
+                .fetchPlayListPreviewDto(PlayListDto.class);
 
 
     }
@@ -246,7 +241,7 @@ public class PlayListServiceImpl implements PlayListService {
         return (List<PlayListDto>) playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
                 .findPlayListBySearchText(searchRequestDto.getSearchText())
-                .findPlayListBySearchTextList(searchRequestDto.getSearchTextList())
+                .findPlayListBySearchTextList(searchRequestDto.getSearchKeywordList())
                 .joinPlayListLikeWithMemberPlayList(searchRequestDto.getLoginMemberId())
                 .findIsPlayListPrivacyFalse()
                 .findIsPlayListNotEmpty()
@@ -358,91 +353,117 @@ public class PlayListServiceImpl implements PlayListService {
                 .fetchCount();
     }
 
-    private List<PlayListDto> getRecommendPlayLists(PlayListRequestDto playListRequestDto) {
 
-        List<PlayListDto> recommendPlayList = new ArrayList<>();
+    private List<PlayListDto> getRecommendLikeMemberPopularPlayList(PlayListRequestDto playListRequestDto) {
 
-
-        /** 최근 좋아요 누른 트랙의 사용자 최근 플리 조회 */
-        TrackRequestDto trackRequestDto = new TrackRequestDto();
-        trackRequestDto.setLoginMemberId(playListRequestDto.getLoginMemberId());
-        trackRequestDto.setLimit(5L);
-
-        List<Long> likeTrackMemberIdList = trackLikeService.getRecommendLikeTrackMemberId(trackRequestDto);
+        List<PlayListDto> recommendPlaysList = new ArrayList<>();
+        List<Long> likeTrackMemberIdList = playListLikeService.getRecommendLikePlayListsMemberId(playListRequestDto);
 
         playListRequestDto.setLimit(1L);
 
         for (Long memberId : likeTrackMemberIdList) {
             playListRequestDto.setMemberId(memberId);
-            recommendPlayList.addAll(getLikeTrackMemberPlayList(playListRequestDto));
+            recommendPlaysList.addAll(getLikeTrackMemberPopularPlayList(playListRequestDto));
         }
 
-        /** 팔로우한 유저의 최근 플리 */
-        playListRequestDto.setLimit(5L);
-        recommendPlayList.addAll(getFollowMemberPlayList(playListRequestDto));
+        return recommendPlaysList;
 
-        /** 검색어 기반 플리 조회*/
+    }
+
+    private List<PlayListDto> getSearchRecommendPlayLists(PlayListRequestDto playListRequestDto) {
         SearchRequestDto searchRequestDto = new SearchRequestDto();
-        searchRequestDto.setLoginMemberId(trackRequestDto.getLoginMemberId());
+        searchRequestDto.setLoginMemberId(playListRequestDto.getLoginMemberId());
         searchRequestDto.setLimit(5L);
         searchRequestDto.setIsAlbum(playListRequestDto.getIsAlbum());
 
-        searchRequestDto.setSearchTextList(searchService.processSearchKeywords(searchRequestDto));
+        searchRequestDto.setSearchKeywordList(searchService.processSearchKeywords(searchRequestDto));
 
-        recommendPlayList.addAll(getSearchKeywordPlayList(searchRequestDto));
+        return getSearchKeywordPlayList(searchRequestDto);
+    }
 
-        recommendPlayList = recommendPlayList.stream()
-                .distinct()
-                .collect(Collectors.toList());
+    private List<PlayListDto> getRecommendPopularPlayLists(PlayListRequestDto playListRequestDto){
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
+        return (List<PlayListDto>) playListSelectQueryBuilder
+                .selectFrom(QMemberPlayList.memberPlayList)
+                .findIsPlayListNotEmpty()
+                .findPlayListsByNotMemberId(playListRequestDto.getLoginMemberId())
+                .findIsPlayListPrivacyFalse()
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .orderByPlayListLikeCntDesc()
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .limit(15L)
+                .fetchPlayListPreviewDto(PlayListDto.class);
+    }
+
+    private List<Long> getRecommendPlayListsPlayListId(List<PlayListDto> recommendPlayList){
+        return recommendPlayList.stream()
+                .map(PlayListDto::getPlayListId)
+                .toList();
+    }
+    private List<Long> getRecommendPlayListsMemberIdList(List<PlayListDto> recommendPlayList){
+        return recommendPlayList.stream()
+                .map(PlayListDto::getMemberId)
+                .toList();
+    }
+
+    private List<PlayListDto> getMemberRecommendPlayList(PlayListRequestDto playListRequestDto,List<Long> playListMemberIdList,List<Long> playListIdList, Long limit){
+
+        PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
+
+        return (List<PlayListDto>) playListSelectQueryBuilder
+                .selectFrom(QMemberPlayList.memberPlayList)
+                .findPlayListByNotPlayListIdList(playListIdList)
+                .findPlayListByMemberIdList(playListMemberIdList)
+                .findIsPlayListPrivacyFalse()
+                .findIsPlayListNotEmpty()
+                .findIsAlbum(playListRequestDto.getIsAlbum())
+                .orderByPlayListLikeCntDesc()
+                .limit(limit)
+                .fetchPlayListPreviewDto(PlayListDto.class);
+    }
+
+    private List<PlayListDto> getRecommendPlayLists(PlayListRequestDto playListRequestDto) {
+
+        List<PlayListDto> recommendPlayList = new ArrayList<>();
+
+        /* 최근 좋아요 누른 플레이리스트 사용자의 플레이리스트 조회 */
+        recommendPlayList.addAll(getRecommendLikeMemberPopularPlayList(playListRequestDto));
+
+        /* 팔로우한 유저의 최근 플리 */
+        recommendPlayList.addAll(getFollowMemberPlayList(playListRequestDto));
+
+        /* 사용자의 검색 키워드가 포함 되는 플레이리스트 조회 */
+        recommendPlayList.addAll(getSearchRecommendPlayLists(playListRequestDto));
+
+        /*중복 제거*/
+        recommendPlayList = new ArrayList<>(recommendPlayList.stream()
+                .collect(Collectors.toMap(
+                        PlayListDto::getPlayListId,
+                        item -> item,
+                        (existing, replacement) -> existing
+                ))
+                .values());
+
         if (recommendPlayList.isEmpty()){
 
-            recommendPlayList.addAll(
-                    (List<PlayListDto>) playListSelectQueryBuilder
-                            .selectFrom(QMemberPlayList.memberPlayList)
-                            .joinPlayListLikeWithMemberPlayList(playListRequestDto.getLoginMemberId())
-                            .findIsPlayListNotEmpty()
-                            .findPlayListsByNotMemberId(playListRequestDto.getLoginMemberId())
-                            .findIsPlayListPrivacyFalse()
-                            .orderByPlayListLikeCntDesc()
-                            .findIsAlbum(playListRequestDto.getIsAlbum())
-                            .limit(playListRequestDto.getLimit())
-                            .fetchPlayListPreviewDto(PlayListDto.class)
-            );
+            recommendPlayList.addAll(getRecommendPopularPlayLists(playListRequestDto));
 
-        } else {
-            Long addRecommendPlayListLimit = (long) (16 - recommendPlayList.size());
+        } else if (recommendPlayList.size() < 15) {
 
-            List<Long> playListMemberIdList = recommendPlayList.stream()
-                    .map(PlayListDto::getMemberId)
-                    .toList();
+            Long addRecommendPlayListLimit = (long) (15 - recommendPlayList.size());
 
-            List<Long> playListIdList = recommendPlayList.stream()
-                    .map(PlayListDto::getPlayListId)
-                    .toList();
+            List<Long> playListMemberIdList = getRecommendPlayListsMemberIdList(recommendPlayList);
 
-           recommendPlayList.addAll(
-                    (List<PlayListDto>) playListSelectQueryBuilder
-                            .selectFrom(QMemberPlayList.memberPlayList)
-                            .findIsPlayListNotEmpty()
-                            .findPlayListByMemberIdList(playListMemberIdList)
-                            .findPlayListByPlayListIdList(playListIdList)
-                            .findIsPlayListPrivacyFalse()
-                            .orderByPlayListLikeCntDesc()
-                            .findIsAlbum(playListRequestDto.getIsAlbum())
-                            .limit(addRecommendPlayListLimit)
-                            .fetchPlayListPreviewDto(PlayListDto.class)
-            );
+            List<Long> playListIdList = getRecommendPlayListsPlayListId(recommendPlayList);
+
+            recommendPlayList.addAll(getMemberRecommendPlayList(playListRequestDto,playListMemberIdList,playListIdList,addRecommendPlayListLimit));
 
         }
 
-
-
         return recommendPlayList;
     }
-
 
     private Member getMember(Long memberId){
 
@@ -453,7 +474,6 @@ public class PlayListServiceImpl implements PlayListService {
                 .fetchOne();
     }
 
-
     private List<PlayListDto> getFollowMemberPlayList(PlayListRequestDto playListRequestDto) {
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
@@ -463,10 +483,11 @@ public class PlayListServiceImpl implements PlayListService {
                 .joinMemberFollowersAndFollow()
                 .findIsPlayListPrivacyFalse()
                 .findIsPlayListNotEmpty()
+                .findIsAlbum(playListRequestDto.getIsAlbum())
                 .findFollowerPlayLists(playListRequestDto.getLoginMemberId())
                 .orderByPlayListLikeCntDesc()
                 .orderByPlayListIdDesc()
-                .limit(playListRequestDto.getLimit())
+                .limit(5L)
                 .fetchPlayListPreviewDto(PlayListDto.class);
 
     }

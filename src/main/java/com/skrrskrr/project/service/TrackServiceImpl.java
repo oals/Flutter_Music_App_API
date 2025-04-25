@@ -104,7 +104,7 @@ public class TrackServiceImpl implements TrackService {
 
         if (totalCount != 0) {
             memberRequestDto.setLimit(5L);
-            popularTrackDtoList = getPopularMemberTrackList(memberRequestDto);
+            popularTrackDtoList = getMemberPopularTrackList(memberRequestDto);
         }
 
         return TrackResponseDto.builder()
@@ -254,13 +254,18 @@ public class TrackServiceImpl implements TrackService {
                 .fetchTrackId() + 1;
     }
 
-    private List<TrackDto> getSearchRecommendTrackList(SearchRequestDto searchRequestDto) {
+    private List<TrackDto> getSearchRecommendTrackList(Long loginMemberId) {
+
+        SearchRequestDto searchRequestDto = new SearchRequestDto();
+        searchRequestDto.setLoginMemberId(loginMemberId);
+        searchRequestDto.setLimit(5L);
+        searchRequestDto.setSearchKeywordList(searchService.processSearchKeywords(searchRequestDto));
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
         return (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                 .joinTrackLikeWithMemberTrack(searchRequestDto.getLoginMemberId())
-                .findTracksBySearchTextList(searchRequestDto.getSearchTextList())
+                .findTracksBySearchTextList(searchRequestDto.getSearchKeywordList())
                 .findTracksByNotMemberId(searchRequestDto.getLoginMemberId())
                 .findIsTrackPrivacyFalse()
                 .groupByMemberTrackId()
@@ -270,7 +275,6 @@ public class TrackServiceImpl implements TrackService {
                 .orderByTrackLikeCntDesc()
                 .orderByMemberTrackIdDesc()
                 .fetchTrackListDto(TrackDto.class);
-
     }
 
 
@@ -305,9 +309,11 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public TrackResponseDto getLastListenTrackList(TrackRequestDto trackRequestDto) {
+    public List<TrackDto> getLastListenTrackList(Long loginMemberId) {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
+        TrackRequestDto trackRequestDto = new TrackRequestDto();
+        trackRequestDto.setLoginMemberId(loginMemberId);
 
         List<Long> lastListenTrackIdList = redisService.getLastListenTrackIdList(trackRequestDto);
 
@@ -323,9 +329,7 @@ public class TrackServiceImpl implements TrackService {
                 .map(trackMap::get)
                 .toList();
 
-        return TrackResponseDto.builder()
-                .trackList(lastListenTrackListOrderBy)
-                .build();
+        return lastListenTrackListOrderBy;
     }
 
     private List<TrackDto> getAllMemberTrackList(MemberRequestDto memberRequestDto) {
@@ -345,15 +349,15 @@ public class TrackServiceImpl implements TrackService {
 
     }
 
-    private List<TrackDto> getPopularMemberTrackList(MemberRequestDto memberRequestDto) {
+    private List<TrackDto> getMemberPopularTrackList(MemberRequestDto memberRequestDto) {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
         return (List<TrackDto>)
                 trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                        .joinTrackLikeWithMemberTrack(memberRequestDto.getLoginMemberId())
                         .findTracksByMemberId(memberRequestDto.getMemberId())
                         .findIsTrackPrivacyFalseOrEqualLoginMemberId(memberRequestDto.getLoginMemberId())
-                        .joinTrackLikeWithMemberTrack(memberRequestDto.getLoginMemberId())
                         .orderByTrackPlayCntDesc()
                         .orderByTrackLikeCntDesc()
                         .offset(memberRequestDto.getOffset())
@@ -401,29 +405,25 @@ public class TrackServiceImpl implements TrackService {
     public TrackResponseDto getAudioPlayerTrackList(TrackRequestDto trackRequestDto) {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
+        List<TrackDto> audioPlayerTrackList = new ArrayList<>();
 
         List<Long> audioPlayerTrackIdList = redisService.getAudioPlayerTrackIdList(trackRequestDto);
 
-        trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
-                .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
-                .findIsTrackPrivacyFalseOrEqualLoginMemberId(trackRequestDto.getLoginMemberId())
-                .findTrackInList(audioPlayerTrackIdList);
+        if (!audioPlayerTrackIdList.isEmpty()) {
+            audioPlayerTrackList = (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                    .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
+                    .findIsTrackPrivacyFalseOrEqualLoginMemberId(trackRequestDto.getLoginMemberId())
+                    .findTrackInList(audioPlayerTrackIdList)
+                    .fetchTrackListDto(TrackDto.class);
 
-        if (false) {
-            trackSelectQueryBuilder.orderByMemberTrackIdDesc();
+
+            audioPlayerTrackList.sort((track1, track2) -> {
+                int index1 = audioPlayerTrackIdList.indexOf(track1.getTrackId());
+                int index2 = audioPlayerTrackIdList.indexOf(track2.getTrackId());
+                return Integer.compare(index1, index2);
+            });
+
         }
-
-        if (false) {
-            trackSelectQueryBuilder.limit(4);
-        }
-
-        List<TrackDto> audioPlayerTrackList = (List<TrackDto>) trackSelectQueryBuilder.fetchTrackListDto(TrackDto.class);
-
-        audioPlayerTrackList.sort((track1, track2) -> {
-            int index1 = audioPlayerTrackIdList.indexOf(track1.getTrackId());
-            int index2 = audioPlayerTrackIdList.indexOf(track2.getTrackId());
-            return Integer.compare(index1, index2);
-        });
 
         return TrackResponseDto.builder()
                 .trackList(audioPlayerTrackList)
@@ -441,97 +441,123 @@ public class TrackServiceImpl implements TrackService {
                 .fetchCount();
     }
 
-    @Override
-    public TrackResponseDto getRecommendTrack(TrackRequestDto trackRequestDto) {
-
-        trackRequestDto.setLimit(5L);
-        List<TrackDto> recommendTrackList = new ArrayList<>();
-
-        /* 최근 좋아요 누른 트랙 5명의 사용자 인기 트랙 5곡 */
-        List<Long> likeTrackMemberIdList = trackLikeService.getRecommendLikeTrackMemberId(trackRequestDto);
+    private List<TrackDto> getRecommendLikeMemberPopularTrack(TrackRequestDto trackRequestDto) {
 
         MemberRequestDto memberRequestDto = new MemberRequestDto();
+        List<TrackDto> recommendTrackList = new ArrayList<>();
         memberRequestDto.setLoginMemberId(trackRequestDto.getLoginMemberId());
         memberRequestDto.setLimit(1L);
 
+        /* 최근 좋아요 누른 트랙 사용자 조회 */
+        List<Long> likeTrackMemberIdList = trackLikeService.getRecommendLikeTrackMemberId(trackRequestDto);
+
+
         for (Long memberId : likeTrackMemberIdList) {
-               memberRequestDto.setMemberId(memberId);
-               recommendTrackList.addAll(getPopularMemberTrackList(memberRequestDto));
+            memberRequestDto.setMemberId(memberId);
+            recommendTrackList.addAll(getMemberPopularTrackList(memberRequestDto));
         }
 
-        /* 내가 팔로우 한 유저의 새로운 5곡 */
-        recommendTrackList.addAll(getFollowMemberTrackList(trackRequestDto));
+        return recommendTrackList;
+    }
 
-        /* 사용자의 검색 기록이 포함 되는 트랙 5곡 */
-        SearchRequestDto searchRequestDto = new SearchRequestDto();
-        searchRequestDto.setLoginMemberId(trackRequestDto.getLoginMemberId());
-        searchRequestDto.setLimit(5L);
-
-        searchRequestDto.setSearchTextList(searchService.processSearchKeywords(searchRequestDto));
-
-        recommendTrackList.addAll(getSearchRecommendTrackList(searchRequestDto));
-
-        recommendTrackList = recommendTrackList.stream()
-                .distinct()
-                .collect(Collectors.toList());
-
+    private List<TrackDto> getRecommendPopularTrack(Long loginMemberId){
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
-        if (recommendTrackList.isEmpty()) {
-
-            recommendTrackList.addAll(
-                    (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
-                            .findIsTrackPrivacyFalseOrEqualLoginMemberId(trackRequestDto.getLoginMemberId())
-                            .orderByTrackPlayCntDesc()
-                            .orderByTrackLikeCntDesc()
-                            .orderByTrackUploadDateDesc()
-                            .limit(15)
-                            .fetchTrackListDto(TrackDto.class)
-            );
-
-        } else if (recommendTrackList.size() < 16) {
-            Long addRecommendTrackLimit = (long) (16 - recommendTrackList.size());
-
-            Map<Long, Integer> categoryStatistics = new HashMap<>();
-            for (TrackDto track : recommendTrackList) {
-                Long categoryId = track.getTrackCategoryId();
-                categoryStatistics.put(categoryId, categoryStatistics.getOrDefault(categoryId, 0) + 1);
-            }
-
-            Long mostFrequentCategoryId = categoryStatistics.entrySet()
-                    .stream()
-                    .max(Map.Entry.comparingByValue())
-                    .get()
-                    .getKey();
-
-            trackRequestDto.setTrackIdList(
-                    recommendTrackList.stream()
-                            .map(TrackDto::getTrackId)
-                            .collect(Collectors.toList())
-            );
-
-            recommendTrackList.addAll(
-                    (List<TrackDto>)
-                            trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
-                                    .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
-                                    .findTrackNotInList(trackRequestDto.getTrackIdList())
-                                    .findIsTrackPrivacyFalse()
-                                    .findTracksByNotMemberId(trackRequestDto.getLoginMemberId())
-                                    .findCategoryTracks(mostFrequentCategoryId)
-                                    .orderByTrackPlayCntDesc()
-                                    .orderByTrackLikeCntDesc()
-                                    .orderByTrackUploadDateDesc()
-                                    .limit(addRecommendTrackLimit)
-                                    .fetchTrackListDto(TrackDto.class)
-            );
-        }
-
-        return TrackResponseDto.builder()
-                .trackList(recommendTrackList)
-                .build();
+        return  (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                .joinTrackLikeWithMemberTrack(loginMemberId)
+                .findIsTrackPrivacyFalse()
+                .findTracksByNotMemberId(loginMemberId)
+                .orderByTrackPlayCntDesc()
+                .orderByTrackLikeCntDesc()
+                .orderByTrackUploadDateDesc()
+                .limit(15)
+                .fetchTrackListDto(TrackDto.class);
     }
 
+    private Long getRecommendCategoryId(List<TrackDto> recommendTrackList){
+
+        Map<Long, Integer> categoryStatistics = new HashMap<>();
+
+        for (TrackDto track : recommendTrackList) {
+            Long categoryId = track.getTrackCategoryId();
+            categoryStatistics.put(categoryId, categoryStatistics.getOrDefault(categoryId, 0) + 1);
+        }
+
+        return categoryStatistics.entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .get()
+                .getKey();
+
+    }
+
+    private List<Long> getRecommentTrackIdList(List<TrackDto> recommendTrackList) {
+        return recommendTrackList.stream()
+                .map(TrackDto::getTrackId)
+                .collect(Collectors.toList());
+    }
+
+    private List<TrackDto> getMemberRecommendTrack(TrackRequestDto trackRequestDto ,Long categoryId, Long limit ){
+
+        TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
+
+        return (List<TrackDto>)
+                trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                        .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
+                        .findTrackNotInList(trackRequestDto.getTrackIdList())
+                        .findIsTrackPrivacyFalse()
+                        .findTracksByNotMemberId(trackRequestDto.getLoginMemberId())
+                        .findCategoryTracks(categoryId)
+                        .orderByTrackPlayCntDesc()
+                        .orderByTrackLikeCntDesc()
+                        .orderByTrackUploadDateDesc()
+                        .limit(limit)
+                        .fetchTrackListDto(TrackDto.class);
+    }
+
+    @Override
+    public List<TrackDto> getRecommendTrack(Long loginMemberId) {
+
+        List<TrackDto> recommendTrackList = new ArrayList<>();
+        TrackRequestDto trackRequestDto = new TrackRequestDto();
+        trackRequestDto.setLoginMemberId(loginMemberId);
+
+        /* 좋아요 누른 트랙 사용자의 인기 트랙 조회 */
+        recommendTrackList.addAll(getRecommendLikeMemberPopularTrack(trackRequestDto));
+
+        /* 내가 팔로우 한 유저의 새로운 곡 조회 */
+        recommendTrackList.addAll(getRecommendFollowMemberTrackList(trackRequestDto));
+
+        /* 사용자의 검색 키워드가 포함 되는 트랙 조회 */
+        recommendTrackList.addAll(getSearchRecommendTrackList(trackRequestDto.getLoginMemberId()));
+
+        /* 중복 트랙 제거*/
+        recommendTrackList = new ArrayList<>(recommendTrackList.stream()
+                .collect(Collectors.toMap(
+                        TrackDto::getTrackId,
+                        item -> item,
+                        (existing, replacement) -> existing
+                ))
+                .values());
+
+        if (recommendTrackList.isEmpty()) {
+
+            recommendTrackList.addAll(getRecommendPopularTrack(trackRequestDto.getLoginMemberId()));
+
+        } else if (recommendTrackList.size() < 15) {
+
+            long addRecommendTrackLimit = (15 - recommendTrackList.size());
+
+            Long mostFrequentCategoryId = getRecommendCategoryId(recommendTrackList);
+
+            trackRequestDto.setTrackIdList(getRecommentTrackIdList(recommendTrackList));
+
+            recommendTrackList.addAll(getMemberRecommendTrack(trackRequestDto,mostFrequentCategoryId,addRecommendTrackLimit));
+        }
+
+        return recommendTrackList;
+    }
 
     @Override
     public TrackResponseDto getUploadTrack(TrackRequestDto trackRequestDto) {
@@ -563,18 +589,18 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    private List<TrackDto> getFollowMemberTrackList(TrackRequestDto trackRequestDto) {
+    private List<TrackDto> getRecommendFollowMemberTrackList(TrackRequestDto trackRequestDto) {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
         return (List<TrackDto>) trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
                 .joinMemberTrackWithMember()
-                .joinMemberFollowersAndFollow()
                 .joinTrackLikeWithMemberTrack(trackRequestDto.getLoginMemberId())
+                .joinMemberFollowersAndFollow()
                 .findIsTrackPrivacyFalse()
                 .findFollowerTracks(trackRequestDto.getLoginMemberId())
                 .orderByTrackUploadDateDesc()
-                .limit(trackRequestDto.getLimit())
+                .limit(5L)
                 .fetchTrackListDto(TrackDto.class);
 
     }

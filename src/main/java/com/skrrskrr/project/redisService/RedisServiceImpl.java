@@ -117,7 +117,9 @@ public class RedisServiceImpl implements RedisService{
 
         String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
 
-        Long lastListenTrackId = Long.valueOf(Objects.requireNonNull(redisTemplate.opsForValue().get(key)));
+        Long lastListenTrackId = Optional.ofNullable(redisTemplate.opsForValue().get(key))
+                .map(Long::valueOf)
+                .orElse(0L);
 
         return TrackResponseDto.builder()
                 .trackId(lastListenTrackId)

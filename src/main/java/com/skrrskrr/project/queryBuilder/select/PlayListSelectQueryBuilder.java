@@ -90,11 +90,11 @@ public class PlayListSelectQueryBuilder extends ComnSelectQueryBuilder<PlayListS
         return this;
     }
 
-    public PlayListSelectQueryBuilder findPlayListByPlayListIdList(List<Long> playListId) {
+    public PlayListSelectQueryBuilder findPlayListByNotPlayListIdList(List<Long> playListId) {
         if (playListId != null) {
             BooleanExpression containsCondition = playListId.stream()
-                    .map(id -> qMemberPlayList.playList.playListId.eq(id))
-                    .reduce(BooleanExpression::or)
+                    .map(id -> qMemberPlayList.playList.playListId.ne(id))
+                    .reduce(BooleanExpression::and)
                     .orElse(null);
 
             if (containsCondition != null) {

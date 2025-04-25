@@ -7,9 +7,9 @@ import java.util.Map;
 
 public interface PlayListService {
 
-    PlayListResponseDto getRecommendPlayList(PlayListRequestDto playListRequestDto);
+    List<PlayListDto> getRecommendPlayList(Long loginMemberId);
 
-    PlayListResponseDto getRecommendAlbum(PlayListRequestDto playListRequestDto);
+    List<PlayListDto> getRecommendAlbum(Long loginMemberId);
 
     PlayListResponseDto getSearchPlayList(SearchRequestDto searchRequestDto);
 
