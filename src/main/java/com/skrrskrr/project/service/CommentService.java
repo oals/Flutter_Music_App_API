@@ -9,13 +9,10 @@ import java.util.HashMap; import java.util.Map;
 public interface CommentService {
 
 
-    void setComment(CommentRequestDto commentRequestDto);
+    CommentResponseDto setComment(CommentRequestDto commentRequestDto);
 
     void setCommentLike(CommentRequestDto commentRequestDto);
 
     CommentResponseDto getComment(CommentRequestDto commentRequestDto);
-
-    CommentResponseDto getChildComment(CommentRequestDto commentRequestDto);
-
 
 }

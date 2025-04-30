@@ -26,7 +26,6 @@ public class Notifications {
 
     private String notificationDate;
 
-
     private Long notificationTrackId;
 
     private Long notificationCommentId;

@@ -44,9 +44,9 @@ public class UploadController {
         return ResponseEntity.ok(trackResponseDto);
     }
 
-    @PostMapping("/api/setMemberImage")
+    @PostMapping("/api/updateMemberImage")
     public ResponseEntity<MemberResponseDto> updateMemberImage(@ModelAttribute UploadDto uploadDto){
-        log.info("setMemberImage");
+        log.info("updateMemberImage");
         MemberResponseDto memberResponseDto = uploadService.updateMemberImage(uploadDto);
         return ResponseEntity.ok(memberResponseDto);
 

@@ -1,5 +1,6 @@
 package com.skrrskrr.project.queryBuilder.select;
 
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.entity.QComment;
@@ -31,7 +32,13 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
     public CommentSelectQueryBuilder findCommentByTrackId(Long trackId){
         throwIfConditionNotMet(trackId != null);
 
-        this.query .where(qComment.track.trackId.eq(trackId));
+        this.query.where(qComment.track.trackId.eq(trackId));
+        return this;
+    }
+
+    public CommentSelectQueryBuilder findParentComment(){
+
+        this.query.where(qComment.parentComment.isNull());
         return this;
     }
 
@@ -39,5 +46,10 @@ public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSel
 
 
     /** --------------------------ordeBy ---------------------------------------- */
+
+    public CommentSelectQueryBuilder orderByCommentIdDesc() {
+        this.query.orderBy(qComment.commentId.desc());
+        return this;
+    }
 
 }

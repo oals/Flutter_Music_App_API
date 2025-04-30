@@ -23,10 +23,10 @@ public class CommentController {
 
 
     @PostMapping(value = "/api/setComment")
-    public ResponseEntity<Void> setComment(@RequestBody CommentRequestDto commentRequestDto) {
+    public ResponseEntity<CommentResponseDto> setComment(@RequestBody CommentRequestDto commentRequestDto) {
         log.info("setComment");
-        commentService.setComment(commentRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        CommentResponseDto commentResponseDto =  commentService.setComment(commentRequestDto);
+        return ResponseEntity.ok(commentResponseDto);
     }
 
     @PostMapping(value = "/api/setCommentLike")
@@ -40,13 +40,6 @@ public class CommentController {
     public ResponseEntity<CommentResponseDto> getComment(CommentRequestDto commentRequestDto) {
         log.info("getComment");
         CommentResponseDto commentResponseDto = commentService.getComment(commentRequestDto);
-        return ResponseEntity.ok(commentResponseDto);
-    }
-
-    @GetMapping(value = "/api/getChildComment")
-    public ResponseEntity<CommentResponseDto> getChildComment(CommentRequestDto commentRequestDto) {
-        log.info("getChildComment");
-        CommentResponseDto commentResponseDto = commentService.getChildComment(commentRequestDto);
         return ResponseEntity.ok(commentResponseDto);
     }
 }
