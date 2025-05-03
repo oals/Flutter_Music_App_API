@@ -138,15 +138,13 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public List<MemberDto> getRecommendMember(Long loginMemberId) {
+    public List<FollowDto> getRecommendMember(Long loginMemberId) {
 
         MemberRequestDto memberRequestDto = new MemberRequestDto();
         memberRequestDto.setLoginMemberId(loginMemberId);
-        memberRequestDto.setLimit(4L);
+        memberRequestDto.setLimit(8L);
 
-        List<MemberDto> randomMemberList = getRandomMemberList(memberRequestDto);
-
-        return randomMemberList;
+        return getRandomMemberList(memberRequestDto);
     }
 
     @Override
@@ -204,48 +202,7 @@ public class MemberServiceImpl implements MemberService {
                 .limit(searchRequestDto.getLimit())
                 .fetch(Member.class);
 
-        List<FollowDto> searchMemberDtos = new ArrayList<>();
-
-        for (Member member : queryMemberResult) {
-
-            FollowDto followDto = FollowDto.builder()
-                    .isFollowedCd(0L)
-                    .followImagePath(member.getMemberImagePath())
-                    .followMemberId(member.getMemberId())
-                    .followNickName(member.getMemberNickName())
-                    .isMutualFollow(false)
-                    .build();
-
-            if (!member.getFollowers().isEmpty()
-                    || !member.getFollowing().isEmpty()) {
-
-                if (!member.getFollowers().isEmpty()) {
-                    for (Follow item : member.getFollowers()) {
-                        if (item.getFollowing().getMemberId().equals(searchRequestDto.getLoginMemberId())) {
-                            followDto.setIsFollowedCd(1L);   // 내가 팔로우
-                        }
-                    }
-                }
-
-                if (!member.getFollowing().isEmpty()) {
-                    for (Follow item : member.getFollowing()) {
-                        if (item.getFollower().getMemberId().equals(searchRequestDto.getLoginMemberId())) {
-                            if (followDto.getIsFollowedCd() == 1L) {
-                                followDto.setIsFollowedCd(3L); // 맞팔
-                                followDto.setIsMutualFollow(true);
-                            } else {
-                                followDto.setIsFollowedCd(2L); // 내팔로워
-                            }
-
-                        }
-                    }
-                }
-            }
-            searchMemberDtos.add(followDto);
-        }
-
-        return searchMemberDtos;
-
+        return createRandomMmeberDtoList(queryMemberResult,searchRequestDto.getLoginMemberId());
     }
 
     @Override
@@ -261,7 +218,7 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public List<MemberDto> getRandomMemberList(MemberRequestDto memberRequestDto){
+    public List<FollowDto> getRandomMemberList(MemberRequestDto memberRequestDto){
 
         MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
 
@@ -277,23 +234,31 @@ public class MemberServiceImpl implements MemberService {
         return createRandomMmeberDtoList(memberList, memberRequestDto.getLoginMemberId());
     }
 
-    private List<MemberDto> createRandomMmeberDtoList(List<Member> queryResultMember, Long loginMemberId){
+    private List<FollowDto> createRandomMmeberDtoList(List<Member> queryResultMember, Long loginMemberId){
 
-        List<MemberDto> randomMemberList = new ArrayList<>();
+        List<FollowDto> memberDtos = new ArrayList<>();
 
-        for (Member randomItem : queryResultMember) {
+        for (Member member : queryResultMember) {
 
-            int isFollowedCd = 0; // 관계없음
+            long isFollowedCd = 0; // 관계없음
 
-            for (int i = 0; i < randomItem.getFollowers().size(); i++) {
-                if (randomItem.getFollowers().get(i).getFollowing().getMemberId().equals(loginMemberId)) {
+            FollowDto followDto = FollowDto.builder()
+                    .isFollowedCd(0L)
+                    .followImagePath(member.getMemberImagePath())
+                    .followMemberId(member.getMemberId())
+                    .followNickName(member.getMemberNickName())
+                    .isMutualFollow(false)
+                    .build();
+
+            for (int i = 0; i < member.getFollowing().size(); i++) {
+                if (member.getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
                     isFollowedCd = 1; // 내가 팔로우 중
                     break;
                 }
             }
 
-            for (int i = 0; i < randomItem.getFollowing().size(); i++) {
-                if (randomItem.getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
+            for (int i = 0; i < member.getFollowers().size(); i++) {
+                if (member.getFollowers().get(i).getFollowing().getMemberId().equals(loginMemberId)) {
                     if (isFollowedCd == 1) {
                         isFollowedCd = 3; //맞팔
                     } else {
@@ -302,13 +267,44 @@ public class MemberServiceImpl implements MemberService {
                 }
             }
 
-            MemberDto memberDto = modelMapper.map(randomItem, MemberDto.class);
-            memberDto.setIsFollowedCd(isFollowedCd);
-
-
-            randomMemberList.add(memberDto);
+            followDto.setIsFollowedCd(isFollowedCd);
+            memberDtos.add(followDto);
         }
-        return randomMemberList;
+
+        return memberDtos;
+
+
+
+
+//        List<MemberDto> randomMemberList = new ArrayList<>();
+//
+//        for (Member randomItem : queryResultMember) {
+//
+//            int isFollowedCd = 0; // 관계없음
+//
+//            for (int i = 0; i < randomItem.getFollowing().size(); i++) {
+//                if (randomItem.getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
+//                    isFollowedCd = 1; // 내가 팔로우 중
+//                    break;
+//                }
+//            }
+//
+//            for (int i = 0; i < randomItem.getFollowers().size(); i++) {
+//                if (randomItem.getFollowers().get(i).getFollowing().getMemberId().equals(loginMemberId)) {
+//                    if (isFollowedCd == 1) {
+//                        isFollowedCd = 3; //맞팔
+//                    } else {
+//                        isFollowedCd = 2; //내 팔로워
+//                    }
+//                }
+//            }
+//
+//            MemberDto memberDto = modelMapper.map(randomItem, MemberDto.class);
+//            memberDto.setIsFollowedCd(isFollowedCd);
+//
+//            randomMemberList.add(memberDto);
+//        }
+//            return randomMemberList;
     }
 
 }

@@ -16,13 +16,12 @@ public class HomeServiceImpl implements HomeService{
     private final TrackService trackService;
     private final PlayListService playlistService;
 
-
     @Override
     public HomeResponseDto firstLoad(HomeRequestDto homeRequestDto) {
 
         MemberDto memberDto = memberService.getMemberInfo(homeRequestDto);
 
-        List<MemberDto> recommendMemberList = memberService.getRecommendMember(memberDto.getMemberId());
+        List<FollowDto> recommendMemberList = memberService.getRecommendMember(memberDto.getMemberId());
 
         List<TrackDto> recommendTrackList = trackService.getRecommendTrack(memberDto.getMemberId());
 

@@ -203,8 +203,8 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
                         qMemberTrack.member.memberImagePath,
                         ExpressionUtils.as(
                                 new CaseBuilder()
-                                        .when(qTrackLike.trackLikeStatus.isNull()).then(false)
-                                        .otherwise(qTrackLike.trackLikeStatus), "trackLikeStatus"
+                                        .when(qTrackLike.isTrackLikeStatus.isNull()).then(false)
+                                        .otherwise(qTrackLike.isTrackLikeStatus), "isTrackLikeStatus"
                         )
                 )
         ).fetchFirst();
@@ -229,8 +229,8 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
                         qMemberTrack.member.memberImagePath,
                         ExpressionUtils.as(
                                 new CaseBuilder()
-                                        .when(qTrackLike.trackLikeStatus.isNull()).then(false)
-                                        .otherwise(qTrackLike.trackLikeStatus), "trackLikeStatus"
+                                        .when(qTrackLike.isTrackLikeStatus.isNull()).then(false)
+                                        .otherwise(qTrackLike.isTrackLikeStatus), "isTrackLikeStatus"
                         )
 
                 )

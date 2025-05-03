@@ -20,15 +20,15 @@ public interface MemberService {
         memberDto.setMemberBirth(member.getMemberBirth());
         memberDto.setMemberAddr(member.getMemberAddr());
         memberDto.setMemberImagePath(member.getMemberImagePath());
-        memberDto.setMemberFollowCnt(0L);
-        memberDto.setMemberFollowerCnt(0L);
+        memberDto.setMemberFollowCnt(member.getMemberFollowCnt());
+        memberDto.setMemberFollowerCnt(member.getMemberFollowerCnt());
         memberDto.setMemberDate(LocalDateTime.now().toString());
         memberDto.setDeviceToken(member.getMemberDeviceToken());
 
         return memberDto;
     }
 
-    List<MemberDto> getRecommendMember(Long loginMemberId);
+    List<FollowDto> getRecommendMember(Long loginMemberId);
 
     MemberResponseDto getSearchMember(SearchRequestDto searchRequestDto);
 
@@ -44,7 +44,7 @@ public interface MemberService {
 
     List<FollowDto> getSearchMemberList(SearchRequestDto searchRequestDto);
 
-    List<MemberDto> getRandomMemberList(MemberRequestDto memberRequestDto);
+    List<FollowDto> getRandomMemberList(MemberRequestDto memberRequestDto);
 
     Long getSearchMemberListCnt(SearchRequestDto searchRequestDto);
 

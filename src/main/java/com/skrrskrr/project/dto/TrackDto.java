@@ -34,7 +34,7 @@ public class TrackDto {
 
     private Boolean isFollowMember;
 
-    private Boolean trackLikeStatus;
+    private Boolean isTrackLikeStatus;
 
     private Long commentsCnt;
 

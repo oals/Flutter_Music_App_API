@@ -392,7 +392,7 @@ public class TrackServiceImpl implements TrackService {
         trackInfoDto.setCommentsCnt(commentCount);  // commentCount 값을 설정
 
         /* 해당 트랙의 뮤지션을 내가 팔로워 했는지 */
-        Boolean isFollow = followService.isFollowCheck(trackInfoDto.getMemberId(), trackRequestDto.getLoginMemberId());
+        Boolean isFollow = followService.isFollowCheck(trackRequestDto.getLoginMemberId(),trackInfoDto.getMemberId());
         trackInfoDto.setIsFollowMember(isFollow);  // isFollow 값을 설정
 
         return TrackResponseDto.builder()

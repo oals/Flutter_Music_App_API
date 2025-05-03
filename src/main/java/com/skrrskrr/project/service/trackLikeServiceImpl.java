@@ -153,7 +153,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
 
         updateTrackLikeStatus(trackLike, memberTrack, trackRequestDto.getLoginMemberId());
 
-        updateTrackLikeCount(trackLike.getMemberTrack().getTrack(), trackLike.getTrackLikeStatus());
+        updateTrackLikeCount(trackLike.getMemberTrack().getTrack(), trackLike.getIsTrackLikeStatus());
 
     }
 
@@ -163,7 +163,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
         TrackLikeUpdateQueryBuilder trackLikeUpdateQueryBuilder = new TrackLikeUpdateQueryBuilder(entityManager);
 
         trackLikeUpdateQueryBuilder.setEntity(QTrackLike.trackLike)
-                .set(QTrackLike.trackLike.trackLikeStatus, !trackLike.getTrackLikeStatus())
+                .set(QTrackLike.trackLike.isTrackLikeStatus, !trackLike.getIsTrackLikeStatus())
                 .set(QTrackLike.trackLike.trackLikeDate, LocalDateTime.now())
                 .findMemberTrackByMemberTrackId(memberTrack.getMemberTrackId())
                 .findTrackLikeByMemberMemberId(loginMemberId)
@@ -192,7 +192,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
         TrackLike insertTrackLike = new TrackLike();
         insertTrackLike.setMemberTrack(memberTrack);
         insertTrackLike.setMember(member);
-        insertTrackLike.setTrackLikeStatus(true);
+        insertTrackLike.setIsTrackLikeStatus(true);
         insertTrackLike.setTrackLikeDate(LocalDateTime.now());
 
         entityManager.persist(insertTrackLike);

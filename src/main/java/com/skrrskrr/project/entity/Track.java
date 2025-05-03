@@ -20,6 +20,7 @@ public class Track {
 
     private String trackNm;
 
+    @Column(length = 1000)
     private String trackInfo;
 
     private String trackTime;

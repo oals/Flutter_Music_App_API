@@ -43,7 +43,7 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
     }
 
     public TrackLikeSelectQueryBuilder findIsTrackLikeStatusTrue() {
-        this.query.where(qTrackLike.trackLikeStatus.isTrue());
+        this.query.where(qTrackLike.isTrackLikeStatus.isTrue());
         return this;
     }
 
@@ -104,7 +104,7 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
                         qTrackLike.memberTrack.track.trackPath,
                         qTrackLike.memberTrack.track.trackLikeCnt,
                         qTrackLike.memberTrack.track.trackInfo,
-                        qTrackLike.trackLikeStatus
+                        qTrackLike.isTrackLikeStatus
                 )
         ).fetch();
     }
@@ -113,7 +113,7 @@ public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLik
         return this.query.select(
                 Projections.bean(
                         clazz,
-                        qTrackLike.trackLikeStatus,
+                        qTrackLike.isTrackLikeStatus,
                         qTrackLike.memberTrack
                 )
         ).fetchFirst();

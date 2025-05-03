@@ -17,7 +17,7 @@ public class HomeResponseDto {
 
     List<PlayListDto> recommendAlbums;
 
-    List<MemberDto> recommendMembers;
+    List<FollowDto> recommendMembers;
 
     List<TrackDto> recommendTrackList;
 

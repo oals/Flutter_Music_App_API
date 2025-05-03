@@ -63,7 +63,6 @@ public class FollowServiceImpl implements FollowService{
         }
     }
 
-
     private void insertFollow(Member follower , Member following) {
         Follow follow = new Follow();
         follow.setFollower(follower);
@@ -82,8 +81,6 @@ public class FollowServiceImpl implements FollowService{
                 .execute();
     }
 
-
-
     private Member getFollowMember(Long followId){
 
         QMember qMember = QMember.member;
@@ -95,15 +92,13 @@ public class FollowServiceImpl implements FollowService{
 
     private void updateFollowCounts(Member follower, Member following, Long delta) {
 
-        follower.setMemberFollowerCnt(follower.getMemberFollowerCnt() + delta);
-        following.setMemberFollowCnt(following.getMemberFollowCnt() + delta);
+        follower.setMemberFollowCnt(follower.getMemberFollowCnt() + delta);
+        following.setMemberFollowerCnt(following.getMemberFollowerCnt() + delta);
 
         // 변경 사항을 DB에 즉시 반영
         entityManager.flush();
     }
 
-
-    // 4. 메인 getFollow 메서드
     @Override
     public FollowResponseDto getFollow(FollowRequestDto followRequestDto) {
 
@@ -115,9 +110,9 @@ public class FollowServiceImpl implements FollowService{
 
         // followingList에 대한 DTO 생성
         for (Follow following : followingList) {
-            FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 2L);
+            FollowDto followingDTO = mapToFollowDTO(following.getFollowing(), 1L);
 
-            Boolean isMutualFollow = isMutualFollow(following, followerList);
+            Boolean isMutualFollow = isMutualFollow(following, followerList , true);
             followingDTO.setIsMutualFollow(isMutualFollow);
             if (isMutualFollow) {
                 followingDTO.setIsFollowedCd(3L);
@@ -127,9 +122,9 @@ public class FollowServiceImpl implements FollowService{
 
         // followerList에 대한 DTO 생성
         for (Follow follower : followerList) {
-            FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 1L);
+            FollowDto followerDTO = mapToFollowDTO(follower.getFollower(), 2L);
 
-            Boolean isMutualFollow = isMutualFollow(follower, followingList);
+            Boolean isMutualFollow = isMutualFollow(follower, followingList, false);
             followerDTO.setIsMutualFollow(isMutualFollow);
             if (isMutualFollow) {
                 followerDTO.setIsFollowedCd(3L);
@@ -137,15 +132,12 @@ public class FollowServiceImpl implements FollowService{
             followerDtoList.add(followerDTO);
         }
 
-
         return FollowResponseDto.builder()
                 .followingList(followingDtoList)
                 .followerList(followerDtoList)
                 .build();
     }
 
-
-    // 1. FollowList 가져오는 메서드들
     private List<Follow> getFollowingList(Long loginMemberId) {
 
         FollowSelectQueryBuilder followSelectQueryBuilder = new FollowSelectQueryBuilder(jpaQueryFactory);
@@ -155,7 +147,6 @@ public class FollowServiceImpl implements FollowService{
                 .fetch(Follow.class);
     }
 
-    // 2. FollowDto로 매핑하는 메서드
     private FollowDto mapToFollowDTO(Member follow, Long isFollowedCd) {
         return FollowDto.builder()
                 .followMemberId(follow.getMemberId())
@@ -164,7 +155,6 @@ public class FollowServiceImpl implements FollowService{
                 .isFollowedCd(isFollowedCd)
                 .build();
     }
-
 
     private List<Follow> getFollowerList(Long loginMemberId) {
 
@@ -175,13 +165,26 @@ public class FollowServiceImpl implements FollowService{
                 .fetch(Follow.class);
     }
 
+    private Boolean isMutualFollow(Follow follow, List<Follow> otherList, boolean isFollowingList) {
 
-    private Boolean isMutualFollow(Follow follow, List<Follow> otherList) {
-        for (Follow otherFollow : otherList) {
-            if (otherFollow.getFollower().getMemberId().equals(follow.getFollowing().getMemberId())) {
-                return true;
+        if (isFollowingList) {
+
+            for (Follow otherFollow : otherList) {
+                if (otherFollow.getFollower().getMemberId().equals(follow.getFollowing().getMemberId())) {
+                    return true;
+                }
             }
+
+        } else {
+
+            for (Follow otherFollow : otherList) {
+                if (otherFollow.getFollowing().getMemberId().equals(follow.getFollower().getMemberId())) {
+                    return true;
+                }
+            }
+
         }
+
         return false;
     }
 

@@ -17,7 +17,7 @@ public class TrackLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long trackLikeId;
 
-    private Boolean trackLikeStatus;
+    private Boolean isTrackLikeStatus;
 
     @ManyToOne
     @JoinColumn(name = "member_track_id")

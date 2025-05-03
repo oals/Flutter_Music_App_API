@@ -14,10 +14,8 @@ public class NotificationResponseDto {
 
     private Boolean notificationIsView;
 
-    private List<NotificationsDto> todayNotificationList;
+    private Long totalCount;
 
-    private List<NotificationsDto> monthNotificationList;
-
-    private List<NotificationsDto> yearNotificationList;
+    private List<NotificationsDto> notificationList;
 
 }

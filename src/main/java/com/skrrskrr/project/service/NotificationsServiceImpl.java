@@ -34,11 +34,18 @@ public class NotificationsServiceImpl implements NotificationsService{
     @Override
     public NotificationResponseDto getNotifications(NotificationsRequestDto notificationsRequestDto) {
 
-        List<NotificationsDto> queryResult = fetchNotifications(notificationsRequestDto);
 
-        // 알림 목록 날짜별 분류
-        return classifyNotificationsByDate(queryResult);
+        Long totalCount = fetchNotificationsCount(notificationsRequestDto);
+        NotificationResponseDto notificationResponseDto = new NotificationResponseDto();
 
+        if (totalCount != 0L) {
+            List<NotificationsDto> notifications = fetchNotifications(notificationsRequestDto);
+            notificationResponseDto.setNotificationList(notifications);
+        }
+
+        notificationResponseDto.setTotalCount(totalCount);
+
+        return notificationResponseDto;
     }
 
     private List<NotificationsDto> fetchNotifications(NotificationsRequestDto notificationsRequestDto) {
@@ -54,39 +61,14 @@ public class NotificationsServiceImpl implements NotificationsService{
                 .fetchNotificationDetailDto(NotificationsDto.class);
     }
 
-    private NotificationResponseDto classifyNotificationsByDate(List<NotificationsDto> NotificationsDtoList) {
+    private Long fetchNotificationsCount(NotificationsRequestDto notificationsRequestDto) {
 
-        List<NotificationsDto> todayNotificationList = new ArrayList<>();
-        List<NotificationsDto> monthNotificationList = new ArrayList<>();
-        List<NotificationsDto> yearNotificationList = new ArrayList<>();
+        NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
 
-        // 현재 날짜
-        LocalDate today = LocalDate.now();
-        // 한 달 전과 1년 전 날짜 계산
-        LocalDate oneMonthAgo = today.minusMonths(1);
-        LocalDate oneYearAgo = today.minusYears(1);
-
-        // 날짜 포맷터
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        for (NotificationsDto notificationsDto : NotificationsDtoList) {
-            LocalDate notificationDate = LocalDate.parse(notificationsDto.getNotificationDate(), formatter);
-
-            // 날짜에 따라 알림을 분류
-            if (notificationDate.isEqual(today)) {
-                todayNotificationList.add(notificationsDto);
-            } else if (!notificationDate.isBefore(oneMonthAgo) && !notificationDate.isAfter(today)) {
-                monthNotificationList.add(notificationsDto);
-            } else if (!notificationDate.isBefore(oneYearAgo) && !notificationDate.isAfter(today)) {
-                yearNotificationList.add(notificationsDto);
-            }
-        }
-
-        return NotificationResponseDto.builder()
-                .todayNotificationList(todayNotificationList)
-                .monthNotificationList(monthNotificationList)
-                .yearNotificationList(yearNotificationList)
-                .build();
+        return notificationSelectQueryBuilder
+                .selectFrom(QNotifications.notifications)
+                .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
+                .fetchCount();
     }
 
 
