@@ -182,6 +182,10 @@ public class TrackSelectQueryBuilder extends ComnSelectQueryBuilder<TrackSelectQ
         return this.query.select(qMemberTrack.track.trackId).fetchFirst();
     }
 
+    public Long fetchTrackPlayCnt() {
+        return this.query.select(qMemberTrack.track.trackPlayCnt).fetchFirst();
+    }
+
 
     public <T> T fetchTrackDetailDto(Class<T> clazz) {
         return this.query.select(

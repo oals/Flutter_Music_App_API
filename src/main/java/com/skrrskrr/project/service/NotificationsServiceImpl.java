@@ -54,6 +54,7 @@ public class NotificationsServiceImpl implements NotificationsService{
 
         return notificationSelectQueryBuilder
                 .selectFrom(QNotifications.notifications)
+                .joinNotificationWithMember()
                 .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
                 .limit(notificationsRequestDto.getLimit())
                 .orderByNotificationIdDesc()
@@ -88,19 +89,26 @@ public class NotificationsServiceImpl implements NotificationsService{
 
         updateIsNotificationViewStatus(notifications);
 
-        Boolean notificationIsView = Boolean.FALSE.equals(
-                notificationSelectQueryBuilder
-                        .selectFrom(QNotifications.notifications)
-                        .findNotificationByMemberId(notificationsRequestDto.getLoginMemberId())
-                        .findIsNotificationViewFalse()
-                        .fetchNotificationListViewStatus()
-        );
+        Boolean notificationIsView = selectNotificationIsNotView(notificationsRequestDto.getLoginMemberId());
 
         return NotificationResponseDto.builder()
                 .notificationIsView(notificationIsView)
                 .build();
     }
 
+    @Override
+    public Boolean selectNotificationIsNotView(Long loginMemberId) {
+
+        NotificationSelectQueryBuilder notificationSelectQueryBuilder = new NotificationSelectQueryBuilder(jpaQueryFactory);
+
+        return Boolean.FALSE.equals(
+                notificationSelectQueryBuilder
+                        .selectFrom(QNotifications.notifications)
+                        .findNotificationByMemberId(loginMemberId)
+                        .findIsNotificationViewFalse()
+                        .fetchNotificationListViewStatus()
+        );
+    }
 
     @Override
     public void setAllNotificationIsView(NotificationsRequestDto notificationsRequestDto) {
@@ -118,14 +126,10 @@ public class NotificationsServiceImpl implements NotificationsService{
         }
     }
 
-
-
     private void updateIsNotificationViewStatus(Notifications notifications){
         notifications.setNotificationIsView(true);
         entityManager.merge(notifications);
     }
-
-
 
     @Override
     public void setDelNotificationIsView(NotificationsRequestDto notificationsRequestDto) {

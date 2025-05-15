@@ -18,10 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -78,15 +75,18 @@ public class trackLikeServiceImpl implements TrackLikeService{
                 Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
 
                 try {
-                    FcmSendDto fcmSendDto = FcmSendDto.builder()
-                            .title("알림")
-                            .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
-                            .notificationType(1L)
-                            .notificationTrackId(trackRequestDto.getTrackId())
-                            .memberId(fcmRecvMemberId)
-                            .build();
+//                    if (!Objects.equals(trackRequestDto.getLoginMemberId(), fcmRecvMemberId)) {
+                        FcmSendDto fcmSendDto = FcmSendDto.builder()
+                                .title("알림")
+                                .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
+                                .notificationType(1L)
+                                .notificationTrackId(trackRequestDto.getTrackId())
+                                .notificationMemberId(trackRequestDto.getLoginMemberId())
+                                .memberId(fcmRecvMemberId) /// 알림 받을 멤버
+                                .build();
 
-                    fireBaseService.sendPushNotification(fcmSendDto);
+                        fireBaseService.sendPushNotification(fcmSendDto);
+//                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

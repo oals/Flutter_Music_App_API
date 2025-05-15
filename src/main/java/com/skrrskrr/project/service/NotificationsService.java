@@ -14,6 +14,8 @@ public interface NotificationsService {
 
     NotificationResponseDto setNotificationIsView(NotificationsRequestDto NotificationsRequestDto);
 
+    Boolean selectNotificationIsNotView(Long loginMemberId);
+
     void setAllNotificationIsView(NotificationsRequestDto notificationsRequestDto);
 
     void setDelNotificationIsView(NotificationsRequestDto notificationsRequestDto);

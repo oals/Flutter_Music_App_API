@@ -61,6 +61,13 @@ public class TrackController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @PostMapping("/api/setTrackPlayCnt")
+    public ResponseEntity<Void> setTrackPlayCnt(@RequestBody TrackRequestDto trackRequestDto) {
+        log.info("setTrackPlayCnt");
+        trackService.setTrackPlayCnt(trackRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
     @GetMapping("/api/getSearchTrack")
     public ResponseEntity<TrackResponseDto> getSearchTrack(SearchRequestDto searchRequestDto) {
         log.info("getSearchTrack");

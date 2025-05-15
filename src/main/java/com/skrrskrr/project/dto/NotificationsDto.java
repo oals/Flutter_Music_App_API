@@ -19,6 +19,8 @@ public class NotificationsDto {
 
     private Long memberId;
 
+    private String memberImagePath;
+
     private Long notificationTrackId;
 
     private Long notificationCommentId;

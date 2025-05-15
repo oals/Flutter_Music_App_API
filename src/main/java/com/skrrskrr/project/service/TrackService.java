@@ -33,6 +33,8 @@ public interface TrackService {
 
     Long getTrackLastId();
 
+    void setTrackPlayCnt(TrackRequestDto trackRequestDto);
+
     void saveTrack(UploadDto uploadDto);
 
     void setTrackInfo(TrackRequestDto trackRequestDto);

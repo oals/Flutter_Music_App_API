@@ -15,6 +15,7 @@ public class HomeServiceImpl implements HomeService{
     private final MemberService memberService;
     private final TrackService trackService;
     private final PlayListService playlistService;
+    private final NotificationsService notificationsService;
 
     @Override
     public HomeResponseDto firstLoad(HomeRequestDto homeRequestDto) {
@@ -31,6 +32,8 @@ public class HomeServiceImpl implements HomeService{
 
         List<TrackDto> lastListenTrackList = trackService.getLastListenTrackList(memberDto.getMemberId());
 
+        Boolean notificationIsView = notificationsService.selectNotificationIsNotView(memberDto.getMemberId());
+
         return HomeResponseDto.builder()
                 .member(memberDto)
                 .recommendMembers(recommendMemberList)
@@ -38,6 +41,7 @@ public class HomeServiceImpl implements HomeService{
                 .recommendPlayLists(recommendPlayLists)
                 .recommendAlbums(recommendAlbums)
                 .lastListenTrackList(lastListenTrackList)
+                .notificationIsView(notificationIsView)
                 .build();
     }
 }

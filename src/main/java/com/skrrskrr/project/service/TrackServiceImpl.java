@@ -254,6 +254,23 @@ public class TrackServiceImpl implements TrackService {
                 .fetchTrackId() + 1;
     }
 
+    @Override
+    public void setTrackPlayCnt(TrackRequestDto trackRequestDto) {
+
+        TrackUpdateQueryBuilder trackUpdateQueryBuilder = new TrackUpdateQueryBuilder(entitiyManager);
+        TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
+
+        Long trackPlayCnt = trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+                            .findTrackByTrackId(trackRequestDto.getTrackId())
+                            .fetchTrackPlayCnt();
+
+        trackUpdateQueryBuilder.setEntity(QTrack.track)
+                .set(QTrack.track.trackPlayCnt, trackPlayCnt + 1)
+                .findTrackByTrackId(trackRequestDto.getTrackId())
+                .execute();
+
+    }
+
     private List<TrackDto> getSearchRecommendTrackList(Long loginMemberId) {
 
         SearchRequestDto searchRequestDto = new SearchRequestDto();

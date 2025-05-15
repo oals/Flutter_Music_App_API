@@ -23,5 +23,7 @@ public class HomeResponseDto {
 
     List<TrackDto> lastListenTrackList;
 
+    Boolean notificationIsView;
+
 
 }

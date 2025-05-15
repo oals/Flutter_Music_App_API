@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap; import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,15 +46,18 @@ public class FollowServiceImpl implements FollowService{
             updateFollowCounts(follower, following, 1L);
 
             try{
+
                 FcmSendDto fcmSendDTO = FcmSendDto.builder()
                         .title("알림")
                         .body(follower.getMemberNickName() + "님이 회원님을 팔로우 했습니다.")
                         .notificationType(3L)
-                        .notificationMemberId(followRequestDto.getFollowingId())
-                        .memberId(followRequestDto.getFollowerId())
+                        .notificationMemberId(followRequestDto.getFollowerId())
+                        .memberId(followRequestDto.getFollowingId())
                         .build();
 
                 fireBaseService.sendPushNotification(fcmSendDTO);
+
+
             } catch(Exception e) {
                 e.printStackTrace();
             }

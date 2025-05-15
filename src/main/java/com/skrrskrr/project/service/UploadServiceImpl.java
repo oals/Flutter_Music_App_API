@@ -69,7 +69,6 @@ public class UploadServiceImpl implements UploadService {
         //앨범 트랙 업로드
         for (int i = 0; i < uploadDto.getUploadFileList().size(); i++) {
             String fileUuid = generateUUID();
-            lastTrackId += i;
             String audioPlayTime = uploadTrackFile(uploadDto.getUploadFileList().get(i), lastTrackId, fileUuid);
 
             String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(i));
@@ -81,6 +80,7 @@ public class UploadServiceImpl implements UploadService {
             trackService.saveTrack(uploadDto);
 
             uploadTrackIdList.add(lastTrackId);
+            lastTrackId += 1;
         }
 
         // 앨범 정보 저장

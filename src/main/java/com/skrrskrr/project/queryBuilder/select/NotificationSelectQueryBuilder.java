@@ -44,6 +44,15 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
 
     /** -------------------------join -------------------------------------------*/
 
+
+    public NotificationSelectQueryBuilder joinNotificationWithMember() {
+        this.query.leftJoin(QMember.member)
+                .on(qNotifications.notificationMemberId.eq(QMember.member.memberId));
+        return this;
+    }
+
+
+
     /** --------------------------ordeBy ---------------------------------------- */
 
     public NotificationSelectQueryBuilder orderByNotificationIdDesc() {
@@ -65,16 +74,15 @@ public class NotificationSelectQueryBuilder extends ComnSelectQueryBuilder<Notif
                         qNotifications.notificationTrackId,
                         qNotifications.notificationCommentId,
                         qNotifications.notificationMemberId,
-                        qNotifications.notificationIsView
+                        qNotifications.notificationIsView,
+                        QMember.member.memberImagePath
                 )
         ).fetch();
     }
 
     public Boolean fetchNotificationListViewStatus() {
-        Boolean notificationIsView = this.query.select(QNotifications.notifications.notificationIsView)
+        return this.query.select(QNotifications.notifications.notificationIsView)
                 .fetchFirst();
-
-        return notificationIsView != null && notificationIsView;
     }
 
 }
