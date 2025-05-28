@@ -8,13 +8,14 @@ import com.skrrskrr.project.queryBuilder.update.TrackUpdateQueryBuilder;
 import com.skrrskrr.project.redisService.RedisService;
 import com.skrrskrr.project.repository.MemberTrackRepository;
 import com.skrrskrr.project.repository.TrackRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;

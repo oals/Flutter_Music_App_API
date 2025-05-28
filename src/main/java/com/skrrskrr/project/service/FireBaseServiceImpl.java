@@ -8,20 +8,24 @@ import com.google.firebase.auth.FirebaseToken;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.FcmSendDto;
 import com.skrrskrr.project.entity.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +71,8 @@ public class FireBaseServiceImpl implements FireBaseService {
             throw new IllegalStateException("member cannot be null.");
         }
 
-        saveNotifications(fcmSendDto, member);
+        Long notificationId = saveNotifications(fcmSendDto, member);
+        fcmSendDto.setNotificationId(notificationId);
 
         sendNotificationSetFcm(fcmSendDto, member);
 
@@ -84,9 +89,11 @@ public class FireBaseServiceImpl implements FireBaseService {
         JSONObject message = new JSONObject();
         JSONObject notification = new JSONObject();
 
+        String jsonString = fcmSendDto.toJson();
+
         // 알림 제목과 본문 설정
         notification.put("title", fcmSendDto.getTitle());  // 알림 제목
-        notification.put("body", fcmSendDto.getBody());    // 알림 본문
+        notification.put("body", jsonString);    // 알림 본문
 
         // 메시지에 notification 객체와 token 필드 추가
         JSONObject messageBody = new JSONObject();
@@ -101,7 +108,7 @@ public class FireBaseServiceImpl implements FireBaseService {
     }
 
 
-    private void saveNotifications(FcmSendDto fcmSendDto, Member member){
+    private Long saveNotifications(FcmSendDto fcmSendDto, Member member){
         Notifications notifications = Notifications.builder()
                 .member(member)
                 .notificationMsg(fcmSendDto.getBody())
@@ -109,11 +116,14 @@ public class FireBaseServiceImpl implements FireBaseService {
                 .notificationTrackId(fcmSendDto.getNotificationTrackId())
                 .notificationCommentId(fcmSendDto.getNotificationCommentId())
                 .notificationMemberId(fcmSendDto.getNotificationMemberId())
-                .notificationIsView(false)
+                .notificationIsView(fcmSendDto.getNotificationIsView())
                 .notificationDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .build();
 
         em.persist(notifications);
+
+        return notifications.getNotificationId();
+
     }
 
     /**

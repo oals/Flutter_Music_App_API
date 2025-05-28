@@ -7,11 +7,12 @@ import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.HistorySelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.MemberSelectQueryBuilder;
 import com.skrrskrr.project.repository.HistoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;

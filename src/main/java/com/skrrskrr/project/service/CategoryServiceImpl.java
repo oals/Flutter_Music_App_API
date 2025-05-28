@@ -7,7 +7,7 @@ import com.skrrskrr.project.entity.Category;
 import com.skrrskrr.project.entity.QCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Required;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

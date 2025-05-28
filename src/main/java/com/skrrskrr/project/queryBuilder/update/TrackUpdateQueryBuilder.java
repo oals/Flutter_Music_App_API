@@ -2,8 +2,7 @@ package com.skrrskrr.project.queryBuilder.update;
 
 
 import com.skrrskrr.project.entity.QTrack;
-
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 
 public class TrackUpdateQueryBuilder extends ComnUpdateQueryBuilder<TrackUpdateQueryBuilder>{

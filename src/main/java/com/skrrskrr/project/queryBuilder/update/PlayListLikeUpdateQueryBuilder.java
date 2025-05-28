@@ -4,8 +4,8 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import com.skrrskrr.project.entity.QPlayListLike;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 
 public class PlayListLikeUpdateQueryBuilder extends ComnUpdateQueryBuilder<PlayListLikeUpdateQueryBuilder>{
 

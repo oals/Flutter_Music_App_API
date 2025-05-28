@@ -42,4 +42,6 @@ public class TrackDto {
 
     private String memberNickName;
 
+    private String memberImagePath;
+
 }

@@ -7,13 +7,16 @@ import com.skrrskrr.project.dto.NotificationsRequestDto;
 import com.skrrskrr.project.entity.Notifications;
 import com.skrrskrr.project.entity.QNotifications;
 import com.skrrskrr.project.queryBuilder.select.NotificationSelectQueryBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
+
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

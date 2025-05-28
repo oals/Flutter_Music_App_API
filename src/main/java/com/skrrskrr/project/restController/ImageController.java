@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 
 @RestController
@@ -28,7 +28,17 @@ public class ImageController {
 
         log.info("imageLoader 호출");
 
-        File imageFile = new File(imageRequestDto.getTrackImagePath() + ".jpg");
+        File imageFile;
+
+        String trackImagePath = imageRequestDto.getTrackImagePath();
+        File jpgFile = new File(trackImagePath + ".jpg");
+        File pngFile = new File(trackImagePath + ".png");
+
+        if (pngFile.exists()) {
+            imageFile = pngFile; // PNG가 존재하면 PNG 파일 사용
+        } else {
+            imageFile = jpgFile; // 없으면 JPG 사용
+        }
 
         if (!imageFile.exists()) {
             log.info("image_not_found");

@@ -3,8 +3,8 @@ package com.skrrskrr.project.queryBuilder.update;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import com.skrrskrr.project.entity.QMember;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 
 public class MemberUpdateQueryBuilder extends ComnUpdateQueryBuilder<MemberUpdateQueryBuilder>{
 

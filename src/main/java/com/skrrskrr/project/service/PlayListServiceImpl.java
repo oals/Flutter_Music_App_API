@@ -7,13 +7,13 @@ import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.TrackSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import com.skrrskrr.project.repository.PlayListRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;

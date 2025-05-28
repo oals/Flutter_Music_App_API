@@ -7,13 +7,16 @@ import com.skrrskrr.project.entity.Member;
 import com.skrrskrr.project.entity.QFollow;
 import com.skrrskrr.project.entity.QMember;
 import com.skrrskrr.project.queryBuilder.select.FollowSelectQueryBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
+
+
 import java.util.*;
 
 @Service
@@ -51,6 +54,7 @@ public class FollowServiceImpl implements FollowService{
                         .title("알림")
                         .body(follower.getMemberNickName() + "님이 회원님을 팔로우 했습니다.")
                         .notificationType(3L)
+                        .notificationIsView(false)
                         .notificationMemberId(followRequestDto.getFollowerId())
                         .memberId(followRequestDto.getFollowingId())
                         .build();

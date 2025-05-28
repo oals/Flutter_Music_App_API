@@ -7,14 +7,17 @@ import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.MemberSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.MemberUpdateQueryBuilder;
 import com.skrrskrr.project.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
+
+
 import java.util.*;
 
 @Service

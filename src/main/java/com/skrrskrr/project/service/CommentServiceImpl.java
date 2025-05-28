@@ -7,14 +7,17 @@ import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.dto.FcmSendDto;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.CommentSelectQueryBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
+
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -82,20 +85,22 @@ public class CommentServiceImpl implements CommentService {
         entityManager.persist(insertComment);
 
         try {
-            if (Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
+//            if (!Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
 
                 FcmSendDto fcmSendDTO = FcmSendDto.builder()
                         .title("알림")
                         .body(member.getMemberNickName() + ": " + commentRequestDto.getCommentText())
                         .notificationType(2L)
+                        .notificationIsView(false)
                         .notificationTrackId(commentRequestDto.getTrackId())
+                        .notificationMemberId(commentRequestDto.getLoginMemberId())
                         .notificationCommentId(insertComment.getCommentId())
                         .memberId(fcmMsgRecvMemberId)
                         .build();
 
 
                 fireBaseService.sendPushNotification(fcmSendDTO);
-            }
+//            }
 
 
             return CommentResponseDto.builder()

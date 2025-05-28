@@ -3,8 +3,8 @@ package com.skrrskrr.project.queryBuilder.update;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.jpa.impl.JPAUpdateClause;
+import jakarta.persistence.EntityManager;
 
-import javax.persistence.EntityManager;
 
 public class ComnUpdateQueryBuilder <T extends ComnUpdateQueryBuilder<T>> {
 

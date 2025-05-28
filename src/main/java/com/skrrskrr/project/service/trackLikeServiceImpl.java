@@ -8,15 +8,18 @@ import com.skrrskrr.project.queryBuilder.select.TrackLikeSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.select.TrackSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.TrackLikeUpdateQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.TrackUpdateQueryBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
+
+
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -80,6 +83,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
                                 .title("알림")
                                 .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
                                 .notificationType(1L)
+                                .notificationIsView(false)
                                 .notificationTrackId(trackRequestDto.getTrackId())
                                 .notificationMemberId(trackRequestDto.getLoginMemberId())
                                 .memberId(fcmRecvMemberId) /// 알림 받을 멤버
