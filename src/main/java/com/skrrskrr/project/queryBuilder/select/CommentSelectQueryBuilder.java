@@ -1,10 +1,8 @@
 package com.skrrskrr.project.queryBuilder.select;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.entity.QComment;
-
 
 public class CommentSelectQueryBuilder extends ComnSelectQueryBuilder<CommentSelectQueryBuilder> {
 

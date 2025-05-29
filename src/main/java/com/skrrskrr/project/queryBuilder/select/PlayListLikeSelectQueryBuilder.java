@@ -5,10 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.entity.QComment;
-import com.skrrskrr.project.entity.QHistory;
 import com.skrrskrr.project.entity.QPlayListLike;
-
 import java.util.List;
 
 public class PlayListLikeSelectQueryBuilder  extends ComnSelectQueryBuilder<PlayListLikeSelectQueryBuilder> {

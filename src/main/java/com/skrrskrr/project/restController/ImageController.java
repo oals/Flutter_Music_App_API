@@ -1,10 +1,6 @@
 package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.ImageRequestDto;
-import com.skrrskrr.project.service.FileService;
-import com.skrrskrr.project.service.MemberService;
-import com.skrrskrr.project.service.TrackService;
-import com.skrrskrr.project.service.UploadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.FileSystemResource;
@@ -12,8 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-
 
 import java.io.File;
 

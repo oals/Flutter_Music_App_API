@@ -4,7 +4,6 @@ import lombok.*;
 
 import java.util.List;
 
-
 @Getter
 @Setter
 @Builder
@@ -20,28 +19,18 @@ public class CommentDto {
 
     private String memberNickName; // 작성자
 
-    private Long parentCommentMemberId;
-
-    private String parentCommentMemberNickName;
-
     private String memberImagePath;
 
     private Boolean commentLikeStatus;
 
     private Long commentLikeCnt;
 
-
     private String commentText;
 
     private String commentDate;
 
     private Long parentCommentId; // 부모 댓글
-;
-    private Boolean isChildCommentActive;
 
     private List<CommentDto> childComments; // 자식 댓글 목록
-
-
-
 
 }

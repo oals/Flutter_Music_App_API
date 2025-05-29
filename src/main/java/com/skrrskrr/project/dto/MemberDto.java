@@ -10,6 +10,7 @@ import lombok.*;
 public class MemberDto {
 
     private Long memberId;
+
     private Long loginMemberId;
 
     private String memberNickName;
@@ -17,12 +18,6 @@ public class MemberDto {
     private String memberEmail;
 
     private String memberInfo;
-
-    private String memberPswd;
-
-    private String memberBirth;
-
-    private String memberAddr;
 
     private String memberDate;
 
@@ -34,7 +29,6 @@ public class MemberDto {
 
     private String memberDeviceToken;
 
-    private String deviceToken;
-
     private int isFollowedCd;
+
 }

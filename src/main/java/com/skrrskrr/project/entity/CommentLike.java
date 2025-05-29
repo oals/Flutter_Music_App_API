@@ -24,5 +24,4 @@ public class CommentLike {
     @JoinColumn(name = "member_id")
     private Member member;
 
-
 }

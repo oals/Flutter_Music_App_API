@@ -19,7 +19,4 @@ public class FollowDto {
 
     private Boolean isMutualFollow;
 
-
-
-
 }

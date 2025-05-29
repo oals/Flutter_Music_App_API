@@ -6,8 +6,6 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.jpa.impl.JPAUpdateClause;
-
 import java.util.List;
 
 @SuppressWarnings("unchecked")

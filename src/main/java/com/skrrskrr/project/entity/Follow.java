@@ -23,7 +23,4 @@ public class Follow {
     @JoinColumn(name = "following_id", nullable = false)
     private Member following;
 
-
-
-
 }

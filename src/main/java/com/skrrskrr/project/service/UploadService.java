@@ -4,8 +4,6 @@ import com.skrrskrr.project.dto.MemberResponseDto;
 import com.skrrskrr.project.dto.TrackResponseDto;
 import com.skrrskrr.project.dto.UploadDto;
 
-import java.util.Map;
-
 public interface UploadService {
 
     void trackUpload(UploadDto uploadDto);

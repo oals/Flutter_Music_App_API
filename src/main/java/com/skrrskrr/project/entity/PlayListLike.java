@@ -2,7 +2,6 @@ package com.skrrskrr.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,4 +27,5 @@ public class PlayListLike {
     private Member member;
 
     private LocalDateTime playListLikeDate;
+
 }

@@ -1,9 +1,7 @@
 package com.skrrskrr.project.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.List;
 
 @Entity
@@ -39,7 +37,6 @@ public class Track {
 
     private Boolean isTrackPrivacy;
 
-
     @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MemberTrack> memberTrackList;
 
@@ -48,7 +45,5 @@ public class Track {
 
     @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> commentList; // 트랙에 대한 댓글 목록
-
-
 
 }

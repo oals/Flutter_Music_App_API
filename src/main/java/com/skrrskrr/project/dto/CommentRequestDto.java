@@ -2,8 +2,6 @@ package com.skrrskrr.project.dto;
 
 import lombok.*;
 
-import java.io.BufferedReader;
-
 @Setter
 @Getter
 @AllArgsConstructor
@@ -12,8 +10,9 @@ import java.io.BufferedReader;
 public class CommentRequestDto extends BaseRequestDto{
 
     private Long commentId;
-    private Long trackId;
-    private String commentText;
 
+    private Long trackId;
+
+    private String commentText;
 
 }

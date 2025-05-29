@@ -13,13 +13,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.poi.ss.formula.functions.T;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
-
-
-
-
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -78,7 +72,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
                 Long fcmRecvMemberId = insertTrackLike(trackRequestDto);
 
                 try {
-//                    if (!Objects.equals(trackRequestDto.getLoginMemberId(), fcmRecvMemberId)) {
+                    if (!Objects.equals(trackRequestDto.getLoginMemberId(), fcmRecvMemberId)) {
                         FcmSendDto fcmSendDto = FcmSendDto.builder()
                                 .title("알림")
                                 .body(member.getMemberNickName() +  "님이 회원님의 곡에 좋아요를 눌렀습니다.")
@@ -90,7 +84,7 @@ public class trackLikeServiceImpl implements TrackLikeService{
                                 .build();
 
                         fireBaseService.sendPushNotification(fcmSendDto);
-//                    }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

@@ -1,6 +1,5 @@
 package com.skrrskrr.project.service;
 
-
 import com.skrrskrr.project.dto.MemberResponseDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
 import com.skrrskrr.project.dto.TrackResponseDto;
@@ -8,11 +7,9 @@ import com.skrrskrr.project.dto.UploadDto;
 import com.skrrskrr.project.handler.GlobalExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.*;
 
 @Service
@@ -124,7 +121,7 @@ public class UploadServiceImpl implements UploadService {
         if (uploadDto.getUploadImage() != null) {
             Boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/memberImage",uuid);
 
-            if (isMemberImageUpload){
+            if (isMemberImageUpload) {
                 uploadDto.setUploadImagePath(uploadPath + "/memberImage/" + uuid);
                 Boolean isSuccess = memberService.setMemberImage(uploadDto);
                 if (isSuccess) {

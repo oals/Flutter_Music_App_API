@@ -3,10 +3,7 @@ package com.skrrskrr.project.queryBuilder.select;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.skrrskrr.project.entity.QComment;
-import com.skrrskrr.project.entity.QTrack;
 import com.skrrskrr.project.entity.QTrackLike;
-
 import java.util.List;
 
 public class TrackLikeSelectQueryBuilder extends ComnSelectQueryBuilder<TrackLikeSelectQueryBuilder> {

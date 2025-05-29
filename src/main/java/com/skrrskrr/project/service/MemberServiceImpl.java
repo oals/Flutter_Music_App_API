@@ -1,6 +1,5 @@
 package com.skrrskrr.project.service;
 
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
@@ -14,10 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
-
-
-
 import java.util.*;
 
 @Service
@@ -42,14 +37,14 @@ public class MemberServiceImpl implements MemberService {
                 .findMemberByMemberEmail(homeRequestDto.getMemberEmail())
                 .fetchPreviewMemberDto(MemberDto.class);
 
-        if (memberDto != null){
+        if (memberDto != null) {
             // 회원인 경우
-            if (!Objects.equals(memberDto.getMemberDeviceToken(), homeRequestDto.getDeviceToken())) {
+            if (!Objects.equals(memberDto.getMemberDeviceToken(), homeRequestDto.getMemberDeviceToken())) {
                 // 디바이스 토큰 업데이트
                 homeRequestDto.setLoginMemberId(memberDto.getMemberId());
                 Boolean isSuccess = setMemberDeviceToken(homeRequestDto);
                 if (isSuccess) {
-                    memberDto.setDeviceToken(homeRequestDto.getDeviceToken());
+                    memberDto.setMemberDeviceToken(homeRequestDto.getMemberDeviceToken());
                 }
             }
         } else {
@@ -68,7 +63,7 @@ public class MemberServiceImpl implements MemberService {
 
             memberUpdateQueryBuilder
                     .setEntity(QMember.member)
-                    .set(QMember.member.memberDeviceToken, homeRequestDto.getDeviceToken())
+                    .set(QMember.member.memberDeviceToken, homeRequestDto.getMemberDeviceToken())
                     .findMemberByMemberId(homeRequestDto.getLoginMemberId())
                     .execute();
 
@@ -128,7 +123,7 @@ public class MemberServiceImpl implements MemberService {
         MemberDto memberDto = MemberDto.builder()
                 .memberNickName(homeRequestDto.getMemberEmail().split("@")[0] + "_" + sb)
                 .memberEmail(homeRequestDto.getMemberEmail())
-                .memberDeviceToken(homeRequestDto.getDeviceToken())
+                .memberDeviceToken(homeRequestDto.getMemberDeviceToken())
                 .build();
 
         Member member = Member.createMember(memberDto);

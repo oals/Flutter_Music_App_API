@@ -4,7 +4,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.*;
 import com.skrrskrr.project.queryBuilder.select.PlayListSelectQueryBuilder;
-import com.skrrskrr.project.queryBuilder.select.TrackSelectQueryBuilder;
 import com.skrrskrr.project.queryBuilder.update.PlayListUpdateQueryBuilder;
 import com.skrrskrr.project.repository.PlayListRepository;
 import jakarta.persistence.EntityManager;
@@ -13,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;

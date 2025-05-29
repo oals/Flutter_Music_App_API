@@ -12,7 +12,6 @@ import lombok.*;
 @NoArgsConstructor
 public class MemberPlayList {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberPlayListId;
@@ -26,7 +25,5 @@ public class MemberPlayList {
     @JoinColumn(name = "playList_id")
     @JsonIgnore
     private PlayList playList;
-
-
 
 }

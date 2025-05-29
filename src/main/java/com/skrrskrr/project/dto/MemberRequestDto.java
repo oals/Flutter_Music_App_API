@@ -10,8 +10,11 @@ import lombok.*;
 public class MemberRequestDto extends BaseRequestDto{
 
     private String memberEmail;
+
     private String deviceToken;
+
     private String memberNickName;
+
     private String memberInfo;
 
 }

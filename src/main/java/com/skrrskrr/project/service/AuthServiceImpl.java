@@ -11,10 +11,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap; import java.util.Map;
+
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +39,6 @@ public class AuthServiceImpl implements AuthService {
 
         return jwtToken;
     }
-
 
     @Override
     public void validateJwtToken(String jwtToken) {

@@ -13,5 +13,6 @@ public class HomeRequestDto {
 
     private Long loginMemberId;
 
-    private String deviceToken;
+    private String memberDeviceToken;
+
 }

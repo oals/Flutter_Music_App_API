@@ -2,13 +2,10 @@ package com.skrrskrr.project.service;
 
 import com.skrrskrr.project.dto.*;
 import com.skrrskrr.project.entity.Member;
-
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 public interface MemberService {
-
 
     default MemberDto EntityToDto(Member member){
 
@@ -17,13 +14,11 @@ public interface MemberService {
         memberDto.setMemberNickName(member.getMemberNickName());
         memberDto.setMemberInfo(member.getMemberInfo());
         memberDto.setMemberEmail(member.getMemberEmail());
-        memberDto.setMemberBirth(member.getMemberBirth());
-        memberDto.setMemberAddr(member.getMemberAddr());
         memberDto.setMemberImagePath(member.getMemberImagePath());
         memberDto.setMemberFollowCnt(member.getMemberFollowCnt());
         memberDto.setMemberFollowerCnt(member.getMemberFollowerCnt());
         memberDto.setMemberDate(LocalDateTime.now().toString());
-        memberDto.setDeviceToken(member.getMemberDeviceToken());
+        memberDto.setMemberDeviceToken(member.getMemberDeviceToken());
 
         return memberDto;
     }

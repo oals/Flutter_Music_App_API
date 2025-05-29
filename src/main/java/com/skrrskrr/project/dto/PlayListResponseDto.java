@@ -16,4 +16,5 @@ public class PlayListResponseDto {
     PlayListDto playList;
 
     Long totalCount;
+
 }

@@ -12,12 +12,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
-
-
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -27,7 +22,6 @@ import java.util.*;
 @Log4j2
 @Transactional
 public class CommentServiceImpl implements CommentService {
-
 
     @PersistenceContext
     EntityManager entityManager;
@@ -85,7 +79,7 @@ public class CommentServiceImpl implements CommentService {
         entityManager.persist(insertComment);
 
         try {
-//            if (!Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
+            if (!Objects.equals(commentRequestDto.getLoginMemberId(), fcmMsgRecvMemberId)) {
 
                 FcmSendDto fcmSendDTO = FcmSendDto.builder()
                         .title("알림")
@@ -100,8 +94,7 @@ public class CommentServiceImpl implements CommentService {
 
 
                 fireBaseService.sendPushNotification(fcmSendDTO);
-//            }
-
+            }
 
             return CommentResponseDto.builder()
                     .comment(commentModelMapper(insertComment,false))
@@ -219,7 +212,6 @@ public class CommentServiceImpl implements CommentService {
                 .build();
     }
 
-
     private CommentDto commentModelMapper(Comment comment, Boolean isLikeComment) {
         return CommentDto.builder()
                 .commentId(comment.getCommentId())
@@ -235,54 +227,11 @@ public class CommentServiceImpl implements CommentService {
                 .build();
     }
 
-
     private Boolean isCommentLike(Comment comment, Long memberId) {
         return comment.getCommentLikeList().stream()
                 .anyMatch(commentLike ->
                         commentLike.getMember().getMemberId().equals(memberId) &&
                                 commentLike.getCommentLikeStatus());
     }
-
-    private List<CommentDto> addAllChildComments(List<CommentDto> childCommentList,
-                                                 Comment parentComment,
-                                                 Long memberId) {
-        // 현재 부모 댓글에 대한 자식 댓글들을 가져옴
-        for (Comment childComment : parentComment.getChildComments()) {
-
-            // 현재 자식 댓글이 좋아요 여부를 체크
-            Boolean isLikeChildComment = false;
-            if (!childComment.getCommentLikeList().isEmpty()) {
-                isLikeChildComment = childComment.getCommentLikeList().stream()
-                        .anyMatch(commentLike ->
-                                commentLike.getMember().getMemberId().equals(memberId) &&
-                                        commentLike.getCommentLikeStatus());
-            }
-
-            // 자식 댓글을 DTO로 변환
-            CommentDto childCommentDto = CommentDto.builder()
-                    .commentId(childComment.getCommentId())
-                    .commentText(childComment.getCommentText())
-                    .commentDate(childComment.getCommentDate())
-                    .trackId(parentComment.getTrack().getTrackId())
-                    .memberId(childComment.getMember().getMemberId())
-                    .commentLikeStatus(isLikeChildComment)
-                    .commentLikeCnt(childComment.getCommentLikeCnt())
-                    .memberNickName(childComment.getMember().getMemberNickName())
-                    .parentCommentMemberId(childComment.getParentComment().getMember().getMemberId())
-                    .parentCommentMemberNickName("@" + childComment.getParentComment().getMember().getMemberNickName())
-                    .memberImagePath(childComment.getMember().getMemberImagePath())
-                    .parentCommentId(childComment.getParentComment().getCommentId())
-                    .build();
-
-            // 현재 자식 댓글을 리스트에 추가
-            childCommentList.add(childCommentDto);
-
-            // 자식 댓글이 또 자식 댓글을 가질 수 있으므로, 재귀적으로 호출
-            addAllChildComments(childCommentList, childComment, memberId);
-        }
-
-        return childCommentList;
-    }
-
 
 }

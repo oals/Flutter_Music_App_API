@@ -2,7 +2,6 @@ package com.skrrskrr.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.List;
 
 @Entity
@@ -40,4 +39,5 @@ public class Comment {
 
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> childComments; // 자식 댓글 목록
+
 }

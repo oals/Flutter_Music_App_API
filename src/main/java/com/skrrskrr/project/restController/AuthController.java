@@ -1,17 +1,14 @@
 package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.AuthResponseDto;
-import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.service.AuthService;
-import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Date;
-import java.util.HashMap; import java.util.Map; import java.util.Map;
+import java.util.Map;
 
 @RestController
 @Log4j2

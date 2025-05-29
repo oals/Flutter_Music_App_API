@@ -9,7 +9,6 @@ import lombok.*;
 @Builder
 public class ImageRequestDto {
 
-
     private String trackImagePath;
 
 }

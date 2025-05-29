@@ -1,8 +1,6 @@
 package com.skrrskrr.project.restController;
 
 import com.skrrskrr.project.dto.CategoryResponseDto;
-import com.skrrskrr.project.dto.CommentRequestDto;
-import com.skrrskrr.project.dto.CommentResponseDto;
 import com.skrrskrr.project.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

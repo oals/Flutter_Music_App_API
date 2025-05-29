@@ -4,7 +4,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.skrrskrr.project.entity.*;
-
 import java.util.List;
 
 public class HistorySelectQueryBuilder extends ComnSelectQueryBuilder<HistorySelectQueryBuilder> {

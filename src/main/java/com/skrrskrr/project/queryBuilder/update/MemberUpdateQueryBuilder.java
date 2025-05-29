@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 import com.skrrskrr.project.entity.QMember;
 import jakarta.persistence.EntityManager;
 
-
 public class MemberUpdateQueryBuilder extends ComnUpdateQueryBuilder<MemberUpdateQueryBuilder>{
 
     QMember qMember = QMember.member;

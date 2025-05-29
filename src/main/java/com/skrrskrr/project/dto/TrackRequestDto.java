@@ -1,7 +1,7 @@
 package com.skrrskrr.project.dto;
+
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Setter

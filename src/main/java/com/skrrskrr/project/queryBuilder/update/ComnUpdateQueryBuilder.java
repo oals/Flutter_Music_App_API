@@ -5,7 +5,6 @@ import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import jakarta.persistence.EntityManager;
 
-
 public class ComnUpdateQueryBuilder <T extends ComnUpdateQueryBuilder<T>> {
 
     protected EntityManager entityManager;

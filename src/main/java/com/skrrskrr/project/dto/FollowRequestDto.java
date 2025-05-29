@@ -10,8 +10,7 @@ import lombok.*;
 public class FollowRequestDto extends BaseRequestDto{
 
     private Long followerId;
+
     private Long followingId;
-
-
 
 }

@@ -25,5 +25,4 @@ public class HomeResponseDto {
 
     Boolean notificationIsView;
 
-
 }

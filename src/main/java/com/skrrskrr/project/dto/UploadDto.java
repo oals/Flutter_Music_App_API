@@ -2,7 +2,6 @@ package com.skrrskrr.project.dto;
 
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 
 @Getter
@@ -46,6 +45,5 @@ public class UploadDto {
     private MultipartFile uploadImage; // 이미지 데이터
 
     private List<MultipartFile> uploadFileList; // 음원 데이터
-
 
 }

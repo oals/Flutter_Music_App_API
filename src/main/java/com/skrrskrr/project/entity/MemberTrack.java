@@ -3,8 +3,6 @@ package com.skrrskrr.project.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberTrack {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +31,6 @@ public class MemberTrack {
     private List<TrackLike> trackLikeList;
 
     @ManyToMany(mappedBy = "playListTrackList", fetch = FetchType.LAZY)
-    private List<PlayList> playlistTrack; // 여러 플레이리스트에 포함될 수 있다.
+    private List<PlayList> playlistTrack;
 
 }

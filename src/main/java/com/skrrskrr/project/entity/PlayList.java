@@ -3,7 +3,6 @@ package com.skrrskrr.project.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +51,5 @@ public class PlayList {
     )
     @Builder.Default
     private List<MemberTrack> playListTrackList = new ArrayList<>(); // 여러 트랙을 가진다.
-
 
 }
