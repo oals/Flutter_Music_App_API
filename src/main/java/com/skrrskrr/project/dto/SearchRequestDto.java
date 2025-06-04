@@ -11,34 +11,10 @@ import java.util.List;
 @NoArgsConstructor
 public class SearchRequestDto extends BaseRequestDto {
 
-    private Long memberTrackId;
-
     private String searchText;
 
     private List<String> searchKeywordList;
 
-    private Long playListId;
-
-    private Long trackCategoryId;
-
-    private String memberNickName;
-
     private Boolean isAlbum;
-
-    private Long trackId;
-
-    private String trackNm;
-
-    private String trackTime;
-
-    private Long trackPlayCnt;
-
-    private String trackCategoryNm;
-
-    private Long trackLikeCnt;
-
-    private String trackImagePath;
-
-    private Boolean trackLikeStatus;
 
 }

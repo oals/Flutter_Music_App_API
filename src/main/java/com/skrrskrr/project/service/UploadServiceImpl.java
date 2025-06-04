@@ -4,7 +4,6 @@ import com.skrrskrr.project.dto.MemberResponseDto;
 import com.skrrskrr.project.dto.PlayListRequestDto;
 import com.skrrskrr.project.dto.TrackResponseDto;
 import com.skrrskrr.project.dto.UploadDto;
-import com.skrrskrr.project.handler.GlobalExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +20,9 @@ public class UploadServiceImpl implements UploadService {
     private final PlayListService playListService;
     private final FileService fileService;
     private final MemberService memberService;
-    private final GlobalExceptionHandler globalExceptionHandler;
 
-    @Value("${UPLOAD_PATH}")
-    private String uploadPath;
+    @Value("${S3_UPLOAD_PATH}")
+    private String s3UploadPath;
 
     private String generateUUID() {
         return String.valueOf(UUID.randomUUID());
@@ -33,17 +31,15 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public void trackUpload(UploadDto uploadDto) {
 
-        String uuid = generateUUID();
-
         // 마지막 트랙 id 얻기
         Long lastTrackId = trackService.getTrackLastId();
 
         // 트랙 이미지 업로드
-        uploadImage(uploadDto,lastTrackId, uuid);
+        uploadImage(uploadDto,lastTrackId);
 
         //트랙 업로드
-        String audioPlayTime = uploadTrackFile(uploadDto.getUploadFile(), lastTrackId, uuid);
-        String audioFilePath = "/" + lastTrackId + "/playList.m3u8";
+        String audioPlayTime = uploadTrackFile(uploadDto.getUploadFile(), lastTrackId);
+        String audioFilePath = s3UploadPath + "/track/" + lastTrackId + "/playlist.m3u8";
         uploadDto.setUploadFilePath(audioFilePath);
         uploadDto.setTrackTime(audioPlayTime);
 
@@ -54,22 +50,19 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public void albumUpload(UploadDto uploadDto) {
 
-        String uuid = generateUUID();
-
         // 마지막 트랙 id 얻기
         Long lastTrackId = trackService.getTrackLastId();
 
         // 앨범 이미지 업로드
-        uploadImage(uploadDto,lastTrackId,uuid);
+        uploadImage(uploadDto,lastTrackId);
 
         List<Long> uploadTrackIdList = new ArrayList<>();
         //앨범 트랙 업로드
         for (int i = 0; i < uploadDto.getUploadFileList().size(); i++) {
-            String fileUuid = generateUUID();
-            String audioPlayTime = uploadTrackFile(uploadDto.getUploadFileList().get(i), lastTrackId, fileUuid);
+            String audioPlayTime = uploadTrackFile(uploadDto.getUploadFileList().get(i), lastTrackId);
 
             String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(i));
-            String audioFilePath =  "/" + lastTrackId + "/playList.m3u8";
+            String audioFilePath = s3UploadPath +  "/" + lastTrackId + "/playList.m3u8";
             uploadDto.setUploadFilePath(audioFilePath);
             uploadDto.setTrackNm(trackNm);
             uploadDto.setTrackTime(audioPlayTime);
@@ -87,17 +80,18 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public TrackResponseDto updateTrackImage(UploadDto uploadDto) {
 
-        String uuid = generateUUID();
         String trackImagePath = null;
 
         //이미지가 없을 경우 기본 이미지
         if (uploadDto.getUploadImage() != null) {
 
-            Boolean isTrackImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(), "/trackImage", uuid);
+            Boolean isTrackImageUpload = fileService.uploadTrackImageFile(
+                    uploadDto.getUploadImage(), "trackImage/" + uploadDto.getTrackId()
+                    );
 
             if (isTrackImageUpload) {
 
-                uploadDto.setUploadImagePath(uploadPath + "/trackImage/" + uuid);
+                uploadDto.setUploadImagePath(s3UploadPath + "/trackImage/" + uploadDto.getTrackId());
 
                 Boolean isSuccess = trackService.updateTrackImage(uploadDto);
 
@@ -114,15 +108,16 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public MemberResponseDto updateMemberImage(UploadDto uploadDto) {
 
-        String uuid = generateUUID();
         String memberImagePath = null;
 
         //서버 이미지 저장
         if (uploadDto.getUploadImage() != null) {
-            Boolean isMemberImageUpload = fileService.uploadTrackImageFile(uploadDto.getUploadImage(),"/memberImage",uuid);
+            Boolean isMemberImageUpload = fileService.uploadTrackImageFile(
+                    uploadDto.getUploadImage(),"memberImage/" + uploadDto.getLoginMemberId()
+            );
 
             if (isMemberImageUpload) {
-                uploadDto.setUploadImagePath(uploadPath + "/memberImage/" + uuid);
+                uploadDto.setUploadImagePath(s3UploadPath + "/memberImage/" + uploadDto.getLoginMemberId());
                 Boolean isSuccess = memberService.setMemberImage(uploadDto);
                 if (isSuccess) {
                     memberImagePath = uploadDto.getUploadImagePath();
@@ -135,26 +130,25 @@ public class UploadServiceImpl implements UploadService {
                 .build();
     }
 
-
-    private void uploadImage(UploadDto uploadDto, Long lastTrackId, String uuid) {
+    private void uploadImage(UploadDto uploadDto, Long lastTrackId) {
         // 앨범 이미지 업로드
         if (uploadDto.getUploadImage() != null) {
-            uploadTrackImage(uploadDto, lastTrackId, uuid);
+            uploadTrackImage(uploadDto, lastTrackId);
         }
 
     }
 
-
-    private void uploadTrackImage(UploadDto uploadDto, Long lastTrackId, String uuid)  {
-        String imagePath = uploadPath + "/trackImage/" + lastTrackId + "/" + uuid;
+    private void uploadTrackImage(UploadDto uploadDto, Long lastTrackId)  {
+        String imagePath = s3UploadPath + "/trackImage/" + lastTrackId;
         uploadDto.setUploadImagePath(imagePath);
-        fileService.uploadTrackImageFile(uploadDto.getUploadImage(), "/trackImage/" + lastTrackId, uuid);
+        fileService.uploadTrackImageFile(
+                uploadDto.getUploadImage(),
+                "trackImage/" + lastTrackId
+                );
     }
 
-    private String uploadTrackFile(MultipartFile uploadTrackFile, Long lastTrackId, String uuid)  {
-
-        return fileService.uploadTrackFile(uploadTrackFile, "/track/", lastTrackId, uuid);
-
+    private String uploadTrackFile(MultipartFile uploadTrackFile, Long lastTrackId)  {
+        return fileService.uploadTrackFile(uploadTrackFile, lastTrackId);
     }
 
 

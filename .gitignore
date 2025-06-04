@@ -17,7 +17,10 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-**/project/config
+**/project/config/JwtAuthFilter
+**/project/config/RedisConfig
+**/project/config/SecurityConfig
+**/project/config/WebConfig
 **/application.properties
 **/skrrskrr-c3509-firebase-adminsdk-jvd09-e4842d6938.json
 

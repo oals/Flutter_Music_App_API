@@ -4,8 +4,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileService {
 
-    String uploadTrackFile(MultipartFile file, String dir, Long lastTrackId , String trackNm);
+    String uploadTrackFile(MultipartFile file, Long lastTrackId );
 
-    Boolean uploadTrackImageFile(MultipartFile file,String dir, String imageFileNm);
+    Boolean uploadTrackImageFile(MultipartFile file,String dir);
 
 }

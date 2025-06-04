@@ -128,8 +128,6 @@ public class PlayListServiceImpl implements PlayListService {
                 .fetchPlayListPreviewDto(PlayListDto.class);
     }
 
-
-
     @Override
     public PlayListResponseDto getPlayList(PlayListRequestDto playListRequestDto) {
 
@@ -351,7 +349,6 @@ public class PlayListServiceImpl implements PlayListService {
                 .fetchCount();
     }
 
-
     private List<PlayListDto> getRecommendLikeMemberPopularPlayList(PlayListRequestDto playListRequestDto) {
 
         List<PlayListDto> recommendPlaysList = new ArrayList<>();
@@ -369,11 +366,11 @@ public class PlayListServiceImpl implements PlayListService {
     }
 
     private List<PlayListDto> getSearchRecommendPlayLists(PlayListRequestDto playListRequestDto) {
+
         SearchRequestDto searchRequestDto = new SearchRequestDto();
         searchRequestDto.setLoginMemberId(playListRequestDto.getLoginMemberId());
         searchRequestDto.setLimit(5L);
         searchRequestDto.setIsAlbum(playListRequestDto.getIsAlbum());
-
         searchRequestDto.setSearchKeywordList(searchService.processSearchKeywords(searchRequestDto));
 
         return getSearchKeywordPlayList(searchRequestDto);
