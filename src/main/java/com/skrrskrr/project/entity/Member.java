@@ -56,6 +56,7 @@ public class Member {
         member.setMemberId(memberDto.getMemberId());
         member.setMemberNickName(memberDto.getMemberNickName()); // 수정 필요
         member.setMemberEmail(memberDto.getMemberEmail());
+        member.setMemberDeviceToken(memberDto.getMemberDeviceToken());
         member.setMemberImagePath("");
         member.setMemberFollowCnt(0L); // 기본값
         member.setMemberFollowerCnt(0L); // 기본값

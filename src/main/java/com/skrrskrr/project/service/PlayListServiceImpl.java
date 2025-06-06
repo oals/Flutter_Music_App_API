@@ -55,7 +55,6 @@ public class PlayListServiceImpl implements PlayListService {
         return recommendAlbum;
     }
 
-
     @Override
     public PlayListResponseDto getSearchPlayList(SearchRequestDto searchRequestDto) {
 
@@ -183,7 +182,6 @@ public class PlayListServiceImpl implements PlayListService {
         return playListDtoList;
     }
 
-
     @Override
     public PlayListResponseDto getPlayListInfo(PlayListRequestDto playListRequestDto) {
 
@@ -193,7 +191,6 @@ public class PlayListServiceImpl implements PlayListService {
                 .playList(playListDto)
                 .build();
     }
-
 
     private List<PlayListDto> getSearchKeywordPlayList(SearchRequestDto searchRequestDto) {
 
@@ -260,6 +257,7 @@ public class PlayListServiceImpl implements PlayListService {
                 .findPlayListBySearchText(searchRequestDto.getSearchText())
                 .findIsPlayListPrivacyFalse()
                 .findIsPlayListNotEmpty()
+                .findIsAlbum(searchRequestDto.getIsAlbum())
                 .fetchCount();
 
     }
@@ -302,8 +300,6 @@ public class PlayListServiceImpl implements PlayListService {
                 .findPlayListByPlayListId(playListRequestDto.getPlayListId())
                 .execute();
     }
-
-
 
     @Override
     public Long newPlayList(PlayListRequestDto playListRequestDto) {
@@ -505,7 +501,6 @@ public class PlayListServiceImpl implements PlayListService {
 
     }
 
-
     private Long setPlayListRelationships(PlayList playList, Member member){
 
         MemberPlayList memberPlayList = new MemberPlayList();
@@ -518,7 +513,6 @@ public class PlayListServiceImpl implements PlayListService {
 
         return playListRepository.save(playList).getPlayListId();
     }
-
 
     private String addTimes(String trackTime, String playListTotalTime) {
         DateTimeFormatter formatterWithSeconds = DateTimeFormatter.ofPattern("H:mm:ss");
@@ -537,9 +531,6 @@ public class PlayListServiceImpl implements PlayListService {
             return totalTime.format(formatterWithSeconds);
         }
     }
-
-
-
 
     private LocalTime parseTime(String time, DateTimeFormatter formatter) {
 

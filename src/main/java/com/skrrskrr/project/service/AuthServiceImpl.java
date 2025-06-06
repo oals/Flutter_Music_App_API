@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
         String email = claims.get("email", String.class);  // 이메일 추출
 
         // 새로운 액세스 토큰 발급
-        Date accessTokenExpiration = new Date(System.currentTimeMillis() + 1000 * 60 * 30);  // 15분 후 만료
+        Date accessTokenExpiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7);
 
         String jwtToken = generateJwtToken(uid, email, accessTokenExpiration, "access");
 

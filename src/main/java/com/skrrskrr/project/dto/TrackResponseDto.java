@@ -17,6 +17,8 @@ public class TrackResponseDto {
 
     List<TrackDto> trackList;
 
+    List<TrackDto> trackList2;
+
     TrackDto track;
 
     Long totalCount;

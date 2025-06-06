@@ -144,7 +144,6 @@ public class SearchServiceImpl implements SearchService{
         return Arrays.stream(uniqueKeywordArray).toList();
     }
 
-
     private List<HistoryDto> getSearchHistory(SearchRequestDto searchRequestDto){
 
         HistorySelectQueryBuilder historySelectQueryBuilder = new HistorySelectQueryBuilder(jpaQueryFactory);

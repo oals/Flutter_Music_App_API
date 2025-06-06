@@ -1,9 +1,6 @@
 package com.skrrskrr.project.service;
 
-import com.skrrskrr.project.dto.MemberResponseDto;
-import com.skrrskrr.project.dto.PlayListRequestDto;
-import com.skrrskrr.project.dto.TrackResponseDto;
-import com.skrrskrr.project.dto.UploadDto;
+import com.skrrskrr.project.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +41,6 @@ public class UploadServiceImpl implements UploadService {
         uploadDto.setTrackTime(audioPlayTime);
 
         trackService.saveTrack(uploadDto);
-
     }
 
     @Override
@@ -62,7 +58,7 @@ public class UploadServiceImpl implements UploadService {
             String audioPlayTime = uploadTrackFile(uploadDto.getUploadFileList().get(i), lastTrackId);
 
             String trackNm = getUploadTrackFileNm(uploadDto.getUploadFileList().get(i));
-            String audioFilePath = s3UploadPath +  "/" + lastTrackId + "/playList.m3u8";
+            String audioFilePath = s3UploadPath +  "/track/" + lastTrackId + "/playlist.m3u8";
             uploadDto.setUploadFilePath(audioFilePath);
             uploadDto.setTrackNm(trackNm);
             uploadDto.setTrackTime(audioPlayTime);
@@ -153,12 +149,12 @@ public class UploadServiceImpl implements UploadService {
 
 
     private void saveAlbum(UploadDto uploadDto, List<Long> uploadTrackIdList) {
+
         PlayListRequestDto playListRequestDto = new PlayListRequestDto();
         playListRequestDto.setPlayListNm(uploadDto.getAlbumNm());
         playListRequestDto.setIsPlayListPrivacy(uploadDto.getIsTrackPrivacy());
         playListRequestDto.setLoginMemberId(uploadDto.getLoginMemberId());
         playListRequestDto.setIsAlbum(true);
-
 
         Long playListId = playListService.newPlayList(playListRequestDto);
         if (playListId != null) {
@@ -170,8 +166,6 @@ public class UploadServiceImpl implements UploadService {
             }
         }
     }
-
-
 
     private String getUploadTrackFileNm(MultipartFile trackFile){
 

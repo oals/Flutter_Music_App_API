@@ -99,15 +99,18 @@ public class TrackServiceImpl implements TrackService {
     public TrackResponseDto getMemberPagePopularTrack(MemberRequestDto memberRequestDto) {
 
         List<TrackDto> popularTrackDtoList = new ArrayList<>();
+        List<TrackDto> memberPageAllTrack = new ArrayList<>();
         Long totalCount = getMemberTrackListCnt(memberRequestDto);
 
         if (totalCount != 0) {
+            memberPageAllTrack = getAllMemberTrackList(memberRequestDto);
             memberRequestDto.setLimit(5L);
             popularTrackDtoList = getMemberPopularTrackList(memberRequestDto);
         }
 
         return TrackResponseDto.builder()
                 .trackList(popularTrackDtoList)
+                .trackList2(memberPageAllTrack)
                 .totalCount(totalCount)
                 .build();
     }
@@ -120,7 +123,6 @@ public class TrackServiceImpl implements TrackService {
             Track track = createTrack(uploadDto);
             // 트랙 연관 관계 설정
             setTrackRelationships(track, uploadDto);
-
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,7 +146,6 @@ public class TrackServiceImpl implements TrackService {
         if (member == null || category == null) {
             throw new IllegalStateException("member or category cannot be null.");
         }
-
 
         // Track 엔티티 생성
         Track track = Track.builder()
@@ -248,9 +249,12 @@ public class TrackServiceImpl implements TrackService {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
 
-        return trackSelectQueryBuilder.selectFrom(QMemberTrack.memberTrack)
+        Long lastTrackId = trackSelectQueryBuilder
+                .selectFrom(QMemberTrack.memberTrack)
                 .orderByMemberTrackIdDesc()
-                .fetchTrackId() + 1;
+                .fetchTrackId();
+
+        return (lastTrackId != null) ? lastTrackId + 1 : 1;
     }
 
     @Override
@@ -312,7 +316,6 @@ public class TrackServiceImpl implements TrackService {
 
     }
 
-
     private Long getSearchTrackListCnt(SearchRequestDto searchRequestDto) {
 
         TrackSelectQueryBuilder trackSelectQueryBuilder = new TrackSelectQueryBuilder(jpaQueryFactory);
@@ -322,7 +325,6 @@ public class TrackServiceImpl implements TrackService {
                 .findIsTrackPrivacyFalseOrEqualLoginMemberId(searchRequestDto.getLoginMemberId())
                 .fetchCount();
     }
-
 
     @Override
     public List<TrackDto> getLastListenTrackList(Long loginMemberId) {
@@ -361,8 +363,6 @@ public class TrackServiceImpl implements TrackService {
                         .offset(memberRequestDto.getOffset())
                         .limit(memberRequestDto.getLimit())
                         .fetchTrackListDto(TrackDto.class);
-
-
     }
 
     private List<TrackDto> getMemberPopularTrackList(MemberRequestDto memberRequestDto) {
@@ -376,10 +376,10 @@ public class TrackServiceImpl implements TrackService {
                         .findIsTrackPrivacyFalseOrEqualLoginMemberId(memberRequestDto.getLoginMemberId())
                         .orderByTrackPlayCntDesc()
                         .orderByTrackLikeCntDesc()
+                        .orderByMemberTrackIdDesc()
                         .offset(memberRequestDto.getOffset())
                         .limit(memberRequestDto.getLimit())
                         .fetchTrackListDto(TrackDto.class);
-
     }
 
     @Override
@@ -415,7 +415,6 @@ public class TrackServiceImpl implements TrackService {
                 .track(trackInfoDto)
                 .build();
     }
-
 
     @Override
     public TrackResponseDto getAudioPlayerTrackList(TrackRequestDto trackRequestDto) {

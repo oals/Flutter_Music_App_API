@@ -11,7 +11,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -26,7 +25,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final JPAQueryFactory jpaQueryFactory;
-    private final ModelMapper modelMapper;
 
     @Override
     public MemberDto getMemberInfo(HomeRequestDto homeRequestDto) {
@@ -54,7 +52,6 @@ public class MemberServiceImpl implements MemberService {
 
         return memberDto;
     }
-
 
     private Boolean setMemberDeviceToken(HomeRequestDto homeRequestDto) {
 
@@ -149,10 +146,9 @@ public class MemberServiceImpl implements MemberService {
     public MemberResponseDto getSearchMember(SearchRequestDto searchRequestDto) {
 
         List<FollowDto> followMemberList = new ArrayList<>();
-
         Long totalCount = getSearchMemberListCnt(searchRequestDto);
-        /* 검색된 멤버 정보*/
 
+        /* 검색된 멤버 정보*/
         if (totalCount != 0L) {
             followMemberList = getSearchMemberList(searchRequestDto);
         }
@@ -270,39 +266,6 @@ public class MemberServiceImpl implements MemberService {
         }
 
         return memberDtos;
-
-
-
-
-//        List<MemberDto> randomMemberList = new ArrayList<>();
-//
-//        for (Member randomItem : queryResultMember) {
-//
-//            int isFollowedCd = 0; // 관계없음
-//
-//            for (int i = 0; i < randomItem.getFollowing().size(); i++) {
-//                if (randomItem.getFollowing().get(i).getFollower().getMemberId().equals(loginMemberId)) {
-//                    isFollowedCd = 1; // 내가 팔로우 중
-//                    break;
-//                }
-//            }
-//
-//            for (int i = 0; i < randomItem.getFollowers().size(); i++) {
-//                if (randomItem.getFollowers().get(i).getFollowing().getMemberId().equals(loginMemberId)) {
-//                    if (isFollowedCd == 1) {
-//                        isFollowedCd = 3; //맞팔
-//                    } else {
-//                        isFollowedCd = 2; //내 팔로워
-//                    }
-//                }
-//            }
-//
-//            MemberDto memberDto = modelMapper.map(randomItem, MemberDto.class);
-//            memberDto.setIsFollowedCd(isFollowedCd);
-//
-//            randomMemberList.add(memberDto);
-//        }
-//            return randomMemberList;
     }
 
 }

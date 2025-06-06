@@ -45,6 +45,5 @@ public class UploadController {
         log.info("updateMemberImage");
         MemberResponseDto memberResponseDto = uploadService.updateMemberImage(uploadDto);
         return ResponseEntity.ok(memberResponseDto);
-
     }
 }
