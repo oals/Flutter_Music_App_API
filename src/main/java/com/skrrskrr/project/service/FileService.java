@@ -6,6 +6,6 @@ public interface FileService {
 
     String uploadTrackFile(MultipartFile file, Long lastTrackId );
 
-    Boolean uploadTrackImageFile(MultipartFile file,String dir);
+    Boolean uploadTrackImageFile(MultipartFile file,String dir, String uploadDate);
 
 }

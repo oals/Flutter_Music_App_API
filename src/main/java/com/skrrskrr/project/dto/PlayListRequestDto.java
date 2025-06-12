@@ -2,6 +2,8 @@ package com.skrrskrr.project.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,6 +18,8 @@ public class PlayListRequestDto extends BaseRequestDto{
     private String playListNm;
 
     private Boolean isPlayListPrivacy;
+
+    private List<Long> playListIdList;
 
     private Boolean isAlbum;
 

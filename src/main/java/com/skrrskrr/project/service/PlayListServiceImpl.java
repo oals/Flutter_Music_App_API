@@ -382,6 +382,7 @@ public class PlayListServiceImpl implements PlayListService {
                 .findPlayListsByNotMemberId(playListRequestDto.getLoginMemberId())
                 .findIsPlayListPrivacyFalse()
                 .findIsAlbum(playListRequestDto.getIsAlbum())
+                .findPlayListByNotPlayListIdList(playListRequestDto.getPlayListIdList())
                 .orderByPlayListLikeCntDesc()
                 .findIsAlbum(playListRequestDto.getIsAlbum())
                 .limit(15L)
@@ -399,14 +400,13 @@ public class PlayListServiceImpl implements PlayListService {
                 .toList();
     }
 
-    private List<PlayListDto> getMemberRecommendPlayList(PlayListRequestDto playListRequestDto,List<Long> playListMemberIdList,List<Long> playListIdList, Long limit){
+    private List<PlayListDto> getMemberRecommendPlayList(PlayListRequestDto playListRequestDto,List<Long> playListIdList, Long limit){
 
         PlayListSelectQueryBuilder playListSelectQueryBuilder = new PlayListSelectQueryBuilder(jpaQueryFactory);
 
         return (List<PlayListDto>) playListSelectQueryBuilder
                 .selectFrom(QMemberPlayList.memberPlayList)
-                .findPlayListByNotPlayListIdList(playListIdList)
-                .findPlayListByMemberIdList(playListMemberIdList)
+                .findPlayListByNotPlayListIdList(playListRequestDto.getPlayListIdList())
                 .findIsPlayListPrivacyFalse()
                 .findIsPlayListNotEmpty()
                 .findIsAlbum(playListRequestDto.getIsAlbum())
@@ -446,11 +446,13 @@ public class PlayListServiceImpl implements PlayListService {
             Long addRecommendPlayListLimit = (long) (15 - recommendPlayList.size());
 
             List<Long> playListMemberIdList = getRecommendPlayListsMemberIdList(recommendPlayList);
+            playListRequestDto.setPlayListIdList(getRecommendPlayListsPlayListId(recommendPlayList));
+            recommendPlayList.addAll(getMemberRecommendPlayList(playListRequestDto,playListMemberIdList,addRecommendPlayListLimit));
 
-            List<Long> playListIdList = getRecommendPlayListsPlayListId(recommendPlayList);
-
-            recommendPlayList.addAll(getMemberRecommendPlayList(playListRequestDto,playListMemberIdList,playListIdList,addRecommendPlayListLimit));
-
+            if (recommendPlayList.size() < 15) {
+                playListRequestDto.setPlayListIdList( getRecommendPlayListsPlayListId(recommendPlayList));
+                recommendPlayList.addAll(getRecommendPopularPlayLists(playListRequestDto));
+            }
         }
 
         return recommendPlayList;

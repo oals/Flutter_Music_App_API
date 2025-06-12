@@ -6,6 +6,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -81,13 +84,16 @@ public class UploadServiceImpl implements UploadService {
         //이미지가 없을 경우 기본 이미지
         if (uploadDto.getUploadImage() != null) {
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String formattedTime = LocalDateTime.now().format(formatter);
+
             Boolean isTrackImageUpload = fileService.uploadTrackImageFile(
-                    uploadDto.getUploadImage(), "trackImage/" + uploadDto.getTrackId()
+                    uploadDto.getUploadImage(), "trackImage/" + uploadDto.getTrackId(), formattedTime
                     );
 
             if (isTrackImageUpload) {
 
-                uploadDto.setUploadImagePath(s3UploadPath + "/trackImage/" + uploadDto.getTrackId());
+                uploadDto.setUploadImagePath(s3UploadPath + "/trackImage/" + uploadDto.getTrackId() + "/" + formattedTime );
 
                 Boolean isSuccess = trackService.updateTrackImage(uploadDto);
 
@@ -108,12 +114,16 @@ public class UploadServiceImpl implements UploadService {
 
         //서버 이미지 저장
         if (uploadDto.getUploadImage() != null) {
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String formattedTime = LocalDateTime.now().format(formatter);
+
             Boolean isMemberImageUpload = fileService.uploadTrackImageFile(
-                    uploadDto.getUploadImage(),"memberImage/" + uploadDto.getLoginMemberId()
+                    uploadDto.getUploadImage(),"memberImage/" + uploadDto.getLoginMemberId(), formattedTime
             );
 
             if (isMemberImageUpload) {
-                uploadDto.setUploadImagePath(s3UploadPath + "/memberImage/" + uploadDto.getLoginMemberId());
+                uploadDto.setUploadImagePath(s3UploadPath + "/memberImage/" + uploadDto.getLoginMemberId() + "/" + formattedTime);
                 Boolean isSuccess = memberService.setMemberImage(uploadDto);
                 if (isSuccess) {
                     memberImagePath = uploadDto.getUploadImagePath();
@@ -135,11 +145,17 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private void uploadTrackImage(UploadDto uploadDto, Long lastTrackId)  {
-        String imagePath = s3UploadPath + "/trackImage/" + lastTrackId;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String formattedTime = LocalDateTime.now().format(formatter);
+
+        String imagePath = s3UploadPath + "/trackImage/" + lastTrackId + "/" + formattedTime;
+
         uploadDto.setUploadImagePath(imagePath);
         fileService.uploadTrackImageFile(
                 uploadDto.getUploadImage(),
-                "trackImage/" + lastTrackId
+                "trackImage/" + lastTrackId,
+                formattedTime
                 );
     }
 

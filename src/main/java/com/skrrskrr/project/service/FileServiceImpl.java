@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 
@@ -31,12 +34,31 @@ public class FileServiceImpl implements FileService{
     }
 
     @Override
-    public Boolean uploadTrackImageFile(MultipartFile file, String keyName) {
+    public Boolean uploadTrackImageFile(MultipartFile file, String keyName, String uploadDate) {
 
         try {
+
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(s3BucketName)
+                    .prefix(keyName) // 해당 디렉토리 내 모든 파일 가져오기
+                    .build();
+
+            ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
+
+            listResponse.contents().forEach(obj -> {
+                String key = obj.key(); // 디렉토리 내부의 파일 키
+
+                s3Client.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(s3BucketName)
+                        .key(key)
+                        .build());
+
+                System.out.println("삭제 완료: " + key);
+            });
+
             s3Client.putObject(PutObjectRequest.builder()
                             .bucket(s3BucketName)
-                            .key(keyName)
+                            .key(keyName + "/" + uploadDate)
                             .build(),
                     RequestBody.fromBytes(file.getBytes()));
 

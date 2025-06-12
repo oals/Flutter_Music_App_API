@@ -182,8 +182,6 @@ public class MemberServiceImpl implements MemberService {
                 .build();
     }
 
-
-
     @Override
     public List<FollowDto> getSearchMemberList(SearchRequestDto searchRequestDto) {
 

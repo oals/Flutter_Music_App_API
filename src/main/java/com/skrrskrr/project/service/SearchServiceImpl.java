@@ -39,7 +39,6 @@ public class SearchServiceImpl implements SearchService{
 
     }
 
-
     private Member getMemberEntity(Long memberId) {
 
         MemberSelectQueryBuilder memberSelectQueryBuilder = new MemberSelectQueryBuilder(jpaQueryFactory);
