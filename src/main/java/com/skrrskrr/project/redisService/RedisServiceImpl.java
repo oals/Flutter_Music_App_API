@@ -28,7 +28,7 @@ public class RedisServiceImpl implements RedisService{
     @Override
     public void setAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
 
-        String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
+        String key = "audioPlayerTrackIdList:" + trackRequestDto.getLoginMemberId();
 
         List<Long> trackIdList = trackRequestDto.getTrackIdList();
 
@@ -39,7 +39,7 @@ public class RedisServiceImpl implements RedisService{
     @Override
     public List<Long> getAudioPlayerTrackIdList(TrackRequestDto trackRequestDto) {
         // 레디스 키 생성
-        String key = "audioPlayerTrackId:" + trackRequestDto.getLoginMemberId();
+        String key = "audioPlayerTrackIdList:" + trackRequestDto.getLoginMemberId();
 
         // 레디스에서 저장된 데이터를 가져오기
         String trackIdListString = redisTemplate.opsForValue().get(key);
@@ -63,7 +63,7 @@ public class RedisServiceImpl implements RedisService{
     private void saveLastListenTrackId(TrackRequestDto trackRequestDto) {
         try {
             // Redis에 저장
-            String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
+            String key = "lastListenTrackId:" + trackRequestDto.getLoginMemberId();
             redisTemplate.opsForValue().set(key, trackRequestDto.getTrackId().toString());
 
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class RedisServiceImpl implements RedisService{
     private void saveLastListenTrackIdList(TrackRequestDto trackRequestDto) {
 
         try {
-            String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
+            String key = "lastListenTrackIdList:" + trackRequestDto.getLoginMemberId();
             String trackId = trackRequestDto.getTrackId().toString();
 
             redisTemplate.opsForList().remove(key, 1, trackId);
@@ -100,7 +100,7 @@ public class RedisServiceImpl implements RedisService{
     @Override
     public List<Long> getLastListenTrackIdList(TrackRequestDto trackRequestDto){
 
-        String key = "lastListenTrackList:" + trackRequestDto.getLoginMemberId();
+        String key = "lastListenTrackIdList:" + trackRequestDto.getLoginMemberId();
         List<String> lastListenTrackList = redisTemplate.opsForList().range(key, 0, -1); // 모든 트랙 ID를 가져옵니다.
 
         return  lastListenTrackList.stream()
@@ -112,7 +112,7 @@ public class RedisServiceImpl implements RedisService{
     @Override
     public TrackResponseDto getLastListenTrackId(TrackRequestDto trackRequestDto){
 
-        String key = "lastListenTrack:" + trackRequestDto.getLoginMemberId();
+        String key = "lastListenTrackId:" + trackRequestDto.getLoginMemberId();
 
         Long lastListenTrackId = Optional.ofNullable(redisTemplate.opsForValue().get(key))
                 .map(Long::valueOf)
